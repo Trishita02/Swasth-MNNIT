@@ -1,18 +1,13 @@
 const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 const StaffSchema = new mongoose.Schema({
-  first_name: { type: String, required: true, trim: true },
-  last_name: { type: String, required: true, trim: true },
+  username: { type: String, required: true, unique: true, trim: true },
   email: { type: String, required: true, unique: true, trim: true },
   phone: { type: String, required: true, unique: true },
-  role: {
-    type: String,
-    enum: ["Nurse", "Receptionist", "Pharmacist", "Cleaner", "Other"],
-    required: true,
-  },
+  password: { type: String, required: true }, // Encrypted password
   salary: { type: Number, required: true, min: 0 },
-  shift_timing: { type: String, required: true }, // Example: "Night Shift"
-  status: { type: String, enum: ["Active", "Inactive"], default: "Active" },
   shifts: [
     {
       date: { type: Date, required: true },
@@ -22,6 +17,25 @@ const StaffSchema = new mongoose.Schema({
   ],
   created_at: { type: Date, default: Date.now },
 });
+
+// 🔐 Hash password before saving
+StaffSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+  this.password = await bcrypt.hash(this.password, 10);
+  next();
+});
+
+// 🔑 Check if password is correct
+StaffSchema.methods.isPasswordCorrect = async function (password) {
+  return await bcrypt.compare(password, this.password);
+};
+
+// 🔑 Generate JWT Access Token
+StaffSchema.methods.generateAccessToken = function () {
+  return jwt.sign({ _id: this._id }, process.env.ACCESS_TOKEN_SECRET, {
+    expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
+  });
+};
 
 const Staff = mongoose.model("Staff", StaffSchema);
 module.exports = Staff;
