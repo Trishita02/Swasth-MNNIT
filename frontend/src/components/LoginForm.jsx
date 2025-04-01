@@ -4,6 +4,7 @@ import { Button } from "../components/Button.jsx";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/Card.jsx";
 import { Input } from "../components/Input.jsx";
 import { Label } from "../components/Label.jsx";
+import { loginAPI } from "../api.jsx"; // Import loginAPI
 
 export default function LoginForm() {
   const [username, setUsername] = useState("");
@@ -26,13 +27,13 @@ export default function LoginForm() {
         throw new Error("Role must be admin, staff, or doctor");
       }
 
-      // Simulate authentication
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Call login API
+      await loginAPI(username, password);
 
       // Redirect based on role
-      navigate(`/dashboard/${role}`);
+      navigate(`/${role}`);
     } catch (error) {
-      alert(error.message || "Invalid credentials"); // React alternative to `useToast`
+      alert(error.message || "Invalid credentials"); // Replace with toast for better UI
     } finally {
       setIsLoading(false);
     }
