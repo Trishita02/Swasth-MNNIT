@@ -1,6 +1,7 @@
-const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+
 
 const DoctorSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true, trim: true },
@@ -39,5 +40,4 @@ DoctorSchema.methods.generateAccessToken = function () {
   });
 };
 
-const Doctor = mongoose.model("Doctor", DoctorSchema);
-module.exports = Doctor;
+export const Doctor = mongoose.model("Doctor", DoctorSchema);
