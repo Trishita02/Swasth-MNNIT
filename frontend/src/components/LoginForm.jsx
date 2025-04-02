@@ -30,7 +30,7 @@ export default function LoginForm() {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // Redirect based on role
-      navigate(`/dashboard/${role}`);
+      navigate(`/${role}`);
     } catch (error) {
       alert(error.message || "Invalid credentials"); // React alternative to `useToast`
     } finally {
