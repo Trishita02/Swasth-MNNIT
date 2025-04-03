@@ -1,16 +1,14 @@
-import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-
+import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 const DoctorSchema = new mongoose.Schema({
+  name: { type: String, required: true, trim: true }, // Added name
   username: { type: String, required: true, unique: true, trim: true },
   email: { type: String, required: true, unique: true, trim: true },
   phone: { type: String, required: true, unique: true },
   password: { type: String, required: true }, // Encrypted password
-  specialization: { type: String, required: true, trim: true }, // Example: "Cardiology"
-  experience: { type: Number, required: true, min: 0 }, // Years of experience
-  qualification: { type: String, required: true, trim: true }, // Example: "MBBS, MD"
+
   availability: [
     {
       day: { type: String, required: true }, // Example: "Monday"

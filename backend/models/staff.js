@@ -1,21 +1,13 @@
-import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-
+import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 const StaffSchema = new mongoose.Schema({
+  name: { type: String, required: true, trim: true }, // Added name
   username: { type: String, required: true, unique: true, trim: true },
   email: { type: String, required: true, unique: true, trim: true },
   phone: { type: String, required: true, unique: true },
   password: { type: String, required: true }, // Encrypted password
-  salary: { type: Number, required: true, min: 0 },
-  shifts: [
-    {
-      date: { type: Date, required: true },
-      start_time: { type: String, required: true },
-      end_time: { type: String, required: true },
-    },
-  ],
   created_at: { type: Date, default: Date.now },
 });
 
