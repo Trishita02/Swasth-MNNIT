@@ -1,6 +1,7 @@
 import  Sidebar  from "../components/dashboard/Sidebar";
 import  Header  from "../components/dashboard/Header";
 import  MainContent  from "../components/dashboard/MainContent";
+import { Outlet } from "react-router-dom";
 import { useState } from "react";
 import { Bell, Calendar, Home, LogOut, Menu, Package, Settings, Users } from "lucide-react"
 
@@ -9,32 +10,32 @@ const AdminDashboard = () => {
   const sidemenu =[
     {
       title: "Dashboard",
-      href: `/admin/dashboard`,
+      href: `dashboard`,
       icon: <Home className="h-5 w-5" />,
     },
     {
       title: "Manage Users",
-      href: "/admin/users",
+      href: "users",
       icon: <Users className="h-5 w-5" />,
     },
     {
       title: "Notifications",
-      href: "/admin/notifications",
+      href: "notifications",
       icon: <Bell className="h-5 w-5" />,
     },
     {
       title: "Activity Logs",
-      href: "/admin/logs",
+      href: "logs",
       icon: <Package className="h-5 w-5" />,
     },
     {
       title: "Schedule",
-      href: "/admin/schedule",
+      href: "schedule",
       icon: <Calendar className="h-5 w-5" />,
     },
     {
       title: "Change Password",
-      href: `/admin/change-password`,
+      href: `change-password`,
       icon: <Settings className="h-5 w-5" />,
     },
   ]
@@ -57,7 +58,9 @@ const AdminDashboard = () => {
         <Header toggleSidebar={toggleSidebar} role="Admin" />
 
         {/* Main Content */}
-        <MainContent />
+        <MainContent>
+          <Outlet />
+        </MainContent>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import  Sidebar  from "../components/dashboard/Sidebar";
 import  Header  from "../components/dashboard/Header";
 import  MainContent  from "../components/dashboard/MainContent";
+import { Outlet } from "react-router-dom";
 import { useState } from "react";
 import { Bell, Calendar, Home, LogOut, Menu, Package, Settings, Users } from "lucide-react"
 
@@ -9,37 +10,37 @@ const DoctorDashboard = () => {
   const sidemenu = [
     {
       title: "Dashboard",
-      href: `/doctor/dashboard`,
+      href: `dashboard`,
       icon: <Home className="h-5 w-5" />,
     },
     {
       title: "Patient Records",
-      href: "/doctor/patients",
+      href: "patients",
       icon: <Users className="h-5 w-5" />,
     },
     {
       title: "Prescriptions",
-      href: "/doctor/prescriptions",
+      href: "prescriptions",
       icon: <Package className="h-5 w-5" />,
     },
     {
       title: "Duty Schedule",
-      href: "/doctor/schedule",
+      href: "schedule",
       icon: <Calendar className="h-5 w-5" />,
     },
     {
       title: "Medicine Stock",
-      href: "/doctor/medicines",
+      href: "medicines",
       icon: <Package className="h-5 w-5" />,
     },
     {
       title: "Notifications",
-      href: "/doctor/notifications",
+      href: "notifications",
       icon: <Bell className="h-5 w-5" />,
     },
     {
       title: "Change Password",
-      href: `/doctor/change-password`,
+      href: `change-password`,
       icon: <Settings className="h-5 w-5" />,
     },
   ]
@@ -62,7 +63,9 @@ const DoctorDashboard = () => {
         <Header toggleSidebar={toggleSidebar} role="Doctor" />
 
         {/* Main Content */}
-        <MainContent />
+        <MainContent>
+          <Outlet />
+        </MainContent>
       </div>
     </div>
   );

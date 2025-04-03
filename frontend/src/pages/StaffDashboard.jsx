@@ -1,6 +1,7 @@
 import  Sidebar  from "../components/dashboard/Sidebar";
 import  Header  from "../components/dashboard/Header";
 import  MainContent  from "../components/dashboard/MainContent";
+import { Outlet } from "react-router-dom";
 import { useState } from "react";
 import { Bell, Calendar, Home, LogOut, Menu, Package, Settings, Users } from "lucide-react"
 
@@ -9,32 +10,32 @@ const StaffDashboard = () => {
   const sidemenu =[
     {
         title: "Dashboard",
-        href: `/staff/dashboard`,
+        href: `dashboard`,
         icon: <Home className="h-5 w-5" />,
       },
         {
         title: "Patient Records",
-        href: "/staff/patients",
+        href: "patients",
         icon: <Users className="h-5 w-5" />,
       },
       {
         title: "Medicine Inventory",
-        href: "/staff/medicines",
+        href: "medicines",
         icon: <Package className="h-5 w-5" />,
       },
       {
         title: "Prescriptions",
-        href: "/staff/prescriptions",
+        href: "prescriptions",
         icon: <Package className="h-5 w-5" />,
       },
       {
         title: "Notifications",
-        href: "/staff/notifications",
+        href: "notifications",
         icon: <Bell className="h-5 w-5" />,
       },
       {
         title: "Change Password",
-        href: `/staff/change-password`,
+        href: `change-password`,
         icon: <Settings className="h-5 w-5" />,
       },
   ]
@@ -57,7 +58,9 @@ const StaffDashboard = () => {
         <Header toggleSidebar={toggleSidebar} role="Staff"/>
 
         {/* Main Content */}
-        <MainContent />
+        <MainContent>
+          <Outlet />
+        </MainContent>
       </div>
     </div>
   );
