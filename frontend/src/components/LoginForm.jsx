@@ -37,7 +37,7 @@ export default function LoginForm() {
       // Show success toast
       toast.success(`Login successful! Redirecting to ${role} dashboard...`, {
         autoClose: 2000,
-        onClose: () => navigate(`/${role}`)
+        onClose: () => navigate(`/${role}/dashboard`)
       });
 
     } catch (error) {
