@@ -26,14 +26,15 @@ export default function LoginForm() {
         throw new Error("Username must be in format: name.role");
       }
 
-      const role = username.split(".")[1];
-      if (!["admin", "staff", "doctor"].includes(role)) {
+      let role = username.match(/\.(st|dr)\d+$|\.admin$/)?.[1]|| (username.endsWith(".admin") ? "admin" : undefined);
+      if (!["admin", "st", "dr"].includes(role)) {
         throw new Error("Role must be admin, staff, or doctor");
       }
 
       // Call login API
       await loginAPI(username, password);
-      
+      if(role=="st") role="staff"
+      else if(role=="dr") role="doctor"
       // Show success toast
       toast.success(`Login successful! Redirecting to ${role} dashboard...`, {
         autoClose: 2000,

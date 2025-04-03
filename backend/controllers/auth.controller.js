@@ -21,11 +21,11 @@ export const loginUser = async (req, res) => {
         if (!username) throw new ApiError(400, "Email is required");
         if (!password) throw new ApiError(400, "Password is required");
 
-        const role=username.split('.')[1]
+        const role = username.match(/\.(st|dr)\d+$/)?.[1]|| (username.endsWith(".admin") ? "admin" : undefined);
         let User;
-        if(role=="admin") User=Admin
-        else if(role=="staff") User=Staff
-        else User=Doctor
+        if(role=="dr") User=Doctor
+        else if(role=="st") User=Staff
+        else User=Admin
         const user=await User.findOne({username})
         if (!user) throw new ApiError(404, `User does not exist`);
 

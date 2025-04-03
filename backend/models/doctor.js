@@ -1,14 +1,16 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { getNextSequence } from "../utils/sequence.js"; 
 
 const DoctorSchema = new mongoose.Schema({
+  seqNo: { type: Number, unique: true },
   name: { type: String, required: true, trim: true }, // Added name
-  username: { type: String, required: true, unique: true, trim: true },
+  username: { type: String, unique: true, trim: true },
   email: { type: String, required: true, unique: true, trim: true },
   phone: { type: String, required: true, unique: true },
   password: { type: String, required: true }, // Encrypted password
-
+  specialization: { type: String, required: true},
   availability: [
     {
       day: { type: String, required: true }, // Example: "Monday"
@@ -21,6 +23,9 @@ const DoctorSchema = new mongoose.Schema({
 
 // 🔐 Hash password before saving
 DoctorSchema.pre("save", async function (next) {
+  if (!this.seqNo) {
+    this.seqNo = await getNextSequence("doctor"); // Get unique seqNo for doctors
+  }
   if (!this.isModified("password")) return next();
   this.password = await bcrypt.hash(this.password, 10);
   next();
