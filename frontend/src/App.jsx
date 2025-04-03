@@ -5,6 +5,7 @@ import StaffDashboard from "./pages/StaffDashboard.jsx";
 import AdminDashboard from "./pages/AdminDashboard.jsx";
 import DoctorDashboard from "./pages/DoctorDashboard.jsx";
 
+
 function App() {
   return (
     <BrowserRouter>
