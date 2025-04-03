@@ -41,6 +41,8 @@ export default function LoginForm() {
         onClose: () => navigate(`/${role}/dashboard`)
       });
 
+      // Redirect based on role
+      navigate(`/${role}`);
     } catch (error) {
       // Show error toast
       toast.error(error.message || "Invalid credentials", {
