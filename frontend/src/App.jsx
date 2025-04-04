@@ -18,6 +18,11 @@ import ManageUsers from "./pages/tdashboard/ManageUsers.jsx";
 import Notifications from "./pages/tdashboard/Notifications.jsx";
 import ActivityLogs from "./pages/tdashboard/ActivityLogs.jsx";
 import AssignDuties from "./pages/tdashboard/AssignDuties.jsx";
+import Prescriptions from "./pages/tdashboard/Prescriptions.jsx";
+import PatientRecords from "./pages/tdashboard/PatientRecords.jsx";
+import MedicinesInventory from "./pages/tdashboard/MedicineInventory.jsx";
+import MedicineStock from "./pages/tdashboard/MedicineStock.jsx";
+import DutySchedule from "./pages/tdashboard/DutySchedule.jsx";
 
 function App() {
   return (
@@ -25,7 +30,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/login" />}/>
         <Route path="/login" element={<Home />} />
-        
+
         <Route path="/admin" element={<AdminDashboard/>} >
           <Route index element={<Navigate to='dashboard'/>} />
           <Route path="dashboard" element={<Dashboard />} />
@@ -40,10 +45,10 @@ function App() {
           <Route index element={<Navigate to='dashboard'/>} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="change-password" element={<ChangePassword/>} />
-          <Route path="patient-records" element={<p>recor</p>} />
-          <Route path="prescriptions" element={<p>pres</p>} />
-          <Route path="duty-schedule" element={<p>duty</p>} />
-          <Route path="medicine-stock" element={<p>stock</p>} />
+          <Route path="patient-records" element={<PatientRecords/>} />
+          <Route path="prescriptions" element={<Prescriptions/>} />
+          <Route path="duty-schedule" element={<DutySchedule/>} />
+          <Route path="medicine-stock" element={<MedicineStock/>} />
           <Route path="notifications" element={<Notifications/>} />
         
         </Route>
@@ -51,9 +56,9 @@ function App() {
           <Route index element={<Navigate to='dashboard'/>} />
           <Route path="dashboard" element={<Dashboard/>} />
           <Route path="change-password" element={<ChangePassword/>} />
-          <Route path="patient-records" element={<p>recor</p>} />
-          <Route path="medicine-inventory" element={<p>inven</p>} />
-          <Route path="prescriptions" element={<p>pres</p>} />
+          <Route path="patient-records" element={<PatientRecords/>} />
+          <Route path="medicine-inventory" element={<MedicinesInventory/>} />
+          <Route path="prescriptions" element={<Prescriptions/>} />
           <Route path="notifications" element={<Notifications/>} />
         
         </Route>
