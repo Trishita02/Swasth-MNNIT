@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../..
 import { Input } from "../../components/Input.jsx";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/Select.jsx";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/Table.jsx";
-import DashboardLayout from "../../components/DashboardLayout.jsx";
 import { CalendarIcon, Search } from 'lucide-react';
 import { format } from "date-fns";
 import { Popover, PopoverContent, PopoverTrigger } from "../../components/PopOver.jsx";
@@ -113,17 +112,23 @@ function ActivityLogs() {
             </SelectContent>
         </Select>
 
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="w-[180px] justify-start text-left font-normal">
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, "PPP") : <span>Filter by date</span>}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-            <Calendar selectedDate={date} onDateChange={setDate} />
-            </PopoverContent>
-          </Popover>
+<Popover>
+  <PopoverTrigger asChild>
+    <Button variant="outline" className="w-[180px] justify-start text-left font-normal">
+      <CalendarIcon className="mr-2 h-4 w-4" />
+      {date ? format(date, "PPP") : <span>Filter date</span>}
+    </Button>
+  </PopoverTrigger>
+  <PopoverContent className="w-auto p-0">
+    <Calendar 
+      selectedDate={date || null}  // Pass null instead of undefined
+      onDateChange={(selectedDate) => {
+        setDate(selectedDate || undefined);
+      }}
+      disablePast={false}
+    />
+  </PopoverContent>
+</Popover>
           
           {date && (
             <Button variant="ghost" size="sm" onClick={() => setDate(undefined)}>

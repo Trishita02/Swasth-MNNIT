@@ -15,7 +15,6 @@ import { Label } from "../../components/Label.jsx";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/Select.jsx";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/Table.jsx";
 import { Textarea } from "../../components/TextArea.jsx";
-import DashboardLayout from "../../components/DashboardLayout.jsx";
 import { Calendar as CalendarIcon, Plus, Search, Trash, X } from "lucide-react";
 import {Calendar} from "../../components/Calendar.jsx";
 import { toast,ToastContainer } from "react-toastify";
@@ -158,7 +157,13 @@ function Notifications() {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="end">
-              <Calendar selectedDate={filterDate} onDateChange={setFilterDate} />
+              <Calendar 
+                    selectedDate={filterDate || null}  // Pass null instead of undefined
+                    onDateChange={(selectedDate) => {
+                      setFilterDate(selectedDate || undefined);
+                    }}
+                    disablePast={false}
+                  />
               </PopoverContent>
             </Popover>
 
