@@ -143,7 +143,7 @@ function UsersPage() {
         <div className="flex gap-2">
           <div className="flex items-center gap-2">
             <Select value={searchType} onValueChange={setSearchType}>
-              <SelectTrigger className="w-[150px]">
+              <SelectTrigger className="!w-[150px]">
                 <SelectValue placeholder="Search by" />
               </SelectTrigger>
               <SelectContent>

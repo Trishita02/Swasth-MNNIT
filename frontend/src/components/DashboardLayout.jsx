@@ -22,7 +22,7 @@ export default function DashboardLayout({ children, role }) {
         { title: "Manage Users", href: "/admin/manage-users", icon: <Users className="h-5 w-5" /> },
         { title: "Notifications", href: "/admin/notifications", icon: <Bell className="h-5 w-5" /> },
         { title: "Activity Logs", href: "/admin/logs", icon: <Package className="h-5 w-5" /> },
-        { title: "Schedule", href: "/admin/schedule", icon: <Calendar className="h-5 w-5" /> },
+        { title: "Assign Duties", href: "/admin/assign-duties", icon: <Calendar className="h-5 w-5" /> },
       ];
     }
 
