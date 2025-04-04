@@ -43,39 +43,52 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 export default function SchedulePage() {
-  const [date, setDate] = useState(new Date());
+const [date, setDate] = useState(new Date()); // For main calendar
+const [formDate, setFormDate] = useState(new Date()); // For forms
   const [autoSendEnabled, setAutoSendEnabled] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const [emailTime, setEmailTime] = useState("08:00");
 
   const [schedules, setSchedules] = useState([
-    { id: 1, name: "Dr. Sharma", role: "doctor", shift: "Morning", startTime: "09:00", endTime: "13:00", date: format(new Date(), "yyyy-MM-dd") },
-    { id: 2, name: "Dr. Kumar", role: "doctor", shift: "Evening", startTime: "13:00", endTime: "17:00", date: format(new Date(), "yyyy-MM-dd") },
-    { id: 3, name: "Admin User", role: "admin", shift: "Full Day", startTime: "09:00", endTime: "17:00", date: format(new Date(), "yyyy-MM-dd") },
-    { id: 4, name: "Nurse Patel", role: "staff", shift: "Evening", startTime: "17:00", endTime: "21:00", date: format(new Date(new Date().setDate(new Date().getDate() + 1)), "yyyy-MM-dd") },
+    { id: 1, name: "Dr. Sharma", role: "doctor", specialization: "Cardiology", shift: "Morning", startTime: "09:00", endTime: "13:00", date: new Date().toISOString() },
+    { id: 2, name: "Dr. Kumar", role: "doctor", specialization: "Neurology", shift: "Evening", startTime: "13:00", endTime: "17:00", date: new Date().toISOString() },
+    { id: 3, name: "Admin User", role: "admin", shift: "Full Day", startTime: "09:00", endTime: "17:00", date: new Date().toISOString() },
+  ]);
+
+  const [specializations] = useState([
+    "Cardiology",
+    "Neurology",
+    "Pediatrics",
+    "Orthopedics",
+    "Dermatology"
+  ]);
+  
+
+  const [doctors] = useState([
+    { id: 1, name: "Dr. Sharma", specialization: "Cardiology" },
+    { id: 2, name: "Dr. Kumar", specialization: "Neurology" },
+    { id: 3, name: "Dr. Gupta", specialization: "Pediatrics" },
+    { id: 4, name: "Dr. Patel", specialization: "Orthopedics" },
+    { id: 5, name: "Dr. Singh", specialization: "Dermatology" }
   ]);
 
   const [editingSchedule, setEditingSchedule] = useState(null);
-  const [newSchedule, setNewSchedule] = useState({
-    name: "",
-    role: "doctor",
-    shift: "Morning",
-    startTime: "09:00",
-    endTime: "17:00",
-    date: format(new Date(), "yyyy-MM-dd"),
-  });
-
+ const [newSchedule, setNewSchedule] = useState({
+  name: "",
+  role: "doctor",
+  specialization: "",
+  shift: "Morning",
+  startTime: "09:00",
+  endTime: "17:00",
+  date: new Date().toISOString(),
+});
+const filteredDoctors=newSchedule.specialization
+    ? doctors.filter(doctor => doctor.specialization === newSchedule.specialization)
+    : doctors;
   // Format time for display in table
-  const formatTimeDisplay = (startTime, endTime) => {
-    const formatTime = (time) => {
-      const [hours, minutes] = time.split(':');
-      const hour = parseInt(hours, 10);
-      const ampm = hour >= 12 ? 'PM' : 'AM';
-      const hour12 = hour % 12 || 12;
-      return `${hour12}:${minutes} ${ampm}`;
-    };
-    return `${formatTime(startTime)} - ${formatTime(endTime)}`;
-  };
+  function formatTimeDisplay(startTime, endTime) {
+  return `${startTime} - ${endTime}`;
+}
 
   // Filter schedules for the selected date
   const filteredSchedules = schedules.filter(schedule => {
@@ -138,7 +151,7 @@ export default function SchedulePage() {
 
   const handleSendDutyChart = () => {
     setEmailSent(true);
-    toast.success(`Duty chart has been emailed to all staff for ${format(date, "PPP")}`);
+    toast.success(`Duty chart has been emailed to all for ${format(Date.now(), "PPP")}`);
   };
 
   // Reset email sent status when date changes
@@ -154,40 +167,38 @@ export default function SchedulePage() {
         {/* Control Panel */}
         <div className="flex flex-col gap-4 p-4 bg-gray-50 rounded-lg border">
           <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-            {/* Auto Send Toggle */}
-            <div className="flex items-center gap-2">
-              <Switch 
-                id="auto-send" 
-                checked={autoSendEnabled} 
-                onCheckedChange={setAutoSendEnabled}
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out
-                  ${autoSendEnabled ? 'bg-black' : 'bg-gray-400'}`}
-              >
-              <span
-          className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition duration-200 ease-in-out
-            ${autoSendEnabled ? 'translate-x-5' : 'translate-x-0'}`}
-        />
-        </Switch>
-              <Label htmlFor="auto-send">Send duty chart daily</Label>
-            </div>
-            
-            {/* Email Time Input */}
-            <div className="flex items-center gap-2">
-              <Label htmlFor="email-time">Email Time:</Label>
-              <Input
-                id="email-time"
-                type="time"
-                value={emailTime}
-                onChange={(e) => setEmailTime(e.target.value)}
-                className="w-24"
-              />
+            <div className="flex flex-col gap-2 w-full sm:w-auto">
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => setAutoSendEnabled(!autoSendEnabled)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors
+                  ${autoSendEnabled ? "bg-black" : "bg-gray-300"}`}
+                >
+                  <span className={`absolute left-1 h-5 w-5 transform rounded-full bg-white shadow-lg transition
+                    ${autoSendEnabled ? "translate-x-5" : "translate-x-0"}`}
+                  />
+                </button>
+                <label className="text-sm font-medium text-gray-900">
+                  Send duty chart daily
+                </label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="email-time">Email Time:</Label>
+                <Input
+                  id="email-time"
+                  type="time"
+                  value={emailTime}
+                  onChange={(e) => setEmailTime(e.target.value)}
+                  className="w-24"
+                />
+              </div>
             </div>
             
             {/* Send Email Button */}
             <Button 
               variant="outline" 
               onClick={handleSendDutyChart} 
-              disabled={emailSent || filteredSchedules.length === 0}
+              disabled={emailSent}
               className="w-full sm:w-auto"
             >
               <Mail className="mr-2 h-4 w-4" />
@@ -204,7 +215,6 @@ export default function SchedulePage() {
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Add New Duty</DialogTitle>
-                  <DialogDescription>Schedule a duty for staff member.</DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   {/* Role Selection */}
@@ -220,11 +230,32 @@ export default function SchedulePage() {
                       <SelectContent>
                         <SelectItem value="doctor">Doctor</SelectItem>
                         <SelectItem value="admin">Admin</SelectItem>
-                        <SelectItem value="staff">Staff</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  
+                  {newSchedule.role === "doctor" && (
+                        <div className="grid gap-2">
+                        <Label htmlFor="specialization">Specialization</Label>
+                        <Select
+                            value={newSchedule.specialization}
+                            onValueChange={(value) => setNewSchedule({ 
+                          ...newSchedule, 
+                          specialization: value,
+                          name: ""
+                        })}>
+                        <SelectTrigger>
+                        <SelectValue placeholder="Select specialization" />
+                        </SelectTrigger>
+                        <SelectContent>
+                        {specializations.map((spec) => (
+                            <SelectItem key={spec} value={spec}>
+                              {spec}
+                            </SelectItem>
+                        ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                   {/* Name Selection */}
                   <div className="grid gap-2">
                     <Label htmlFor="name">Name</Label>
@@ -233,24 +264,21 @@ export default function SchedulePage() {
                       onValueChange={(value) => setNewSchedule({ ...newSchedule, name: value })}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select staff member" />
+                      <SelectValue placeholder={newSchedule.role === "doctor" && !newSchedule.specialization
+                        ? "Select specialization first"
+                        : "Select name"
+                      } />
                       </SelectTrigger>
                       <SelectContent>
                         {newSchedule.role === "doctor" && (
-                          <>
-                            <SelectItem value="Dr. Sharma">Dr. Sharma</SelectItem>
-                            <SelectItem value="Dr. Kumar">Dr. Kumar</SelectItem>
-                            <SelectItem value="Dr. Gupta">Dr. Gupta</SelectItem>
-                          </>
-                        )}
+                        filteredDoctors.map(doctor => (
+                        <SelectItem key={doctor.id} value={doctor.name}>
+                        {doctor.name} ({doctor.specialization})
+                        </SelectItem>
+                        ))
+                      )}
                         {newSchedule.role === "admin" && (
                           <SelectItem value="Admin User">Admin User</SelectItem>
-                        )}
-                        {newSchedule.role === "staff" && (
-                          <>
-                            <SelectItem value="Nurse Patel">Nurse Patel</SelectItem>
-                            <SelectItem value="Nurse Singh">Nurse Singh</SelectItem>
-                          </>
                         )}
                       </SelectContent>
                     </Select>
@@ -299,13 +327,19 @@ export default function SchedulePage() {
                   
                   {/* Date Display (read-only since we're using calendar selection) */}
                   <div className="grid gap-2">
-                    <Label htmlFor="date">Date</Label>
-                    <Input
-                      id="date"
-                      type="text"
-                      value={format(date, "PPP")}
-                      readOnly
-                    />
+                  <Calendar 
+    selectedDate={formDate}
+    onDateChange={(date) => {
+      if (date) {
+        setFormDate(date);
+        setNewSchedule({ 
+          ...newSchedule, 
+          date: date.toISOString() 
+        });
+      }
+    }}
+    minDate={new Date()}
+  />
                   </div>
                 </div>
                 <DialogFooter>
@@ -328,13 +362,20 @@ export default function SchedulePage() {
             <CardDescription>Select a date to view schedules</CardDescription>
           </CardHeader>
           <CardContent>
-            <Calendar 
-              mode="single" 
-              selected={date} 
-              onSelect={setDate} 
-              className="rounded-md border"
-              disabled={{ before: new Date() }} // Disable past dates
-            />
+          <Calendar 
+      selectedDate={date} 
+      onDateChange={(selectedDate) => {
+        if (selectedDate) {
+          setDate(selectedDate);
+          setNewSchedule(prev => ({
+            ...prev,
+            date: selectedDate.toISOString()
+          }));
+        }
+      }}
+      minDate={new Date()}
+      disablePast={false}
+    />
           </CardContent>
         </Card>
 
@@ -343,9 +384,7 @@ export default function SchedulePage() {
           <CardHeader>
             <CardTitle>Duty Schedule</CardTitle>
             <CardDescription>
-              {filteredSchedules.length > 0 
-                ? `Showing schedules for ${format(date, "PPP")}`
-                : "No schedules for selected date"}
+              {`Showing schedules for ${format(date, "PPP")}`}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -400,7 +439,6 @@ export default function SchedulePage() {
                                 <SelectContent>
                                   <SelectItem value="doctor">Doctor</SelectItem>
                                   <SelectItem value="admin">Admin</SelectItem>
-                                  <SelectItem value="staff">Staff</SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
@@ -416,7 +454,7 @@ export default function SchedulePage() {
                                 })}
                               >
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Select staff member" />
+                                  <SelectValue placeholder="Select name" />
                                 </SelectTrigger>
                                 <SelectContent>
                                   {(editingSchedule?.role || schedule.role) === "doctor" && (
@@ -428,12 +466,6 @@ export default function SchedulePage() {
                                   )}
                                   {(editingSchedule?.role || schedule.role) === "admin" && (
                                     <SelectItem value="Admin User">Admin User</SelectItem>
-                                  )}
-                                  {(editingSchedule?.role || schedule.role) === "staff" && (
-                                    <>
-                                      <SelectItem value="Nurse Patel">Nurse Patel</SelectItem>
-                                      <SelectItem value="Nurse Singh">Nurse Singh</SelectItem>
-                                    </>
                                   )}
                                 </SelectContent>
                               </Select>
@@ -490,11 +522,18 @@ export default function SchedulePage() {
                             {/* Date Display */}
                             <div className="grid gap-2">
                               <Label>Date</Label>
-                              <Input
-                                type="text"
-                                value={format(new Date(editingSchedule?.date || schedule.date), "PPP")}
-                                readOnly
-                              />
+                              <Calendar 
+    selectedDate={new Date(editingSchedule?.date || schedule.date)}
+    onDateChange={(date) => {
+      if (date) {
+        setEditingSchedule({ 
+          ...(editingSchedule || schedule), 
+          date: date.toISOString() 
+        });
+      }
+    }}
+    minDate={new Date()}
+  />
                             </div>
                           </div>
                           <DialogFooter>

@@ -20,7 +20,7 @@ import { Calendar as CalendarIcon, Plus, Search, Trash, X } from "lucide-react";
 import {Calendar} from "../../components/Calendar.jsx";
 import { toast,ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { Popover, PopoverContent, PopoverTrigger } from "../../components/PopOver.jsx";
+import { Popover, PopoverContent, PopoverTrigger } from "../../components/Popover.jsx";
 import { format } from "date-fns";
 
 function NotificationsPage() {
@@ -158,7 +158,13 @@ function NotificationsPage() {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="end">
-              <Calendar selectedDate={filterDate} onDateChange={setFilterDate} />
+              <Calendar 
+                    selectedDate={filterDate || null}  // Pass null instead of undefined
+                    onDateChange={(selectedDate) => {
+                      setFilterDate(selectedDate || undefined);
+                    }}
+                    disablePast={false}
+                  />
               </PopoverContent>
             </Popover>
 
