@@ -2,7 +2,7 @@ import { Menu, LogOut,User,Bell } from "lucide-react";
 import logo from '/logo.jpg';
 
 const Header = ({ toggleSidebar, }) => (
-  
+
   <header className="bg-white p-4 shadow-md flex justify-between items-center">
     <button onClick={toggleSidebar} className="sm:hidden">
       <Menu className="h-6 w-6" />

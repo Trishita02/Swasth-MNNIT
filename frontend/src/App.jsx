@@ -14,6 +14,7 @@ import Schedule from "./components/comman/Schedule.jsx";
 import Logs from "./components/admin/Logs.jsx";
 import Users from "./components/admin/Users.jsx";
 
+
 function App() {
   return (
     <BrowserRouter>
@@ -27,7 +28,7 @@ function App() {
           <Route path="schedule" element={<Schedule/>} />
           <Route path="users" element={<Users/>} />
           <Route path="change-password" element={<ChangePassword/>} />
-        
+ 
         </Route>
         <Route path="/doctor" element={<DoctorDashboard />} >
           <Route index element={<Navigate to="dashboard"/>} />

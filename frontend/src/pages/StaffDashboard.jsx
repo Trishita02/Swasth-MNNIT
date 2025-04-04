@@ -63,6 +63,7 @@ const StaffDashboard = () => {
       </MainContent>
     </div>
   </div>
+
   );
 };
 

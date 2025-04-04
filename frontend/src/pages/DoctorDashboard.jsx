@@ -62,6 +62,7 @@ const DoctorDashboard = () => {
         {/* Sidebar */}
       <Sidebar onLogout={handleLogout} isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} sidemenu={sidemenu}/>
 
+
         {/* Main Content */}
         <MainContent>
           <Outlet />

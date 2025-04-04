@@ -20,6 +20,7 @@ const Sidebar = ({ onLogout, isSidebarOpen, toggleSidebar,sidemenu }) => {
     >
       <div className="flex justify-between items-center mb-3">
         {/* <h2 className="text-lg font-semibold">Menu</h2> */}
+
         <button onClick={toggleSidebar} className="sm:hidden">
           <X className="h-6 w-6" />
         </button>

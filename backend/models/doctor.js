@@ -1,15 +1,16 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { getNextSequence } from "../utils/sequence.js"; 
 
 const DoctorSchema = new mongoose.Schema({
-  first_name: { type: String, required: true, trim: true },
-  last_name: { type: String, required: true, trim: true },
+  seqNo: { type: Number, unique: true },
+  name: { type: String, required: true, trim: true }, // Added name
+  username: { type: String, unique: true, trim: true },
   email: { type: String, required: true, unique: true, trim: true },
   phone: { type: String, required: true, unique: true },
-  specialization: { type: String, required: true, trim: true }, // Example: "Cardiology"
-  experience: { type: Number, required: true, min: 0 }, // Years of experience
-  qualification: { type: String, required: true, trim: true }, // Example: "MBBS, MD"
-  shift_timing: { type: String, required: true }, // Example: "Morning Shift"
-  status: { type: String, enum: ["Active", "Inactive"], default: "Active" },
+  password: { type: String, required: true }, // Encrypted password
+  specialization: { type: String, required: true},
   availability: [
     {
       day: { type: String, required: true }, // Example: "Monday"
@@ -20,5 +21,26 @@ const DoctorSchema = new mongoose.Schema({
   created_at: { type: Date, default: Date.now },
 });
 
-const Doctor = mongoose.model("Doctor", DoctorSchema);
-module.exports = Doctor;
+// 🔐 Hash password before saving
+DoctorSchema.pre("save", async function (next) {
+  if (!this.seqNo) {
+    this.seqNo = await getNextSequence("doctor"); // Get unique seqNo for doctors
+  }
+  if (!this.isModified("password")) return next();
+  this.password = await bcrypt.hash(this.password, 10);
+  next();
+});
+
+// 🔑 Check if password is correct
+DoctorSchema.methods.isPasswordCorrect = async function (password) {
+  return await bcrypt.compare(password, this.password);
+};
+
+// 🔑 Generate JWT Access Token
+DoctorSchema.methods.generateAccessToken = function () {
+  return jwt.sign({ _id: this._id }, process.env.ACCESS_TOKEN_SECRET, {
+    expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
+  });
+};
+
+export const Doctor = mongoose.model("Doctor", DoctorSchema);
