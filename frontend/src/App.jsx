@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route,Navigate } from "react-router-dom";
 import Home from "./pages/Home.jsx";
 // import NotFound from "./pages/NotFound.jsx";
-import AdminDashboard from './pages/admin/adminDashboard.jsx';
+import AdminDashboard from './pages/admin/AdminDashboard.jsx';
 import ChangePasswordPage from "./pages/ChangePassword.jsx";
 import ManageUsers from "./pages/admin/ManageUsers.jsx"
 import DoctorDashboard from "./pages/doctor/DoctorDashboard.jsx";
