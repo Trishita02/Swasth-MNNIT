@@ -49,20 +49,21 @@ const StaffDashboard = () => {
   };
 
   return (
-    <div className="flex h-screen">
+    <div className="flex flex-col h-screen">
+    {/* Header */}
+    <Header toggleSidebar={toggleSidebar} />
+    
+    <div className="flex-1 flex flex-row">
       {/* Sidebar */}
-      <Sidebar onLogout={handleLogout} isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} sidemenu={sidemenu}/>
+    <Sidebar onLogout={handleLogout} isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} sidemenu={sidemenu}/>
 
-      <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <Header toggleSidebar={toggleSidebar} role="Staff"/>
-
-        {/* Main Content */}
-        <MainContent>
-          <Outlet />
-        </MainContent>
-      </div>
+      {/* Main Content */}
+      <MainContent>
+        <Outlet />
+      </MainContent>
     </div>
+  </div>
+
   );
 };
 

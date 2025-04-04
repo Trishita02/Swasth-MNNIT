@@ -1,8 +1,11 @@
-import { Outlet } from "react-router-dom";
+
 const MainContent = ({children}) => {
     return (
       <>
-      {children}
+      <div className="p-3">
+          {children}
+      </div>
+      
       </>
     );
   };
