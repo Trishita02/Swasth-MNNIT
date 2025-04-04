@@ -3,7 +3,8 @@ import mongoose from "mongoose"
 import cors from "cors"
 import dotenv from "dotenv"
 import cookieParser from "cookie-parser";
-
+import { loginUser, logoutUser } from "./controllers/auth.controller.js";
+import { isAuthenticated } from "./middlewares/auth.middleware.js";
 dotenv.config({
     path:'./.env'
 })
@@ -21,6 +22,8 @@ app.use(express.urlencoded({extended:false}))
 app.use(express.static("public"))
 
 // ROUTES
+app.post("/login", loginUser);
+app.post("/logout", isAuthenticated, logoutUser);
 
 //Connect database
 const connectDB=async()=>{
