@@ -24,7 +24,7 @@ import { Link } from "react-router-dom"
 import { Popover, PopoverContent, PopoverTrigger } from "../../components/PopOver.jsx"
 import { format } from "date-fns"
 
-export default function Prescriptions() {
+export default function DoctorPrescriptions() {
   const [searchQuery, setSearchQuery] = useState("")
   const [searchType, setSearchType] = useState("regNo")
   const [filterDate, setFilterDate] = useState(undefined)

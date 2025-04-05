@@ -1,6 +1,6 @@
-import Sidebar from "../../components/dashboard/Sidebar"
-import MainContent from "../../components/dashboard/MainContent"
-import Header from "../../components/dashboard/Header"
+import Sidebar from "../../components/layout/Sidebar"
+import MainContent from "../../components/layout/MainContent"
+import Header from "../../components/layout/Header"
 import { Bell, Calendar, Home, Package, Settings, Users } from "lucide-react";
 import { Outlet } from "react-router-dom";
 
@@ -10,7 +10,7 @@ function AdminDashboard(){
         { title: "Dashboard", href: `dashboard`, icon: <Home className="h-5 w-5" /> },
         { title: "Change Password", href: `change-password`, icon: <Settings className="h-5 w-5" /> },
         { title: "Manage Users", href: "manage-users", icon: <Users className="h-5 w-5" /> },
-        { title: "Notifications", href: "notifications", icon: <Bell className="h-5 w-5" /> },
+        { title: "Create Notifications", href: "create-notifications", icon: <Bell className="h-5 w-5" /> },
         { title: "Activity Logs", href: "activity-logs", icon: <Package className="h-5 w-5" /> },
         { title: "Assign Duties", href: "assign-duties", icon: <Calendar className="h-5 w-5" /> },
     ]

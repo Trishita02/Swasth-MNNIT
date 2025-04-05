@@ -1,6 +1,6 @@
-import Sidebar from "../../components/dashboard/Sidebar"
-import MainContent from "../../components/dashboard/MainContent"
-import Header from "../../components/dashboard/Header"
+import Sidebar from "../../components/layout/Sidebar"
+import MainContent from "../../components/layout/MainContent"
+import Header from "../../components/layout/Header"
 import { Bell, Home, Package, Settings, Users } from "lucide-react";
 import { Outlet } from "react-router-dom";
 
