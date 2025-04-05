@@ -1,28 +1,20 @@
 import { BrowserRouter, Routes, Route,Navigate } from "react-router-dom";
 import Home from "./pages/Home.jsx";
 import NotFound from "./pages/NotFound.jsx";
-// import AdminDashboard from './pages/admin/AdminDashboard.jsx';
-// import ChangePasswordPage from "./pages/ChangePassword.jsx";
-// import ManageUsers from "./pages/admin/ManageUsers.jsx"
-// import CreateNotifications from "./pages/admin/CreateNotifications.jsx"
-// import ActivityLog from "./pages/admin/ActivityLogs.jsx"
-// import AssignDuties from "./pages/admin/AssignDuties.jsx"
-// import DoctorDashboard from "./pages/doctor/DoctorDashboard.jsx";
-// import StaffDashboard from "./pages/staff/StaffDashboard.jsx";
-import AdminDashboard from "./pages/tdashboard/AdminDashboard.jsx";
-import StaffDashboard from "./pages/tdashboard/StaffDashboard.jsx";
-import DoctorDashboard from "./pages/tdashboard/DoctorDashboard.jsx";
-import Dashboard from "./pages/tdashboard/Dashboard.jsx";
-import ChangePassword from "./pages/tdashboard/ChangePassword.jsx";
-import ManageUsers from "./pages/tdashboard/ManageUsers.jsx";
-import Notifications from "./pages/tdashboard/Notifications.jsx";
-import ActivityLogs from "./pages/tdashboard/ActivityLogs.jsx";
-import AssignDuties from "./pages/tdashboard/AssignDuties.jsx";
-import Prescriptions from "./pages/tdashboard/Prescriptions.jsx";
-import PatientRecords from "./pages/tdashboard/PatientRecords.jsx";
-import MedicinesInventory from "./pages/tdashboard/MedicineInventory.jsx";
-import MedicineStock from "./pages/tdashboard/MedicineStock.jsx";
-import DutySchedule from "./pages/tdashboard/DutySchedule.jsx";
+import AdminDashboard from "./pages/dashboard/AdminDashboard.jsx";
+import StaffDashboard from "./pages/dashboard/StaffDashboard.jsx";
+import DoctorDashboard from "./pages/dashboard/DoctorDashboard.jsx";
+import Dashboard from "./pages/common/Dashboard.jsx";
+import ChangePassword from "./pages/common/ChangePassword.jsx";
+import ManageUsers from "./pages/admin/ManageUsers.jsx";
+import Notifications from "./pages/common/Notifications.jsx";
+import ActivityLogs from "./pages/admin/ActivityLogs.jsx";
+import AssignDuties from "./pages/admin/AssignDuties.jsx";
+import Prescriptions from "./pages/staff/Prescriptions.jsx";
+import PatientRecords from "./pages/staff/PatientRecords.jsx";
+import MedicinesInventory from "./pages/staff/MedicineInventory.jsx";
+import MedicineStock from "./pages/doctor/MedicineStock.jsx";
+import DutySchedule from "./pages/doctor/DutySchedule.jsx";
 
 function App() {
   return (
@@ -62,15 +54,6 @@ function App() {
           <Route path="notifications" element={<Notifications/>} />
         
         </Route>
-
-        {/* <Route path="/admin/dashboard"  element={<AdminDashboard/>}/>
-        <Route path="/admin/change-password" element={<ChangePasswordPage/>}/>
-        <Route path="/admin/manage-users" element={<ManageUsers/>}/>
-        <Route path="/admin/notifications" element={<CreateNotifications/>}/>
-        <Route path="/admin/logs" element={<ActivityLog/>}/>
-        <Route path="/admin/assign-duties" element={<AssignDuties/>}/>
-        <Route path="/doctor/dashboard" element={<DoctorDashboard/>}/>
-        <Route path="/staff/dashboard" element={<StaffDashboard/>}/> */}
 
         <Route path="*" element={<NotFound />} />
       </Routes>

@@ -38,11 +38,10 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/Table.jsx";
-import DashboardLayout from "../../components/DashboardLayout.jsx";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-export default function SchedulePage() {
+export default function AssignDuties() {
 const [date, setDate] = useState(new Date()); // For main calendar
 const [formDate, setFormDate] = useState(new Date()); // For forms
   const [autoSendEnabled, setAutoSendEnabled] = useState(false);
@@ -160,7 +159,7 @@ const filteredDoctors=newSchedule.specialization
   }, [date]);
 
   return (
-    <DashboardLayout role="admin">
+    <>
       <div className="flex flex-col gap-4 mb-6">
         <h1 className="text-2xl font-bold">Schedule Management</h1>
         
@@ -573,6 +572,6 @@ const filteredDoctors=newSchedule.specialization
       </div>
       
       <ToastContainer position="top-right" autoClose={3000} />
-    </DashboardLayout>
+    </>
   );
 }

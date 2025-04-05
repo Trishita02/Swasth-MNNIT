@@ -1,18 +1,18 @@
-import Sidebar from "../../components/tdashboard/dashboard/Sidebar"
-import MainContent from "../../components/tdashboard/dashboard/MainContent"
-import Header from "../../components/tdashboard/dashboard/Header"
-import { Bell, Home, Package, Settings, Users } from "lucide-react";
+import Sidebar from "../../components/dashboard/Sidebar"
+import MainContent from "../../components/dashboard/MainContent"
+import Header from "../../components/dashboard/Header"
+import { Bell, Calendar, Home, Package, Settings, Users } from "lucide-react";
 import { Outlet } from "react-router-dom";
 
-function StaffDashboard(){
+function AdminDashboard(){
 
     const sideMenu = [
         { title: "Dashboard", href: `dashboard`, icon: <Home className="h-5 w-5" /> },
         { title: "Change Password", href: `change-password`, icon: <Settings className="h-5 w-5" /> },
-        { title: "Patient Records", href: "patient-records", icon: <Users className="h-5 w-5" /> },
-        { title: "Medicine Inventory", href: "medicine-inventory", icon: <Package className="h-5 w-5" /> },
-        { title: "Prescriptions", href: "prescriptions", icon: <Package className="h-5 w-5" /> },
+        { title: "Manage Users", href: "manage-users", icon: <Users className="h-5 w-5" /> },
         { title: "Notifications", href: "notifications", icon: <Bell className="h-5 w-5" /> },
+        { title: "Activity Logs", href: "activity-logs", icon: <Package className="h-5 w-5" /> },
+        { title: "Assign Duties", href: "assign-duties", icon: <Calendar className="h-5 w-5" /> },
     ]
 
 
@@ -35,4 +35,4 @@ function StaffDashboard(){
     )
 }
 
-export default StaffDashboard
+export default AdminDashboard

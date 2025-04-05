@@ -15,12 +15,11 @@ import { Label } from "../../components/Label.jsx";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/Select.jsx";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/Table.jsx";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/Tabs.jsx";
-import DashboardLayout from "../../components/DashboardLayout.jsx";
 import { Edit, Plus, Search, Trash } from 'lucide-react';
 import { toast,ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-function UsersPage() {
+function ManageUsers() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchType, setSearchType] = useState("name");
   
@@ -117,7 +116,8 @@ function UsersPage() {
   });
 
   return (
-    <DashboardLayout role="admin"> <div className="toast-container">
+    <>
+    <div className="toast-container">
     <ToastContainer
       position="top-right"
       autoClose={3000}
@@ -552,8 +552,8 @@ function UsersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </DashboardLayout>
+    </>
   );
 }
 
-export default UsersPage;
+export default ManageUsers;

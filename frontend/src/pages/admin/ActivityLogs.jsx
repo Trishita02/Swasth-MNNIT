@@ -5,12 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../..
 import { Input } from "../../components/Input.jsx";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/Select.jsx";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/Table.jsx";
-import DashboardLayout from "../../components/DashboardLayout.jsx";
 import { CalendarIcon, Search } from 'lucide-react';
 import { format } from "date-fns";
-import { Popover, PopoverContent, PopoverTrigger } from "../../components/Popover.jsx";
+import { Popover, PopoverContent, PopoverTrigger } from "../../components/PopOver.jsx";
 
-function LogsPage() {
+function ActivityLogs() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activityType, setActivityType] = useState("all");
   const [date, setDate] = useState(undefined);
@@ -84,7 +83,7 @@ function LogsPage() {
   });
 
   return (
-    <DashboardLayout role="admin">
+    <>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Activity Logs</h1>
         <div className="flex items-center gap-2">
@@ -172,8 +171,8 @@ function LogsPage() {
           </Table>
         </CardContent>
       </Card>
-    </DashboardLayout>
+    </>
   );
 }
 
-export default LogsPage;
+export default ActivityLogs;
