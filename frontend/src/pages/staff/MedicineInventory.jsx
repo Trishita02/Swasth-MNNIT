@@ -16,104 +16,315 @@ import { Label } from "../../components/Label.jsx"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/Table.jsx"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/Tabs.jsx"
 import { AlertTriangle, Calendar, Plus, Search } from "lucide-react"
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function MedicinesInventory() {
+  const medicineTypes = ["Tablet", "Capsule", "Syrup", "Injection", "Ointment", "Drops"];
   const [searchQuery, setSearchQuery] = useState("")
-  const [medicines, setMedicines] = useState([
-    {
-      id: 1,
-      name: "Paracetamol 500mg",
-      category: "Analgesic",
-      stock: 10,
-      unit: "strips",
-      threshold: 20,
-      expiry: "2026-03-30",
-    },
-    {
-      id: 2,
-      name: "Azithromycin 250mg",
-      category: "Antibiotic",
-      stock: 5,
-      unit: "strips",
-      threshold: 15,
-      expiry: "2026-06-15",
-    },
-    {
-      id: 3,
-      name: "Cetirizine 10mg",
-      category: "Antihistamine",
-      stock: 8,
-      unit: "strips",
-      threshold: 20,
-      expiry: "2026-05-22",
-    },
-    {
-      id: 4,
-      name: "Ibuprofen 400mg",
-      category: "NSAID",
-      stock: 12,
-      unit: "strips",
-      threshold: 25,
-      expiry: "2026-04-18",
-    },
-    {
-      id: 5,
-      name: "Omeprazole 20mg",
-      category: "PPI",
-      stock: 30,
-      unit: "strips",
-      threshold: 15,
-      expiry: "2025-04-30",
-    },
-    {
-      id: 6,
-      name: "Amoxicillin 500mg",
-      category: "Antibiotic",
-      stock: 25,
-      unit: "strips",
-      threshold: 20,
-      expiry: "2025-04-15",
-    },
-  ])
-
+    const [medicines, setMedicines] = useState([
+      {
+        id: 1,
+        saltName: "Metformin",
+        medicineName: "Metformin 500mg",
+        batchNumber: "MET500F6",
+        type: "Tablet",
+        expiryDate: "2027-01-01", // Healthy expiry
+        quantity: 8, // Low stock
+        invoiceDate: "2025-03-05",
+        invoiceNumber: "INV1006",
+        supplier: "Alpha Pharma"
+      },
+      {
+        id: 2,
+        saltName: "Amoxicillin",
+        medicineName: "Amoxicillin 250mg",
+        batchNumber: "AMOX250G7",
+        type: "Capsule",
+        expiryDate: "2025-04-20", // Expiring soon (within 30 days)
+        quantity: 200,
+        invoiceDate: "2025-03-28",
+        invoiceNumber: "INV1007",
+        supplier: "MedSure Distributors"
+      },
+      {
+        id: 3,
+        saltName: "Doxycycline",
+        medicineName: "Doxycycline 100mg",
+        batchNumber: "DOXY100H8",
+        type: "Tablet",
+        expiryDate: "2025-03-27", // Already expired
+        quantity: 50,
+        invoiceDate: "2024-12-12",
+        invoiceNumber: "INV1008",
+        supplier: "CureMed Pharma"
+      },
+      {
+        id: 25,
+        saltName: "Ranitidine",
+        medicineName: "Ranitidine 150mg",
+        batchNumber: "RAN150I9",
+        type: "Tablet",
+        expiryDate: "2025-04-06", // Expiring today
+        quantity: 90,
+        invoiceDate: "2025-04-01",
+        invoiceNumber: "INV1009",
+        supplier: "HealthBridge Ltd."
+      },
+      {
+        id: 4,
+        saltName: "Metformin",
+        medicineName: "Metformin 500mg",
+        batchNumber: "MET500F6",
+        type: "Tablet",
+        expiryDate: "2027-01-01", // Healthy expiry
+        quantity: 6, // Low stock
+        invoiceDate: "2025-03-05",
+        invoiceNumber: "INV1006",
+        supplier: "Alpha Pharma"
+      },
+      {
+        id: 5,
+        saltName: "Amoxicillin",
+        medicineName: "Amoxicillin 250mg",
+        batchNumber: "AMOX250G7",
+        type: "Capsule",
+        expiryDate: "2025-04-20", // Expiring soon (within 30 days)
+        quantity: 200,
+        invoiceDate: "2025-03-28",
+        invoiceNumber: "INV1007",
+        supplier: "MedSure Distributors"
+      },
+      {
+        id: 6,
+        saltName: "Doxycycline",
+        medicineName: "Doxycycline 100mg",
+        batchNumber: "DOXY100H8",
+        type: "Tablet",
+        expiryDate: "2025-03-27", // Already expired
+        quantity: 50,
+        invoiceDate: "2024-12-12",
+        invoiceNumber: "INV1008",
+        supplier: "CureMed Pharma"
+      },
+      {
+        id: 7,
+        saltName: "Ranitidine",
+        medicineName: "Ranitidine 150mg",
+        batchNumber: "RAN150I9",
+        type: "Tablet",
+        expiryDate: "2025-04-06", // Expiring today
+        quantity: 90,
+        invoiceDate: "2025-04-01",
+        invoiceNumber: "INV1009",
+        supplier: "HealthBridge Ltd."
+      },
+      {
+        id: 8,
+        saltName: "Loperamide",
+        medicineName: "Loperamide 2mg",
+        batchNumber: "LOP2K11",
+        type: "Tablet",
+        expiryDate: "2025-04-25", // Expiring soon
+        quantity: 5, // Low stock
+        invoiceDate: "2025-03-25",
+        invoiceNumber: "INV1011",
+        supplier: "VitalCare Pharma"
+      },
+      {
+        id: 9,
+        saltName: "Levocetirizine",
+        medicineName: "Levocetirizine 5mg",
+        batchNumber: "LEVO5L12",
+        type: "Tablet",
+        expiryDate: "2027-08-15", // Healthy expiry
+        quantity: 300,
+        invoiceDate: "2025-03-29",
+        invoiceNumber: "INV1012",
+        supplier: "PureMed Corp."
+      },
+      {
+        id: 10,
+        saltName: "Doxycycline",
+        medicineName: "Doxycycline 100mg",
+        batchNumber: "DOXY100H8",
+        type: "Tablet",
+        expiryDate: "2025-03-27", // Already expired
+        quantity: 7,
+        invoiceDate: "2024-12-12",
+        invoiceNumber: "INV1008",
+        supplier: "CureMed Pharma"
+      },
+      {
+        id: 11,
+        saltName: "Ranitidine",
+        medicineName: "Ranitidine 150mg",
+        batchNumber: "RAN150I9",
+        type: "Tablet",
+        expiryDate: "2025-04-06", // Expiring today
+        quantity: 90,
+        invoiceDate: "2025-04-01",
+        invoiceNumber: "INV1009",
+        supplier: "HealthBridge Ltd."
+      },
+      {
+        id: 12,
+        saltName: "Metformin",
+        medicineName: "Metformin 500mg",
+        batchNumber: "MET500F6",
+        type: "Tablet",
+        expiryDate: "2027-01-01", // Healthy expiry
+        quantity: 9, // Low stock
+        invoiceDate: "2025-03-05",
+        invoiceNumber: "INV1006",
+        supplier: "Alpha Pharma"
+      },
+      {
+        id: 13,
+        saltName: "Amoxicillin",
+        medicineName: "Amoxicillin 250mg",
+        batchNumber: "AMOX250G7",
+        type: "Capsule",
+        expiryDate: "2025-04-20", // Expiring soon (within 30 days)
+        quantity: 200,
+        invoiceDate: "2025-03-28",
+        invoiceNumber: "INV1007",
+        supplier: "MedSure Distributors"
+      },
+      {
+        id: 14,
+        saltName: "Doxycycline",
+        medicineName: "Doxycycline 100mg",
+        batchNumber: "DOXY100H8",
+        type: "Tablet",
+        expiryDate: "2025-03-27", // Already expired
+        quantity: 4,
+        invoiceDate: "2024-12-12",
+        invoiceNumber: "INV1008",
+        supplier: "CureMed Pharma"
+      },
+      {
+        id: 15,
+        saltName: "Ranitidine",
+        medicineName: "Ranitidine 150mg",
+        batchNumber: "RAN150I9",
+        type: "Tablet",
+        expiryDate: "2025-04-06", // Expiring today
+        quantity: 90,
+        invoiceDate: "2025-04-01",
+        invoiceNumber: "INV1009",
+        supplier: "HealthBridge Ltd."
+      },
+      {
+        id: 16,
+        saltName: "Loperamide",
+        medicineName: "Loperamide 2mg",
+        batchNumber: "LOP2K11",
+        type: "Tablet",
+        expiryDate: "2025-04-25", // Expiring soon
+        quantity: 5, // Low stock
+        invoiceDate: "2025-03-25",
+        invoiceNumber: "INV1011",
+        supplier: "VitalCare Pharma"
+      },
+      {
+        id: 17,
+        saltName: "Levocetirizine",
+        medicineName: "Levocetirizine 5mg",
+        batchNumber: "LEVO5L12",
+        type: "Tablet",
+        expiryDate: "2027-08-15", // Healthy expiry
+        quantity: 3,
+        invoiceDate: "2025-03-29",
+        invoiceNumber: "INV1012",
+        supplier: "PureMed Corp."
+      }
+      
+    ]);
+    
   const [newMedicine, setNewMedicine] = useState({
-    name: "",
-    category: "",
-    stock: "",
-    unit: "strips",
-    threshold: "",
-    expiry: "",
+    saltName: "",
+    medicineName: "",
+    batchNumber: "",
+    type: "",
+    expiryDate: "",
+    quantity: 0,
+    invoiceDate: "",
+    invoiceNumber: "",
+    supplier: "",
   })
 
   const handleAddMedicine = () => {
+    const {
+      saltName,
+      medicineName,
+      batchNumber,
+      type,
+      expiryDate,
+      quantity,
+      invoiceDate,
+      invoiceNumber,
+      supplier,
+    } = newMedicine;
+  
+    if (
+      !saltName.trim() ||
+      !medicineName.trim() ||
+      !batchNumber.trim() ||
+      !type.trim() ||
+      !expiryDate.trim() ||
+      !invoiceDate.trim() ||
+      !invoiceNumber.trim() ||
+      !supplier.trim() ||
+      quantity === 0
+    ) {
+       // Show error toast
+       toast.error("please fill out all fields", {
+        autoClose: 2000
+      });
+      return;
+    }
+  
     setMedicines([
       ...medicines,
       {
         id: medicines.length + 1,
-        name: newMedicine.name,
-        category: newMedicine.category,
-        stock: Number.parseInt(newMedicine.stock),
-        unit: newMedicine.unit,
-        threshold: Number.parseInt(newMedicine.threshold),
-        expiry: newMedicine.expiry,
+        saltName,
+        medicineName,
+        batchNumber,
+        type,
+        expiryDate,
+        quantity: Number.parseInt(quantity),
+        invoiceDate,
+        invoiceNumber,
+        supplier,
       },
-    ])
+    ]);
 
-    setNewMedicine({
-      name: "",
-      category: "",
-      stock: "",
-      unit: "strips",
-      threshold: "",
-      expiry: "",
+    toast.success("Added new medicine",{
+      autoClose:1000
     })
-  }
+    // Reset form
+    setNewMedicine({
+      saltName: "",
+      medicineName: "",
+      batchNumber: "",
+      type: "",
+      expiryDate: "",
+      quantity: 0,
+      invoiceDate: "",
+      invoiceNumber: "",
+      supplier: "",
+    });
+  };
+  
 
   const filteredMedicines = medicines.filter(
     (medicine) =>
-      medicine.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      medicine.category.toLowerCase().includes(searchQuery.toLowerCase()),
+      medicine.medicineName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      medicine.type.toLowerCase().includes(searchQuery.toLowerCase()),
   )
+  console.log("fil",filteredMedicines)
 
   // Calculate days until expiry
   const calculateDaysUntilExpiry = (expiryDate) => {
@@ -125,23 +336,37 @@ export default function MedicinesInventory() {
   }
 
   // Get low stock medicines
-  const lowStockMedicines = medicines.filter((m) => m.stock < m.threshold)
+  const lowStockMedicines = medicines.filter((m) => m.quantity < 10)
 
   // Get expiring medicines (within 30 days)
-  const expiringMedicines = medicines.filter((m) => calculateDaysUntilExpiry(m.expiry) <= 30)
+  const expiringMedicines = medicines.filter((m) => calculateDaysUntilExpiry(m.expiryDate) <= 30)
 
   // Get expired medicines
-  const expiredMedicines = medicines.filter((m) => calculateDaysUntilExpiry(m.expiry) <= 0)
+  const expiredMedicines = medicines.filter((m) => calculateDaysUntilExpiry(m.expiryDate) <= 0)
 
   return (
     <>
+     <ToastContainer 
+        position="top-right"
+        autoClose={2000}
+        
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Medicine Inventory</h1>
         <div className="flex gap-2">
           <div className="relative w-64">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by name or category"
+              placeholder="Search by name or type"
               className="pl-8"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -155,66 +380,100 @@ export default function MedicinesInventory() {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Add New Medicine</DialogTitle>
-                <DialogDescription>Add a new medicine to the inventory.</DialogDescription>
+                <DialogTitle>Add Medicine to Inventary !!!</DialogTitle>
+                {/* <DialogDescription>Add a new medicine to the inventory.</DialogDescription> */}
               </DialogHeader>
-              <div className="grid gap-4 py-4">
+
+              <div className="grid grid-cols-2 gap-4 py-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="name">Medicine Name</Label>
+                  <Label htmlFor="saltName">Salt Name</Label>
                   <Input
-                    id="name"
-                    value={newMedicine.name}
-                    onChange={(e) => setNewMedicine({ ...newMedicine, name: e.target.value })}
-                    placeholder="Enter medicine name"
+                    id="saltName"
+                    value={newMedicine.saltName}
+                    onChange={(e) => setNewMedicine({ ...newMedicine, saltName: e.target.value })}
+                    placeholder="Salt"
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="category">Category</Label>
+                  <Label htmlFor="medicineName">Medicine Name</Label>
                   <Input
-                    id="category"
-                    value={newMedicine.category}
-                    onChange={(e) => setNewMedicine({ ...newMedicine, category: e.target.value })}
-                    placeholder="Enter category"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="stock">Stock Quantity</Label>
-                    <Input
-                      id="stock"
-                      type="number"
-                      value={newMedicine.stock}
-                      onChange={(e) => setNewMedicine({ ...newMedicine, stock: e.target.value })}
-                      placeholder="Enter quantity"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="unit">Unit</Label>
-                    <Input
-                      id="unit"
-                      value={newMedicine.unit}
-                      onChange={(e) => setNewMedicine({ ...newMedicine, unit: e.target.value })}
-                      placeholder="e.g., strips, bottles"
-                    />
-                  </div>
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="threshold">Threshold Quantity</Label>
-                  <Input
-                    id="threshold"
-                    type="number"
-                    value={newMedicine.threshold}
-                    onChange={(e) => setNewMedicine({ ...newMedicine, threshold: e.target.value })}
-                    placeholder="Enter threshold for low stock alert"
+                    id="medicineName"
+                    value={newMedicine.medicineName}
+                    onChange={(e) => setNewMedicine({ ...newMedicine, medicineName: e.target.value })}
+                    placeholder="Paracetamol"
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="expiry">Expiry Date</Label>
+                  <Label htmlFor="batchNumber">Batch No.:</Label>
                   <Input
-                    id="expiry"
+                    id="batchNumbner"
+                    value={newMedicine.batchNumber}
+                    onChange={(e) => setNewMedicine({ ...newMedicine, batchNumber: e.target.value })}
+                    placeholder=""
+                  />
+                </div>
+                <div className="grid ">
+                <Label htmlFor="type">Select type:</Label>
+                <select
+                id="type"
+                value={newMedicine.type}
+                onChange={(e) => setNewMedicine({ ...newMedicine, type: e.target.value })}
+                className="border rounded-sm px-3  "
+                >
+                   <option value="">medicine</option>
+                   {medicineTypes.map((type) => (
+                     <option key={type} value={type}>
+                       {type}
+                     </option>
+                   ))}
+                </select>
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="expiryDate">Expiry Date</Label>
+                  <Input
+                    id="expiryDate"
                     type="date"
-                    value={newMedicine.expiry}
-                    onChange={(e) => setNewMedicine({ ...newMedicine, expiry: e.target.value })}
+                    value={newMedicine.expiryDate}
+                    onChange={(e) => setNewMedicine({ ...newMedicine, expiryDate: e.target.value })}
+                  />
+                </div>
+               
+                <div className="grid gap-2">
+                  <Label htmlFor="quantity">Quantity:</Label>
+                  <Input
+                    id="quantity"
+                    type="number"
+                    value={newMedicine.quantity}
+                    onChange={(e) => setNewMedicine({ ...newMedicine, quantity: e.target.value })}
+                    placeholder=""
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="invoiceDate">Invoice Date:</Label>
+                  <Input
+                    id="invoiceDate"
+                    type="date"
+                    value={newMedicine.invoiceDate}
+                    onChange={(e) => setNewMedicine({ ...newMedicine, invoiceDate: e.target.value })}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="invoiceNumber">Invoice No.:</Label>
+                  <Input
+                    id="invoiceNumber"
+                    value={newMedicine.invoiceNumber}
+                    onChange={(e) => setNewMedicine({ ...newMedicine, invoiceNumber: e.target.value })}
+                    placeholder=""
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="supplier">Supplier:</Label>
+                  <Input
+                    id="supplier"
+                    value={newMedicine.supplier}
+                    onChange={(e) => setNewMedicine({ ...newMedicine, supplier: e.target.value })}
+                    placeholder=""
                   />
                 </div>
               </div>
@@ -268,218 +527,257 @@ export default function MedicinesInventory() {
           <TabsTrigger value="expiring">Expiring Soon</TabsTrigger>
           <TabsTrigger value="expired">Expired</TabsTrigger>
         </TabsList>
+        
         <TabsContent value="all">
           <Card>
-            <CardHeader>
-              <CardTitle>Medicine Inventory</CardTitle>
-              <CardDescription>View and manage medicine stock</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Stock</TableHead>
-                    <TableHead>Threshold</TableHead>
-                    <TableHead>Expiry Date</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredMedicines.map((medicine) => {
-                    const daysUntilExpiry = calculateDaysUntilExpiry(medicine.expiry)
-                    const isLowStock = medicine.stock < medicine.threshold
-                    const isExpiringSoon = daysUntilExpiry <= 30 && daysUntilExpiry > 0
-                    const isExpired = daysUntilExpiry <= 0
+         <CardHeader>
+          <CardTitle>Medicine Inventory</CardTitle>
+          <CardDescription>View and manage medicine stock</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {/* table */}
+            <div className="w-full border rounded-md overflow-hidden text-sm">
+  {/* Header */}
+  <div className="grid grid-cols-9 gap-2 px-4 py-2 bg-gray-100 font-semibold text-gray-700">
+    <div className="col-span-1">Salt Name</div>
+    <div className="col-span-1">Medicine Name</div>
+    <div className="col-span-1">Batch</div>
+    <div className="col-span-1">Type</div>
+    <div className="col-span-1">Stock</div>
+    <div className="col-span-1">Expiry Date</div>
+    <div className="col-span-1">Status</div>
+    <div className="col-span-1">Days Left</div>
+    <div className="col-span-1 text-right">Actions</div>
+  </div>
 
-                    return (
-                      <TableRow key={medicine.id}>
-                        <TableCell className="font-medium">{medicine.name}</TableCell>
-                        <TableCell>{medicine.category}</TableCell>
-                        <TableCell>
-                          {medicine.stock} {medicine.unit}
-                        </TableCell>
-                        <TableCell>
-                          {medicine.threshold} {medicine.unit}
-                        </TableCell>
-                        <TableCell>{medicine.expiry}</TableCell>
-                        <TableCell>
-                          {isLowStock && (
-                            <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 mr-1">
-                              Low Stock
-                            </span>
-                          )}
-                          {isExpiringSoon && (
-                            <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
-                              Expiring Soon
-                            </span>
-                          )}
-                          {isExpired && (
-                            <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
-                              Expired
-                            </span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="outline" size="sm">
-                            Update
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })}
-                </TableBody>
-              </Table>
-            </CardContent>
+  {/* Body */}
+  <div className="max-h-[300px] overflow-y-auto">
+    {filteredMedicines.map((medicine) => {
+      const daysUntilExpiry = calculateDaysUntilExpiry(medicine.expiryDate);
+      const isLowStock = medicine.quantity < 10;
+      const isExpiringSoon = daysUntilExpiry <= 30 && daysUntilExpiry > 0;
+      const isExpired = daysUntilExpiry <= 0;
+
+      return (
+        <div
+          key={medicine.id}
+          className="grid grid-cols-9 gap-2 px-4 py-2 items-center text-gray-800 border-b hover:bg-gray-50"
+        >
+          <div className="col-span-1 truncate">{medicine.saltName}</div>
+          <div className="col-span-1 font-medium truncate">{medicine.medicineName}</div>
+          <div className="col-span-1 truncate">{medicine.batchNumber}</div>
+          <div className="col-span-1">{medicine.type}</div>
+          <div className="col-span-1">{medicine.quantity}</div>
+          <div className="col-span-1">{medicine.expiryDate}</div>
+
+          {/* Status */}
+          <div className="col-span-1 space-y-1">
+            {isLowStock && (
+              <span className="block rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-800 w-fit">
+                Low Stock
+              </span>
+            )}
+            {isExpiringSoon && (
+              <span className="block rounded bg-yellow-100 px-2 py-0.5 text-xs text-yellow-800 w-fit">
+                Expiring Soon
+              </span>
+            )}
+            {isExpired && (
+              <span className="block rounded bg-red-100 px-2 py-0.5 text-xs text-red-800 w-fit">
+                Expired
+              </span>
+            )}
+          </div>
+
+          {/* Days Left */}
+          <div className="col-span-1">
+            {isExpired ? (
+              <span className="text-red-600">Expired</span>
+            ) : (
+              `${daysUntilExpiry} days`
+            )}
+          </div>
+
+          {/* Actions */}
+          <div className="col-span-1 text-right">
+            <button className="px-2 py-1 text-xs rounded border hover:bg-gray-100">
+              Update
+            </button>
+          </div>
+        </div>
+      );
+    })}
+  </div>
+             </div>
+           </CardContent>
           </Card>
         </TabsContent>
+
         <TabsContent value="low-stock">
-          <Card>
-            <CardHeader>
-              <CardTitle>Low Stock Medicines</CardTitle>
-              <CardDescription>Medicines that need to be restocked</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Current Stock</TableHead>
-                    <TableHead>Threshold</TableHead>
-                    <TableHead>Expiry Date</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {lowStockMedicines.map((medicine) => (
-                    <TableRow key={medicine.id}>
-                      <TableCell className="font-medium">{medicine.name}</TableCell>
-                      <TableCell>{medicine.category}</TableCell>
-                      <TableCell className="text-amber-600 font-medium">
-                        {medicine.stock} {medicine.unit}
-                      </TableCell>
-                      <TableCell>
-                        {medicine.threshold} {medicine.unit}
-                      </TableCell>
-                      <TableCell>{medicine.expiry}</TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="outline" size="sm">
-                          Update Stock
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {lowStockMedicines.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={6} className="h-24 text-center">
-                        No low stock medicines found.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+  <Card>
+    <CardHeader>
+      <CardTitle>Low Stock Medicines</CardTitle>
+      <CardDescription>Medicines that need to be restocked</CardDescription>
+    </CardHeader>
+    <CardContent>
+      {/* table */}
+      <div className="w-full border rounded-md overflow-hidden text-sm">
+  {/* Header */}
+  <div className="grid grid-cols-6 gap-2 px-4 py-2 bg-gray-100 font-semibold text-gray-700">
+    <div>Medicine Name</div>
+    <div>Salt Name</div>
+    <div>Quantity</div>
+    <div>Type</div>
+    <div>Expiry Date</div>
+    <div className="text-right">Actions</div>
+  </div>
+
+  {/* Body */}
+  <div className="max-h-[300px] overflow-y-auto">
+    {lowStockMedicines.length > 0 ? (
+      lowStockMedicines.map((medicine) => (
+        <div
+          key={medicine.id}
+          className="grid grid-cols-6 gap-2 px-4 py-2 items-center border-b hover:bg-gray-50"
+        >
+          <div className="font-medium truncate">{medicine.medicineName}</div>
+          <div className="truncate">{medicine.saltName}</div>
+          <div className="text-amber-600 font-medium">
+            {medicine.quantity} {medicine.type}
+          </div>
+          <div>
+            {medicine.threshold} {medicine.type}
+          </div>
+          <div>{medicine.expiryDate}</div>
+          <div className="text-right">
+            <button className="px-2 py-1 text-xs rounded border hover:bg-gray-100">
+              Update Stock
+            </button>
+          </div>
+        </div>
+      ))
+    ) : (
+      <div className="px-4 py-6 text-center text-gray-500">
+        No low stock medicines found.
+      </div>
+    )}
+  </div>
+    </div>
+
+     
+
+    </CardContent>
+  </Card>
         </TabsContent>
+
         <TabsContent value="expiring">
-          <Card>
-            <CardHeader>
-              <CardTitle>Expiring Soon</CardTitle>
-              <CardDescription>Medicines expiring within 30 days</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Stock</TableHead>
-                    <TableHead>Expiry Date</TableHead>
-                    <TableHead>Days Left</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {expiringMedicines
-                    .filter((m) => calculateDaysUntilExpiry(m.expiry) > 0)
-                    .map((medicine) => (
-                      <TableRow key={medicine.id}>
-                        <TableCell className="font-medium">{medicine.name}</TableCell>
-                        <TableCell>{medicine.category}</TableCell>
-                        <TableCell>
-                          {medicine.stock} {medicine.unit}
-                        </TableCell>
-                        <TableCell>{medicine.expiry}</TableCell>
-                        <TableCell className="text-amber-600 font-medium">
-                          {calculateDaysUntilExpiry(medicine.expiry)} days
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="outline" size="sm">
-                            Mark Used
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  {expiringMedicines.filter((m) => calculateDaysUntilExpiry(m.expiry) > 0).length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={6} className="h-24 text-center">
-                        No medicines expiring soon.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+  <Card>
+    <CardHeader>
+      <CardTitle>Expiring Soon</CardTitle>
+      <CardDescription>Medicines expiring within 30 days</CardDescription>
+    </CardHeader>
+    <CardContent>
+      {/* table */}
+      <div className="w-full border rounded-md overflow-hidden text-sm">
+  {/* Header */}
+  <div className="grid grid-cols-6 gap-2 px-4 py-2 bg-gray-100 font-semibold text-gray-700">
+    <div>Medicine Name</div>
+    <div>Salt</div>
+    <div>Quantity</div>
+    <div>Expiry Date</div>
+    <div>Days Left</div>
+    <div className="text-right">Actions</div>
+  </div>
+
+  {/* Body */}
+  <div className="max-h-[300px] overflow-y-auto">
+    {expiringMedicines.filter((m) => calculateDaysUntilExpiry(m.expiryDate) > 0).length > 0 ? (
+      expiringMedicines
+        .filter((m) => calculateDaysUntilExpiry(m.expiryDate) > 0)
+        .map((medicine) => (
+          <div
+            key={medicine.id}
+            className="grid grid-cols-6 gap-2 px-4 py-2 items-center border-b hover:bg-gray-50"
+          >
+            <div className="font-medium truncate">{medicine.medicineName}</div>
+            <div className="truncate">{medicine.saltName}</div>
+            <div>
+              {medicine.quantity} {medicine.type}
+            </div>
+            <div>{medicine.expiryDate}</div>
+            <div className="text-amber-600 font-medium">
+              {calculateDaysUntilExpiry(medicine.expiryDate)} days
+            </div>
+            <div className="text-right">
+              <button className="px-2 py-1 text-xs rounded border hover:bg-gray-100">
+                Mark Used
+              </button>
+            </div>
+          </div>
+        ))
+    ) : (
+      <div className="px-4 py-6 text-center text-gray-500">
+        No medicines expiring soon.
+      </div>
+    )}
+  </div>
+</div>
+
+    </CardContent>
+  </Card>
         </TabsContent>
+
         <TabsContent value="expired">
-          <Card>
-            <CardHeader>
-              <CardTitle>Expired Medicines</CardTitle>
-              <CardDescription>Medicines that have already expired</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Stock</TableHead>
-                    <TableHead>Expiry Date</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {expiredMedicines.map((medicine) => (
-                    <TableRow key={medicine.id}>
-                      <TableCell className="font-medium">{medicine.name}</TableCell>
-                      <TableCell>{medicine.category}</TableCell>
-                      <TableCell>
-                        {medicine.stock} {medicine.unit}
-                      </TableCell>
-                      <TableCell className="text-red-600 font-medium">{medicine.expiry}</TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="outline" size="sm">
-                          Dispose
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {expiredMedicines.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={5} className="h-24 text-center">
-                        No expired medicines found.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+  <Card>
+    <CardHeader>
+      <CardTitle>Expired Medicines</CardTitle>
+      <CardDescription>Medicines that have already expired</CardDescription>
+    </CardHeader>
+    <CardContent>
+     {/* table */}
+     <div className="w-full border rounded-md overflow-hidden text-sm">
+  {/* Header */}
+  <div className="grid grid-cols-5 gap-2 px-4 py-2 bg-gray-100 font-semibold text-gray-700">
+    <div>Medicine Name</div>
+    <div>Salt</div>
+    <div>Quantity</div>
+    <div>Expiry Date</div>
+    <div className="text-right">Actions</div>
+  </div>
+
+  {/* Body */}
+  <div className="max-h-[300px] overflow-y-auto">
+    {expiredMedicines.length > 0 ? (
+      expiredMedicines.map((medicine) => (
+        <div
+          key={medicine.id}
+          className="grid grid-cols-5 gap-2 px-4 py-2 items-center border-b hover:bg-gray-50"
+        >
+          <div className="font-medium truncate">{medicine.medicineName}</div>
+          <div className="truncate">{medicine.saltName}</div>
+          <div>
+            {medicine.quantity} {medicine.type}
+          </div>
+          <div className="text-red-600 font-medium">{medicine.expiryDate}</div>
+          <div className="text-right">
+            <button className="px-2 py-1 text-xs rounded border hover:bg-gray-100">
+              Dispose
+            </button>
+          </div>
+        </div>
+      ))
+    ) : (
+      <div className="px-4 py-6 text-center text-gray-500">
+        No expired medicines found.
+      </div>
+    )}
+  </div>
+</div>
+
+    </CardContent>
+  </Card>
         </TabsContent>
+
       </Tabs>
     </>
   )

@@ -9,7 +9,7 @@ function DoctorDashboard(){
     const sideMenu = [
         { title: "Dashboard", href: `dashboard`, icon: <Home className="h-5 w-5" /> },
         { title: "Change Password", href: `change-password`, icon: <Settings className="h-5 w-5" /> },
-        { title: "Patient Records", href: "patient-records/2", icon: <Users className="h-5 w-5" /> },
+        { title: "Patient Records", href: "patient-records", icon: <Users className="h-5 w-5" /> },
         { title: "Prescriptions", href: "prescriptions", icon: <Package className="h-5 w-5" /> },
         { title: "Duty Schedule", href: "duty-schedule", icon: <Calendar className="h-5 w-5" /> },
         { title: "Medicine Stock", href: "medicine-stock", icon: <Package className="h-5 w-5" /> },

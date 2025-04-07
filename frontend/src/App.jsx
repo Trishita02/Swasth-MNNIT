@@ -21,6 +21,7 @@ import DoctorPatientRecords from "./pages/doctor/DoctorPatientRecords.jsx";
 import StaffPrescriptions from "./pages/staff/StaffPrescriptions.jsx";
 import DoctorNotification from "./pages/doctor/DoctorNotification.jsx";
 import StaffNotification from "./pages/staff/StaffNotification.jsx";
+import PatientHistory from "./pages/doctor/PatientHistory.jsx";
 
 function App() {
   return (
@@ -43,7 +44,8 @@ function App() {
           <Route index element={<Navigate to='dashboard'/>} />
           <Route path="dashboard" element={<DoctorDashboard/>} />
           <Route path="change-password" element={<ChangePassword/>} />
-          <Route path="patient-records/:id" element={<DoctorPatientRecords/>} />
+          <Route path="patient-records" element={<DoctorPatientRecords/>} />
+          <Route path="patient-records/history/:id" element={<PatientHistory/>} />
           <Route path="prescriptions" element={<DoctorPrescriptions/>} />
           <Route path="duty-schedule" element={<DutySchedule/>} />
           <Route path="medicine-stock" element={<MedicineStock/>} />

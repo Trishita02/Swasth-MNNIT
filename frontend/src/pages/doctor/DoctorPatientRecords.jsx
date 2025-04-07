@@ -1,224 +1,294 @@
+import { useState } from "react"
 import { Button } from "../../components/Button.jsx"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/Card.jsx"
+import { Input } from "../../components/Input.jsx"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/Table.jsx"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/Tabs.jsx"
-import { ArrowLeft, Calendar } from "lucide-react"
-import { Link, useParams } from "react-router-dom"
+import { FileText,Calendar as CalendarIcon } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/Select.jsx"
+import { Popover, PopoverContent, PopoverTrigger } from "../../components/PopOver.jsx"
+import { Calendar } from "../../components/Calendar.jsx"
+import { format } from "date-fns"
+import { Link } from "react-router-dom"
 
 export default function DoctorPatientRecords() {
-  const params = useParams()
-  const patientId = params.id
+  const [searchQuery, setSearchQuery] = useState("")
+  const [filterDate, setFilterDate] = useState(undefined)
+  const [filterDiagnosis, setFilterDiagnosis] = useState("")
 
-  // Mock patient data - in a real app, this would be fetched from an API
-  const patient = {
-    id: patientId,
-    name: "Rahul Sharma",
-    regNo: "BT21CS001",
-    type: "Student",
-    dob: "2001-05-15",
-    gender: "Male",
-    contact: "9876543210",
-    email: "rahul.sharma@mnnit.ac.in",
-    bloodGroup: "O+",
-    allergies: "None",
-  }
-
-  // Mock visit history
-  const visitHistory = [
+  const [patients, setPatients] = useState([
     {
       id: 1,
-      date: "2025-03-30",
-      doctor: "Dr. Kumar",
+      name: "Rahul Sharma",
+      regNo: "BT21CS001",
+      type: "Student",
+      department: "Computer Science",
+      lastVisit: "2025-03-30",
       diagnosis: "Viral Fever",
-      symptoms: "Fever, Headache, Body ache",
-      treatment: "Paracetamol 500mg, Rest",
     },
     {
       id: 2,
-      date: "2025-02-15",
-      doctor: "Dr. Sharma",
-      diagnosis: "Common Cold",
-      symptoms: "Runny nose, Sore throat",
-      treatment: "Cetirizine 10mg, Steam inhalation",
+      name: "Priya Singh",
+      regNo: "BT21EC045",
+      type: "Student",
+      department: "Electronics",
+      lastVisit: "2025-03-29",
+      diagnosis: "Migraine",
     },
     {
       id: 3,
-      date: "2024-11-10",
-      doctor: "Dr. Kumar",
-      diagnosis: "Gastroenteritis",
-      symptoms: "Abdominal pain, Nausea",
-      treatment: "ORS, Omeprazole 20mg",
+      name: "Amit Kumar",
+      regNo: "BT20ME032",
+      type: "Student",
+      department: "Mechanical",
+      lastVisit: "2025-03-28",
+      diagnosis: "Ankle Sprain",
     },
+    {
+      id: 4,
+      name: "Neha Gupta",
+      regNo: "BT22CS078",
+      type: "Student",
+      department: "Computer Science",
+      lastVisit: "2025-03-27",
+      diagnosis: "Cold & Cough",
+    },
+    {
+      id: 5,
+      name: "Dr. Rajesh Verma",
+      regNo: "FAC001",
+      type: "Faculty",
+      department: "Physics",
+      lastVisit: "2025-03-25",
+      diagnosis: "Back Pain",
+    },
+  ])
+
+  // List of diagnoses for filtering
+  const diagnosesList = [
+    "Viral Fever",
+    "Migraine",
+    "Ankle Sprain",
+    "Cold & Cough",
+    "Back Pain",
+    "Allergic Rhinitis",
+    "Gastritis",
   ]
 
-  // Mock prescription history
-  const prescriptionHistory = [
-    {
-      id: 1,
-      date: "2025-03-30",
-      doctor: "Dr. Kumar",
-      medicines: "Paracetamol 500mg - 1 tablet thrice daily\nDomperidone 10mg - 1 tablet before meals",
-      instructions: "Take after food. Drink plenty of fluids.",
-    },
-    {
-      id: 2,
-      date: "2025-02-15",
-      doctor: "Dr. Sharma",
-      medicines: "Cetirizine 10mg - 1 tablet at night\nChloropheniramine 4mg - 1 tablet twice daily",
-      instructions: "Avoid cold beverages. Steam inhalation twice daily.",
-    },
-    {
-      id: 3,
-      date: "2024-11-10",
-      doctor: "Dr. Kumar",
-      medicines: "ORS - 1 packet after each loose stool\nOmeprazole 20mg - 1 capsule before breakfast",
-      instructions: "Light diet. Avoid spicy food.",
-    },
-  ]
+  const filteredPatients = patients.filter((patient) => {
+    // Filter by registration number
+    const matchesSearch = patient.regNo.toLowerCase().includes(searchQuery.toLowerCase())
+
+    // Filter by date
+    const matchesDate = filterDate ? patient.lastVisit === format(filterDate, "yyyy-MM-dd") : true
+
+    // Filter by diagnosis
+    const matchesDiagnosis = filterDiagnosis ? patient.diagnosis === filterDiagnosis : true
+
+    return matchesSearch && matchesDate && matchesDiagnosis
+  })
 
   return (
     <>
-      <div className="mb-6">
-        <Link href="/dashboard/doctor/patients">
-          <Button variant="outline" size="sm">
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Patients
-          </Button>
-        </Link>
-      </div>
+      <div className="flex items-center justify-between">
+        
+        <h1 className="text-2xl font-bold">Patient Records</h1>
+        <div className="flex gap-2 ">
+          <Input
+            placeholder="Search by Reg. No."
+            className="w-48"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="max-w-36 justify-start text-left font-normal">
+                  <CalendarIcon className=" h-4 w-4" />
+                  {filterDate ? format(filterDate, "PPP") : <span>Filter by date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+              <Calendar 
+                    selectedDate={filterDate || null}  // Pass null instead of undefined
+                    onDateChange={(selectedDate) => {
+                      setFilterDate(selectedDate || undefined);
+                    }}
+                    disablePast={false}
+                  />
+              </PopoverContent>
+            </Popover>
 
-      <div className="grid gap-6 md:grid-cols-[1fr_2fr]">
-        <Card>
-          <CardHeader>
-            <CardTitle>Patient Information</CardTitle>
-            <CardDescription>Personal and medical details</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex flex-col items-center space-y-2 pb-4">
-                <div className="h-24 w-24 rounded-full bg-blue-100 flex items-center justify-center">
-                  <span className="text-2xl font-bold text-blue-600">
-                    {patient.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
-                  </span>
-                </div>
-                <h3 className="text-lg font-semibold">{patient.name}</h3>
-                <p className="text-sm text-muted-foreground">{patient.regNo}</p>
-              </div>
+          <Select value={filterDiagnosis} onValueChange={setFilterDiagnosis}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by diagnosis" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Diagnoses</SelectItem>
+              {diagnosesList.map((diagnosis) => (
+                <SelectItem key={diagnosis} value={diagnosis}>
+                  {diagnosis}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm font-medium">Type:</span>
-                  <span className="text-sm">{patient.type}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm font-medium">Date of Birth:</span>
-                  <span className="text-sm">{patient.dob}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm font-medium">Gender:</span>
-                  <span className="text-sm">{patient.gender}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm font-medium">Blood Group:</span>
-                  <span className="text-sm">{patient.bloodGroup}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm font-medium">Contact:</span>
-                  <span className="text-sm">{patient.contact}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm font-medium">Email:</span>
-                  <span className="text-sm">{patient.email}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm font-medium">Allergies:</span>
-                  <span className="text-sm">{patient.allergies}</span>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="space-y-6">
-          <Tabs defaultValue="visits">
-            <TabsList>
-              <TabsTrigger value="visits">Visit History</TabsTrigger>
-              <TabsTrigger value="prescriptions">Prescription History</TabsTrigger>
-            </TabsList>
-            <TabsContent value="visits">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Visit History</CardTitle>
-                  <CardDescription>Past consultations and diagnoses</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Doctor</TableHead>
-                        <TableHead>Diagnosis</TableHead>
-                        <TableHead>Symptoms</TableHead>
-                        <TableHead>Treatment</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {visitHistory.map((visit) => (
-                        <TableRow key={visit.id}>
-                          <TableCell>{visit.date}</TableCell>
-                          <TableCell>{visit.doctor}</TableCell>
-                          <TableCell>{visit.diagnosis}</TableCell>
-                          <TableCell>{visit.symptoms}</TableCell>
-                          <TableCell>{visit.treatment}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="prescriptions">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Prescription History</CardTitle>
-                  <CardDescription>Past medications and instructions</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
-                    {prescriptionHistory.map((prescription) => (
-                      <Card key={prescription.id} className="border-l-4 border-l-blue-500">
-                        <CardHeader className="pb-2">
-                          <div className="flex items-center justify-between">
-                            <CardTitle className="text-base">
-                              <Calendar className="mr-2 inline-block h-4 w-4" />
-                              {prescription.date}
-                            </CardTitle>
-                            <span className="text-sm text-muted-foreground">{prescription.doctor}</span>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-2">
-                            <div>
-                              <h4 className="text-sm font-medium">Medicines:</h4>
-                              <p className="whitespace-pre-line text-sm">{prescription.medicines}</p>
-                            </div>
-                            <div>
-                              <h4 className="text-sm font-medium">Instructions:</h4>
-                              <p className="text-sm">{prescription.instructions}</p>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
         </div>
       </div>
+
+      <Tabs defaultValue="all" className="mt-6">
+        <TabsList>
+          <TabsTrigger value="all">All Patients</TabsTrigger>
+          <TabsTrigger value="students">Students</TabsTrigger>
+          <TabsTrigger value="faculty">Faculty</TabsTrigger>
+        </TabsList>
+        <TabsContent value="all">
+          <Card>
+            <CardHeader>
+              <CardTitle>All Patients</CardTitle>
+              <CardDescription>View and manage all patient records</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Reg No.</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Department</TableHead>
+                    <TableHead>Last Visit</TableHead>
+                    <TableHead>Diagnosis</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredPatients.map((patient) => (
+                    <TableRow key={patient.id}>
+                      <TableCell className="font-medium">{patient.name}</TableCell>
+                      <TableCell>{patient.regNo}</TableCell>
+                      <TableCell>{patient.type}</TableCell>
+                      <TableCell>{patient.department}</TableCell>
+                      <TableCell>{patient.lastVisit}</TableCell>
+                      <TableCell>{patient.diagnosis}</TableCell>
+                      <TableCell className="text-right">
+                        <Link to={`history/${patient.regNo}`}>
+                          <Button variant="outline" size="sm">
+                            <FileText className="mr-2 h-4 w-4" /> View History
+                          </Button>
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {filteredPatients.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={7} className="h-24 text-center">
+                        No patients found matching the current filters.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="students">
+          <Card>
+            <CardHeader>
+              <CardTitle>Student Patients</CardTitle>
+              <CardDescription>View and manage student patient records</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Reg No.</TableHead>
+                    <TableHead>Department</TableHead>
+                    <TableHead>Last Visit</TableHead>
+                    <TableHead>Diagnosis</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredPatients
+                    .filter((patient) => patient.type === "Student")
+                    .map((patient) => (
+                      <TableRow key={patient.id}>
+                        <TableCell className="font-medium">{patient.name}</TableCell>
+                        <TableCell>{patient.regNo}</TableCell>
+                        <TableCell>{patient.department}</TableCell>
+                        <TableCell>{patient.lastVisit}</TableCell>
+                        <TableCell>{patient.diagnosis}</TableCell>
+                        <TableCell className="text-right">
+                          <Link to={`history/${patient.regNo}`}>
+                            <Button variant="outline" size="sm">
+                              <FileText className="mr-2 h-4 w-4" /> View History
+                            </Button>
+                          </Link>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  {filteredPatients.filter((patient) => patient.type === "Student").length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={6} className="h-24 text-center">
+                        No student patients found matching the current filters.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="faculty">
+          <Card>
+            <CardHeader>
+              <CardTitle>Faculty Patients</CardTitle>
+              <CardDescription>View and manage faculty patient records</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Reg No.</TableHead>
+                    <TableHead>Department</TableHead>
+                    <TableHead>Last Visit</TableHead>
+                    <TableHead>Diagnosis</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredPatients
+                    .filter((patient) => patient.type === "Faculty")
+                    .map((patient) => (
+                      <TableRow key={patient.id}>
+                        <TableCell className="font-medium">{patient.name}</TableCell>
+                        <TableCell>{patient.regNo}</TableCell>
+                        <TableCell>{patient.department}</TableCell>
+                        <TableCell>{patient.lastVisit}</TableCell>
+                        <TableCell>{patient.diagnosis}</TableCell>
+                        <TableCell className="text-right">
+                          <Link to={`history/${patient.regNo}`}>
+                            <Button variant="outline" size="sm">
+                              <FileText className="mr-2 h-4 w-4" /> View History
+                            </Button>
+                          </Link>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  {filteredPatients.filter((patient) => patient.type === "Faculty").length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={6} className="h-24 text-center">
+                        No faculty patients found matching the current filters.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </>
   )
 }
