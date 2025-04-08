@@ -13,19 +13,51 @@ import {
 } from "../../components/Dialog.jsx"
 import { Input } from "../../components/Input.jsx"
 import { Label } from "../../components/Label.jsx"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/Table.jsx"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/Tabs.jsx"
+import {Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../../components/Select.jsx"; 
 import { AlertTriangle, Calendar, Plus, Search } from "lucide-react"
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 export default function MedicinesInventory() {
-  const medicineTypes = ["Tablet", "Capsule", "Syrup", "Injection", "Ointment", "Drops"];
+
+  const medicineTypes = [
+    "Tablet",
+    "Capsule",
+    "Syrup",
+    "Injection",
+    "Ointment",
+    "Drops",
+    "Cream",
+    "Gel",
+    "Powder",
+    "Inhaler",
+    "Lotion",
+    "Spray",
+    "Suppository",
+    "Patch",
+    "Solution",
+    "Suspension",
+    "Granules",
+    "Lozenge",
+    "Nasal Spray",
+    "Ear Drops",
+    "Eye Ointment"
+  ];
+  
+  const [editingMedicine, setEditingMedicine] = useState({medicineName: "",
+    batchNumber: "",
+    type: "",
+    expiryDate: "",
+    quantity: 0,
+    invoiceDate: "",
+    invoiceNumber: "",
+    supplier: "",});
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("")
     const [medicines, setMedicines] = useState([
       {
         id: 1,
-        saltName: "Metformin",
         medicineName: "Metformin 500mg",
         batchNumber: "MET500F6",
         type: "Tablet",
@@ -37,7 +69,6 @@ export default function MedicinesInventory() {
       },
       {
         id: 2,
-        saltName: "Amoxicillin",
         medicineName: "Amoxicillin 250mg",
         batchNumber: "AMOX250G7",
         type: "Capsule",
@@ -49,7 +80,6 @@ export default function MedicinesInventory() {
       },
       {
         id: 3,
-        saltName: "Doxycycline",
         medicineName: "Doxycycline 100mg",
         batchNumber: "DOXY100H8",
         type: "Tablet",
@@ -61,7 +91,6 @@ export default function MedicinesInventory() {
       },
       {
         id: 25,
-        saltName: "Ranitidine",
         medicineName: "Ranitidine 150mg",
         batchNumber: "RAN150I9",
         type: "Tablet",
@@ -73,7 +102,6 @@ export default function MedicinesInventory() {
       },
       {
         id: 4,
-        saltName: "Metformin",
         medicineName: "Metformin 500mg",
         batchNumber: "MET500F6",
         type: "Tablet",
@@ -85,7 +113,6 @@ export default function MedicinesInventory() {
       },
       {
         id: 5,
-        saltName: "Amoxicillin",
         medicineName: "Amoxicillin 250mg",
         batchNumber: "AMOX250G7",
         type: "Capsule",
@@ -97,7 +124,6 @@ export default function MedicinesInventory() {
       },
       {
         id: 6,
-        saltName: "Doxycycline",
         medicineName: "Doxycycline 100mg",
         batchNumber: "DOXY100H8",
         type: "Tablet",
@@ -109,7 +135,6 @@ export default function MedicinesInventory() {
       },
       {
         id: 7,
-        saltName: "Ranitidine",
         medicineName: "Ranitidine 150mg",
         batchNumber: "RAN150I9",
         type: "Tablet",
@@ -121,7 +146,6 @@ export default function MedicinesInventory() {
       },
       {
         id: 8,
-        saltName: "Loperamide",
         medicineName: "Loperamide 2mg",
         batchNumber: "LOP2K11",
         type: "Tablet",
@@ -133,7 +157,6 @@ export default function MedicinesInventory() {
       },
       {
         id: 9,
-        saltName: "Levocetirizine",
         medicineName: "Levocetirizine 5mg",
         batchNumber: "LEVO5L12",
         type: "Tablet",
@@ -145,7 +168,6 @@ export default function MedicinesInventory() {
       },
       {
         id: 10,
-        saltName: "Doxycycline",
         medicineName: "Doxycycline 100mg",
         batchNumber: "DOXY100H8",
         type: "Tablet",
@@ -157,7 +179,6 @@ export default function MedicinesInventory() {
       },
       {
         id: 11,
-        saltName: "Ranitidine",
         medicineName: "Ranitidine 150mg",
         batchNumber: "RAN150I9",
         type: "Tablet",
@@ -169,7 +190,6 @@ export default function MedicinesInventory() {
       },
       {
         id: 12,
-        saltName: "Metformin",
         medicineName: "Metformin 500mg",
         batchNumber: "MET500F6",
         type: "Tablet",
@@ -181,7 +201,6 @@ export default function MedicinesInventory() {
       },
       {
         id: 13,
-        saltName: "Amoxicillin",
         medicineName: "Amoxicillin 250mg",
         batchNumber: "AMOX250G7",
         type: "Capsule",
@@ -193,7 +212,6 @@ export default function MedicinesInventory() {
       },
       {
         id: 14,
-        saltName: "Doxycycline",
         medicineName: "Doxycycline 100mg",
         batchNumber: "DOXY100H8",
         type: "Tablet",
@@ -205,7 +223,6 @@ export default function MedicinesInventory() {
       },
       {
         id: 15,
-        saltName: "Ranitidine",
         medicineName: "Ranitidine 150mg",
         batchNumber: "RAN150I9",
         type: "Tablet",
@@ -217,7 +234,6 @@ export default function MedicinesInventory() {
       },
       {
         id: 16,
-        saltName: "Loperamide",
         medicineName: "Loperamide 2mg",
         batchNumber: "LOP2K11",
         type: "Tablet",
@@ -229,7 +245,6 @@ export default function MedicinesInventory() {
       },
       {
         id: 17,
-        saltName: "Levocetirizine",
         medicineName: "Levocetirizine 5mg",
         batchNumber: "LEVO5L12",
         type: "Tablet",
@@ -243,7 +258,6 @@ export default function MedicinesInventory() {
     ]);
     
   const [newMedicine, setNewMedicine] = useState({
-    saltName: "",
     medicineName: "",
     batchNumber: "",
     type: "",
@@ -256,7 +270,6 @@ export default function MedicinesInventory() {
 
   const handleAddMedicine = () => {
     const {
-      saltName,
       medicineName,
       batchNumber,
       type,
@@ -268,7 +281,6 @@ export default function MedicinesInventory() {
     } = newMedicine;
   
     if (
-      !saltName.trim() ||
       !medicineName.trim() ||
       !batchNumber.trim() ||
       !type.trim() ||
@@ -284,12 +296,18 @@ export default function MedicinesInventory() {
       });
       return;
     }
+    if(quantity<=0 || !Number.isInteger(Number(quantity))){
+      // Show error toast
+      toast.error("please fill right quantity", {
+        autoClose: 2000
+      });
+      return;
+    }
   
     setMedicines([
       ...medicines,
       {
         id: medicines.length + 1,
-        saltName,
         medicineName,
         batchNumber,
         type,
@@ -317,6 +335,66 @@ export default function MedicinesInventory() {
       supplier: "",
     });
   };
+
+  const handleEditMedicine = () => {
+    if (!editingMedicine){ return;}
+
+    // console.log("editing medicine: ",editingMedicine)
+    
+    const {
+      medicineName,
+      batchNumber,
+      type,
+      expiryDate,
+      quantity,
+      invoiceDate,
+      invoiceNumber,
+      supplier,
+    } = editingMedicine;
+  
+    if (
+      !medicineName.trim() ||
+      !batchNumber.trim() ||
+      !type.trim() ||
+      !expiryDate.trim() ||
+      !invoiceDate.trim() ||
+      !invoiceNumber.trim() ||
+      !supplier.trim() ||
+      quantity === 0
+    ) {
+       // Show error toast
+       toast.error("please fill out all fields", {
+        autoClose: 2000
+      });
+      return;
+    }
+    if(quantity<=0 || !Number.isInteger(Number(quantity))){
+      // Show error toast
+      toast.error("please fill right quantity", {
+        autoClose: 2000
+      });
+      return;
+    }
+    
+    setMedicines(medicines.map(medicine => 
+      medicine.id === editingMedicine.id ? editingMedicine : medicine
+    ));
+    
+    setEditingMedicine({medicineName: "",
+      batchNumber: "",
+      type: "",
+      expiryDate: "",
+      quantity: 0,
+      invoiceDate: "",
+      invoiceNumber: "",
+      supplier: "",});
+    setIsEditDialogOpen(false);
+    
+    toast.success("User information has been updated successfully");
+    setTimeout(() => {
+      document.querySelector("[data-state='open']")?.click();
+    },800);
+  };
   
 
   const filteredMedicines = medicines.filter(
@@ -324,7 +402,6 @@ export default function MedicinesInventory() {
       medicine.medicineName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       medicine.type.toLowerCase().includes(searchQuery.toLowerCase()),
   )
-  console.log("fil",filteredMedicines)
 
   // Calculate days until expiry
   const calculateDaysUntilExpiry = (expiryDate) => {
@@ -385,7 +462,7 @@ export default function MedicinesInventory() {
               </DialogHeader>
 
               <div className="grid grid-cols-2 gap-4 py-4">
-                <div className="grid gap-2">
+                {/* <div className="grid gap-2">
                   <Label htmlFor="saltName">Salt Name</Label>
                   <Input
                     id="saltName"
@@ -393,7 +470,7 @@ export default function MedicinesInventory() {
                     onChange={(e) => setNewMedicine({ ...newMedicine, saltName: e.target.value })}
                     placeholder="Salt"
                   />
-                </div>
+                </div> */}
                 <div className="grid gap-2">
                   <Label htmlFor="medicineName">Medicine Name</Label>
                   <Input
@@ -412,21 +489,25 @@ export default function MedicinesInventory() {
                     placeholder=""
                   />
                 </div>
-                <div className="grid ">
-                <Label htmlFor="type">Select type:</Label>
-                <select
+               <div className="grid gap-2">
+               <Label htmlFor="type">Medicine Type</Label>
+                <Select
                 id="type"
-                value={newMedicine.type}
-                onChange={(e) => setNewMedicine({ ...newMedicine, type: e.target.value })}
-                className="border rounded-sm px-3  "
+                  value={newMedicine.type}
+                  onValueChange={(value) => setNewMedicine({ ...newMedicine, type: value })}
                 >
-                   <option value="">medicine</option>
-                   {medicineTypes.map((type) => (
-                     <option key={type} value={type}>
-                       {type}
-                     </option>
-                   ))}
-                </select>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select medicine type" />
+                  </SelectTrigger>
+
+                  <SelectContent className="max-h-48 overflow-y-auto">
+                    {medicineTypes.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 </div>
 
                 <div className="grid gap-2">
@@ -444,6 +525,9 @@ export default function MedicinesInventory() {
                   <Input
                     id="quantity"
                     type="number"
+                    min="0"
+                    step="1"
+                    inputMode="numeric"
                     value={newMedicine.quantity}
                     onChange={(e) => setNewMedicine({ ...newMedicine, quantity: e.target.value })}
                     placeholder=""
@@ -538,8 +622,8 @@ export default function MedicinesInventory() {
             {/* table */}
             <div className="w-full border rounded-md overflow-hidden text-sm">
   {/* Header */}
-  <div className="grid grid-cols-9 gap-2 px-4 py-2 bg-gray-100 font-semibold text-gray-700">
-    <div className="col-span-1">Salt Name</div>
+  <div className="grid grid-cols-8 gap-2 px-4 py-2 bg-gray-100 font-semibold text-gray-700">
+    {/* <div className="col-span-1">Salt Name</div> */}
     <div className="col-span-1">Medicine Name</div>
     <div className="col-span-1">Batch</div>
     <div className="col-span-1">Type</div>
@@ -561,9 +645,9 @@ export default function MedicinesInventory() {
       return (
         <div
           key={medicine.id}
-          className="grid grid-cols-9 gap-2 px-4 py-2 items-center text-gray-800 border-b hover:bg-gray-50"
+          className="grid grid-cols-8 gap-2 px-4 py-2 items-center text-gray-800 border-b hover:bg-gray-50"
         >
-          <div className="col-span-1 truncate">{medicine.saltName}</div>
+          {/* <div className="col-span-1 truncate">{medicine.saltName}</div> */}
           <div className="col-span-1 font-medium truncate">{medicine.medicineName}</div>
           <div className="col-span-1 truncate">{medicine.batchNumber}</div>
           <div className="col-span-1">{medicine.type}</div>
@@ -600,9 +684,15 @@ export default function MedicinesInventory() {
 
           {/* Actions */}
           <div className="col-span-1 text-right">
-            <button className="px-2 py-1 text-xs rounded border hover:bg-gray-100">
+            <button className="px-2 py-1 text-xs rounded border hover:bg-gray-100"
+             onClick={() => {
+              setEditingMedicine(medicine);
+              setIsEditDialogOpen(true);
+            }}
+            >
               Update
             </button>
+            
           </div>
         </div>
       );
@@ -623,9 +713,8 @@ export default function MedicinesInventory() {
       {/* table */}
       <div className="w-full border rounded-md overflow-hidden text-sm">
   {/* Header */}
-  <div className="grid grid-cols-6 gap-2 px-4 py-2 bg-gray-100 font-semibold text-gray-700">
+  <div className="grid grid-cols-5 gap-2 px-4 py-2 bg-gray-100 font-semibold text-gray-700">
     <div>Medicine Name</div>
-    <div>Salt Name</div>
     <div>Quantity</div>
     <div>Type</div>
     <div>Expiry Date</div>
@@ -638,10 +727,9 @@ export default function MedicinesInventory() {
       lowStockMedicines.map((medicine) => (
         <div
           key={medicine.id}
-          className="grid grid-cols-6 gap-2 px-4 py-2 items-center border-b hover:bg-gray-50"
+          className="grid grid-cols-5 gap-2 px-4 py-2 items-center border-b hover:bg-gray-50"
         >
           <div className="font-medium truncate">{medicine.medicineName}</div>
-          <div className="truncate">{medicine.saltName}</div>
           <div className="text-amber-600 font-medium">
             {medicine.quantity} {medicine.type}
           </div>
@@ -650,7 +738,12 @@ export default function MedicinesInventory() {
           </div>
           <div>{medicine.expiryDate}</div>
           <div className="text-right">
-            <button className="px-2 py-1 text-xs rounded border hover:bg-gray-100">
+            <button className="px-2 py-1 text-xs rounded border hover:bg-gray-100"
+             onClick={() => {
+              setEditingMedicine(medicine);
+              setIsEditDialogOpen(true);
+            }}
+            >
               Update Stock
             </button>
           </div>
@@ -680,9 +773,8 @@ export default function MedicinesInventory() {
       {/* table */}
       <div className="w-full border rounded-md overflow-hidden text-sm">
   {/* Header */}
-  <div className="grid grid-cols-6 gap-2 px-4 py-2 bg-gray-100 font-semibold text-gray-700">
+  <div className="grid grid-cols-5 gap-2 px-4 py-2 bg-gray-100 font-semibold text-gray-700">
     <div>Medicine Name</div>
-    <div>Salt</div>
     <div>Quantity</div>
     <div>Expiry Date</div>
     <div>Days Left</div>
@@ -697,10 +789,9 @@ export default function MedicinesInventory() {
         .map((medicine) => (
           <div
             key={medicine.id}
-            className="grid grid-cols-6 gap-2 px-4 py-2 items-center border-b hover:bg-gray-50"
+            className="grid grid-cols-5 gap-2 px-4 py-2 items-center border-b hover:bg-gray-50"
           >
             <div className="font-medium truncate">{medicine.medicineName}</div>
-            <div className="truncate">{medicine.saltName}</div>
             <div>
               {medicine.quantity} {medicine.type}
             </div>
@@ -737,9 +828,8 @@ export default function MedicinesInventory() {
      {/* table */}
      <div className="w-full border rounded-md overflow-hidden text-sm">
   {/* Header */}
-  <div className="grid grid-cols-5 gap-2 px-4 py-2 bg-gray-100 font-semibold text-gray-700">
+  <div className="grid grid-cols-4 gap-2 px-4 py-2 bg-gray-100 font-semibold text-gray-700">
     <div>Medicine Name</div>
-    <div>Salt</div>
     <div>Quantity</div>
     <div>Expiry Date</div>
     <div className="text-right">Actions</div>
@@ -751,10 +841,9 @@ export default function MedicinesInventory() {
       expiredMedicines.map((medicine) => (
         <div
           key={medicine.id}
-          className="grid grid-cols-5 gap-2 px-4 py-2 items-center border-b hover:bg-gray-50"
+          className="grid grid-cols-4 gap-2 px-4 py-2 items-center border-b hover:bg-gray-50"
         >
           <div className="font-medium truncate">{medicine.medicineName}</div>
-          <div className="truncate">{medicine.saltName}</div>
           <div>
             {medicine.quantity} {medicine.type}
           </div>
@@ -779,7 +868,111 @@ export default function MedicinesInventory() {
         </TabsContent>
 
       </Tabs>
+
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+      <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Update Medicine to Inventary !!!</DialogTitle>
+                <DialogDescription>Update Medicine</DialogDescription>
+              </DialogHeader>
+              <div className="grid grid-cols-2 gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="medicineName">Medicine Name</Label>
+                  <Input
+                    id="medicineName"
+                    value={editingMedicine.medicineName}
+                    onChange={(e) => setEditingMedicine({ ...editingMedicine, medicineName: e.target.value })}
+                    placeholder="Paracetamol"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="batchNumber">Batch No.:</Label>
+                  <Input
+                    id="batchNumbner"
+                    value={editingMedicine.batchNumber}
+                    onChange={(e) => setEditingMedicine({ ...editingMedicine, batchNumber: e.target.value })}
+                    placeholder=""
+                  />
+                </div>
+               <div className="grid gap-2">
+               <Label htmlFor="type">Medicine Type</Label>
+                <Select
+                id="type"
+                  value={editingMedicine.type}
+                  onValueChange={(value) => setEditingMedicine({ ...editingMedicine, type: value })}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select medicine type" />
+                  </SelectTrigger>
+
+                  <SelectContent className="max-h-48 overflow-y-auto">
+                    {medicineTypes.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="expiryDate">Expiry Date</Label>
+                  <Input
+                    id="expiryDate"
+                    type="date"
+                    value={editingMedicine.expiryDate}
+                    onChange={(e) => setEditingMedicine({ ...editingMedicine, expiryDate: e.target.value })}
+                  />
+                </div>
+               
+                <div className="grid gap-2">
+                  <Label htmlFor="quantity">Quantity:</Label>
+                  <Input
+                    id="quantity"
+                    type="number"
+                    min="0"
+                    step="1"
+                    inputMode="numeric"
+                    value={editingMedicine.quantity}
+                    onChange={(e) => setEditingMedicine({ ...editingMedicine, quantity: e.target.value })}
+                    placeholder=""
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="invoiceDate">Invoice Date:</Label>
+                  <Input
+                    id="invoiceDate"
+                    type="date"
+                    value={editingMedicine.invoiceDate}
+                    onChange={(e) => setEditingMedicine({ ...editingMedicine, invoiceDate: e.target.value })}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="invoiceNumber">Invoice No.:</Label>
+                  <Input
+                    id="invoiceNumber"
+                    value={editingMedicine.invoiceNumber}
+                    onChange={(e) => setEditingMedicine({ ...editingMedicine, invoiceNumber: e.target.value })}
+                    placeholder=""
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="supplier">Supplier:</Label>
+                  <Input
+                    id="supplier"
+                    value={editingMedicine.supplier}
+                    onChange={(e) => setEditingMedicine({ ...editingMedicine, supplier: e.target.value })}
+                    placeholder=""
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button onClick={handleEditMedicine} className="bg-blue-600 hover:bg-blue-700">
+                  Update Medicine
+                </Button>
+              </DialogFooter>
+      </DialogContent>
+      </Dialog>
     </>
   )
 }
-

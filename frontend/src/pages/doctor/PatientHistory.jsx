@@ -3,12 +3,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../..
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/Table.jsx"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/Tabs.jsx"
 import { ArrowLeft, Calendar } from "lucide-react"
-import { Link, useParams } from "react-router-dom"
+import { Link, useParams,useNavigate } from "react-router-dom"
 
 export default function PatientHistory() {
   const params = useParams()
   const patientId = params.id
-  console.log("history id: ",patientId)
+  // console.log("history id: ",patientId)
+  const navigate = useNavigate();
 
   // Mock patient data - in a real app, this would be fetched from an API
   const patient = {
@@ -80,11 +81,11 @@ export default function PatientHistory() {
   return (
     <>
       <div className="mb-6">
-        <Link to="/doctor/patient-records">
-          <Button variant="outline" size="sm">
+        {/* <Link to=".."> */}
+          <Button variant="outline" size="sm" onClick={()=>navigate(-1)}>
             <ArrowLeft className="mr-2 h-4 w-4" /> Back to Patients
           </Button>
-        </Link>
+        {/* </Link> */}
       </div>
 
       <div className="grid gap-6 md:grid-cols-[1fr_2fr]">

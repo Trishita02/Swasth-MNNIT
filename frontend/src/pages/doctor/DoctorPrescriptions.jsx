@@ -527,7 +527,7 @@ export default function DoctorPrescriptions() {
                       <TableCell className="text-right">
                         <Link href={`/dashboard/doctor/patients/history/${prescription.regNo}`}>
                           <Button variant="outline" size="sm">
-                            <FileText className="mr-2 h-4 w-4" /> View History
+                            <FileText className="mr-2 h-4 w-4" /> View
                           </Button>
                         </Link>
                         <Button variant="outline" size="sm" className="ml-2">
@@ -579,7 +579,7 @@ export default function DoctorPrescriptions() {
                         <TableCell className="text-right">
                           <Link href={`/dashboard/doctor/patients/history/${prescription.regNo}`}>
                             <Button variant="outline" size="sm">
-                              <FileText className="mr-2 h-4 w-4" /> View History
+                              <FileText className="mr-2 h-4 w-4" /> View
                             </Button>
                           </Link>
                           <Button variant="outline" size="sm" className="ml-2">
@@ -631,7 +631,7 @@ export default function DoctorPrescriptions() {
                         <TableCell className="text-right">
                           <Link href={`/dashboard/doctor/patients/history/${prescription.regNo}`}>
                             <Button variant="outline" size="sm">
-                              <FileText className="mr-2 h-4 w-4" /> View History
+                              <FileText className="mr-2 h-4 w-4" /> View
                             </Button>
                           </Link>
                           <Button variant="outline" size="sm" className="ml-2">

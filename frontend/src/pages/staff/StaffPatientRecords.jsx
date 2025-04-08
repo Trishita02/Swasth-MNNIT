@@ -5,6 +5,7 @@ import { Input } from "../../components/Input.jsx"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/Table.jsx"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/Tabs.jsx"
 import { FileText, Search } from "lucide-react"
+import { Link } from "react-router-dom"
 
 export default function PatientRecords() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -70,9 +71,11 @@ export default function PatientRecords() {
                       <TableCell>{patient.lastVisit}</TableCell>
                       <TableCell>{patient.issue}</TableCell>
                       <TableCell className="text-right">
-                        <Button variant="outline" size="sm">
-                          <FileText className="mr-2 h-4 w-4" /> View History
-                        </Button>
+                      <Link to={`history/${patient.regNo}`}>
+                          <Button variant="outline" size="sm">
+                            <FileText className="mr-2 h-4 w-4" /> View History
+                          </Button>
+                        </Link>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -108,9 +111,11 @@ export default function PatientRecords() {
                         <TableCell>{patient.lastVisit}</TableCell>
                         <TableCell>{patient.issue}</TableCell>
                         <TableCell className="text-right">
+                        <Link to={`history/${patient.regNo}`}>
                           <Button variant="outline" size="sm">
                             <FileText className="mr-2 h-4 w-4" /> View History
                           </Button>
+                        </Link>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -146,9 +151,11 @@ export default function PatientRecords() {
                         <TableCell>{patient.lastVisit}</TableCell>
                         <TableCell>{patient.issue}</TableCell>
                         <TableCell className="text-right">
+                        <Link to={`history/${patient.regNo}`}>
                           <Button variant="outline" size="sm">
                             <FileText className="mr-2 h-4 w-4" /> View History
                           </Button>
+                        </Link>
                         </TableCell>
                       </TableRow>
                     ))}

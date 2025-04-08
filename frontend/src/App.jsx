@@ -57,6 +57,7 @@ function App() {
           <Route path="dashboard" element={<StaffDashboard/>} />
           <Route path="change-password" element={<ChangePassword/>} />
           <Route path="patient-records" element={<StaffPatientRecords/>} />
+          <Route path="patient-records/history/:id" element={<PatientHistory/>} />
           <Route path="medicine-inventory" element={<MedicinesInventory/>} />
           <Route path="prescriptions" element={<StaffPrescriptions/>} />
           <Route path="notifications" element={<StaffNotification/>} />
