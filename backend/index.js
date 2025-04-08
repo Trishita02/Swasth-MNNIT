@@ -5,6 +5,7 @@ import dotenv from "dotenv"
 import cookieParser from "cookie-parser";
 import { loginUser, logoutUser } from "./controllers/auth.controller.js";
 import { isAuthenticated } from "./middlewares/auth.middleware.js";
+import adminRouter from "./routes/admin.routes.js"
 dotenv.config({
     path:'./.env'
 })
@@ -24,6 +25,7 @@ app.use(express.static("public"))
 // ROUTES
 app.post("/login", loginUser);
 app.post("/logout", isAuthenticated, logoutUser);
+app.use('/admin',adminRouter)
 
 //Connect database
 const connectDB=async()=>{
