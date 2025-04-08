@@ -9,7 +9,7 @@ const DoctorSchema = new mongoose.Schema({
   username: { type: String, unique: true, trim: true },
   email: { type: String, required: true, unique: true, trim: true },
   phone: { type: String, required: true, unique: true },
-  password: { type: String, required: true }, // Encrypted password
+  password: { type: String }, // Encrypted password
   specialization: { type: String, required: true},
   availability: [
     {
