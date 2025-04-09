@@ -1,4 +1,3 @@
-// toast code apply karna hai
 
 import { useState } from "react"
 import { Button } from "../../components/Button.jsx"
@@ -18,19 +17,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/Table.jsx"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/Tabs.jsx"
 import { Textarea } from "../../components/TextArea.jsx"
-import { Calendar, FileText, Plus, User } from "lucide-react"
-// import { useToast } from "use-toast"
-import { Link } from "react-router-dom"
+import { Calendar, FileText, Plus, Search, User, X } from "lucide-react"
+// import { useToast } from "@/hooks/use-toast"
 import { Popover, PopoverContent, PopoverTrigger } from "../../components/PopOver.jsx"
 import { format } from "date-fns"
+import { Badge } from "../../components/Badge.jsx"
 
 export default function DoctorPrescriptions() {
   const [searchQuery, setSearchQuery] = useState("")
   const [searchType, setSearchType] = useState("regNo")
   const [filterDate, setFilterDate] = useState(undefined)
-  const [filterIssue, setFilterIssue] = useState("")
+  const [filterIssue, setFilterIssue] = useState("all")
   const [selectedPatient, setSelectedPatient] = useState(null)
-//   const { toast } = useToast()
+  // const { toast } = useToast()
 
   const [prescriptions, setPrescriptions] = useState([
     {
@@ -206,10 +205,10 @@ export default function DoctorPrescriptions() {
     setSelectedPatient(null)
     setSearchQuery("")
 
-    // toast({
-    //   title: "Prescription Created",
-    //   description: `Prescription for ${selectedPatient.name} has been created successfully`,
-    // })
+    toast({
+      title: "Prescription Created",
+      description: `Prescription for ${selectedPatient.name} has been created successfully`,
+    })
   }
 
   // Filter prescriptions based on search query, date, and issue
@@ -221,10 +220,70 @@ export default function DoctorPrescriptions() {
     const matchesDate = filterDate ? prescription.date === format(filterDate, "yyyy-MM-dd") : true
 
     // Filter by issue
-    const matchesIssue = filterIssue ? prescription.issue === filterIssue : true
+    const matchesIssue = filterIssue === "all" || prescription.issue === filterIssue
 
     return matchesSearch && matchesDate && matchesIssue
   })
+
+  const clearFilters = () => {
+    setFilterDate(undefined)
+    setFilterIssue("all")
+  }
+
+  const [selectedPrescription, setSelectedPrescription] = useState(null)
+  const [isPrescriptionDialogOpen, setIsPrescriptionDialogOpen] = useState(false)
+
+  const handleViewPrescription = (prescription) => {
+    setSelectedPrescription(prescription)
+    setIsPrescriptionDialogOpen(true)
+  }
+
+  // Mock prescription details for the selected prescription
+  const getPrescriptionDetails = (prescription) => {
+    if (!prescription) return null
+
+    return {
+      id: prescription.id,
+      patientName: prescription.patientName,
+      regNo: prescription.regNo,
+      date: prescription.date,
+      diagnosis: prescription.diagnosis,
+      issue: prescription.issue,
+      status: prescription.status,
+      chiefComplaints: `${prescription.issue}, Weakness, Fatigue`,
+      pastHistory: prescription.issue === "Fever" ? "H/O Typhoid 2 years back" : "No significant past history",
+      medicines: [
+        {
+          name:
+            prescription.issue === "Fever"
+              ? "Paracetamol 500mg"
+              : prescription.issue === "Headache"
+                ? "Ibuprofen 400mg"
+                : prescription.issue === "Injury"
+                  ? "Diclofenac 50mg"
+                  : "Cetirizine 10mg",
+          dosage: "1-0-1",
+          duration: "5 days",
+          instructions: "After meals",
+        },
+        {
+          name:
+            prescription.issue === "Fever"
+              ? "Azithromycin 500mg"
+              : prescription.issue === "Headache"
+                ? "Paracetamol 500mg"
+                : prescription.issue === "Injury"
+                  ? "Paracetamol 500mg"
+                  : "Montelukast 10mg",
+          dosage: "0-0-1",
+          duration: "3 days",
+          instructions: "After dinner",
+        },
+      ],
+      advice: "Plenty of fluids. Rest advised.",
+      followUp: "After 5 days if symptoms persist",
+    }
+  }
 
   return (
     <>
@@ -232,17 +291,31 @@ export default function DoctorPrescriptions() {
         <h1 className="text-2xl font-bold">Prescriptions</h1>
         <div className="flex gap-2">
           <div className="flex items-center gap-2">
-            <Input
-              placeholder="Search by Reg. No."
-              className="w-48"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+            <div className="relative w-64">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by Reg. No."
+                className="pl-8"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              {searchQuery && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-full"
+                  onClick={() => setSearchQuery("")}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
 
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" size="icon">
-                  <Calendar className="h-4 w-4" />
+                <Button variant="outline" className="w-[150px] justify-start text-left font-normal">
+                  <Calendar className="mr-2 h-4 w-4" />
+                  {filterDate ? format(filterDate, "PPP") : <span>Filter by date</span>}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="end">
@@ -263,6 +336,12 @@ export default function DoctorPrescriptions() {
                 ))}
               </SelectContent>
             </Select>
+
+            {(filterDate || filterIssue !== "all") && (
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="h-9 px-3">
+                Clear Filters
+              </Button>
+            )}
           </div>
 
           <Dialog>
@@ -480,6 +559,37 @@ export default function DoctorPrescriptions() {
         </div>
       </div>
 
+      {(searchQuery || filterDate || filterIssue !== "all") && (
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          {searchQuery && (
+            <Badge variant="secondary" className="px-3 py-1">
+              Reg No: {searchQuery}
+              <Button variant="ghost" size="icon" className="ml-1 h-4 w-4 p-0" onClick={() => setSearchQuery("")}>
+                <X className="h-3 w-3" />
+              </Button>
+            </Badge>
+          )}
+
+          {filterDate && (
+            <Badge variant="secondary" className="px-3 py-1">
+              Date: {format(filterDate, "PPP")}
+              <Button variant="ghost" size="icon" className="ml-1 h-4 w-4 p-0" onClick={() => setFilterDate(undefined)}>
+                <X className="h-3 w-3" />
+              </Button>
+            </Badge>
+          )}
+
+          {filterIssue !== "all" && (
+            <Badge variant="secondary" className="px-3 py-1">
+              Issue: {filterIssue}
+              <Button variant="ghost" size="icon" className="ml-1 h-4 w-4 p-0" onClick={() => setFilterIssue("all")}>
+                <X className="h-3 w-3" />
+              </Button>
+            </Badge>
+          )}
+        </div>
+      )}
+
       <Tabs defaultValue="all" className="mt-6">
         <TabsList>
           <TabsTrigger value="all">All Prescriptions</TabsTrigger>
@@ -525,11 +635,9 @@ export default function DoctorPrescriptions() {
                         </span>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Link href={`/dashboard/doctor/patients/history/${prescription.regNo}`}>
-                          <Button variant="outline" size="sm">
-                            <FileText className="mr-2 h-4 w-4" /> View
-                          </Button>
-                        </Link>
+                        <Button variant="outline" size="sm" onClick={() => handleViewPrescription(prescription)}>
+                          <FileText className="mr-2 h-4 w-4" /> View
+                        </Button>
                         <Button variant="outline" size="sm" className="ml-2">
                           Print
                         </Button>
@@ -577,11 +685,9 @@ export default function DoctorPrescriptions() {
                         <TableCell>{prescription.diagnosis}</TableCell>
                         <TableCell>{prescription.issue}</TableCell>
                         <TableCell className="text-right">
-                          <Link href={`/dashboard/doctor/patients/history/${prescription.regNo}`}>
-                            <Button variant="outline" size="sm">
-                              <FileText className="mr-2 h-4 w-4" /> View
-                            </Button>
-                          </Link>
+                          <Button variant="outline" size="sm" onClick={() => handleViewPrescription(prescription)}>
+                            <FileText className="mr-2 h-4 w-4" /> View
+                          </Button>
                           <Button variant="outline" size="sm" className="ml-2">
                             Print
                           </Button>
@@ -629,11 +735,9 @@ export default function DoctorPrescriptions() {
                         <TableCell>{prescription.diagnosis}</TableCell>
                         <TableCell>{prescription.issue}</TableCell>
                         <TableCell className="text-right">
-                          <Link href={`/dashboard/doctor/patients/history/${prescription.regNo}`}>
-                            <Button variant="outline" size="sm">
-                              <FileText className="mr-2 h-4 w-4" /> View
-                            </Button>
-                          </Link>
+                          <Button variant="outline" size="sm" onClick={() => handleViewPrescription(prescription)}>
+                            <FileText className="mr-2 h-4 w-4" /> View
+                          </Button>
                           <Button variant="outline" size="sm" className="ml-2">
                             Print
                           </Button>
@@ -653,7 +757,100 @@ export default function DoctorPrescriptions() {
           </Card>
         </TabsContent>
       </Tabs>
+      {/* Prescription View Dialog */}
+      <Dialog open={isPrescriptionDialogOpen} onOpenChange={setIsPrescriptionDialogOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Prescription Details</DialogTitle>
+            <DialogDescription>
+              {selectedPrescription &&
+                `Prescription for ${selectedPrescription.patientName} (${selectedPrescription.regNo})`}
+            </DialogDescription>
+          </DialogHeader>
+          {selectedPrescription && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center border-b pb-4">
+                <div>
+                  <h3 className="font-semibold text-lg">{selectedPrescription.patientName}</h3>
+                  <p className="text-sm text-muted-foreground">Reg No: {selectedPrescription.regNo}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-medium">Date: {selectedPrescription.date}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Status:{" "}
+                    <span className={selectedPrescription.status === "Completed" ? "text-green-600" : "text-amber-600"}>
+                      {selectedPrescription.status}
+                    </span>
+                  </p>
+                </div>
+              </div>
+
+              {(() => {
+                const details = getPrescriptionDetails(selectedPrescription)
+                return (
+                  <>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="font-medium mb-1">Diagnosis</h4>
+                        <p>{details.diagnosis}</p>
+                      </div>
+                      <div>
+                        <h4 className="font-medium mb-1">Chief Complaints</h4>
+                        <p>{details.chiefComplaints}</p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="font-medium mb-1">Past Medical History</h4>
+                      <p>{details.pastHistory}</p>
+                    </div>
+
+                    <div>
+                      <h4 className="font-medium mb-2">Medicines</h4>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Medicine</TableHead>
+                            <TableHead>Dosage</TableHead>
+                            <TableHead>Duration</TableHead>
+                            <TableHead>Instructions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {details.medicines.map((medicine, index) => (
+                            <TableRow key={index}>
+                              <TableCell>{medicine.name}</TableCell>
+                              <TableCell>{medicine.dosage}</TableCell>
+                              <TableCell>{medicine.duration}</TableCell>
+                              <TableCell>{medicine.instructions}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="font-medium mb-1">General Advice</h4>
+                        <p>{details.advice}</p>
+                      </div>
+                      <div>
+                        <h4 className="font-medium mb-1">Follow-up</h4>
+                        <p>{details.followUp}</p>
+                      </div>
+                    </div>
+                  </>
+                )
+              })()}
+
+              <DialogFooter>
+                <Button onClick={() => setIsPrescriptionDialogOpen(false)}>Close</Button>
+                <Button className="bg-blue-600 hover:bg-blue-700">Print Prescription</Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   )
 }
-
