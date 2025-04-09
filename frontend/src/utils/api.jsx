@@ -23,3 +23,96 @@ export const loginAPI = async (username, password) => {
       throw error.response?.data || "Logout failed!";
     }
   };
+
+
+// Add User API
+export const addUserAPI = async (userData) => {
+  const toastId = toast.loading("Adding user...");
+  
+  try {
+    // Fixed URL by removing double slash
+    const res = await API.post("/admin/manage-users", userData);
+    
+    // More robust success handling
+    if (res.data && res.data.success) {
+      toast.success(res.data.message || "User added successfully");
+      return res.data;
+    } else {
+      throw new Error(res.data?.message || "User addition failed");
+    }
+  } catch (error) {
+    // More specific error handling
+    const errorMessage = error.response?.data?.message || 
+                        error.message || 
+                        "Failed to add user";
+    
+    // Only show toast if not already shown by interceptor
+    if (!error.response || error.response.status !== 401) {
+      toast.error(errorMessage);
+    }
+    
+    // Re-throw for component-level handling
+    throw new Error(errorMessage);
+  } finally {
+    toast.dismiss(toastId);
+  }
+};
+
+// Get All Users API
+export const getAllUsersAPI = async () => {
+  try {
+    const res = await API.get("/admin/manage-users");  // Backend API to fetch users
+    return res.data;  
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || "Failed to fetch users";
+    toast.error(errorMessage);
+    throw new Error(errorMessage);
+  }
+};
+
+
+// Delete User API
+export const deleteUserAPI = async (role, id) => {
+  const toastId = toast.loading("Deleting user...");
+
+  try {
+    const res = await API.delete(`/admin/manage-users/${role}/${id}`);
+
+    if (res.data && res.data.success) {
+      toast.success(res.data.message || "User deleted successfully");
+      return res.data;
+    } else {
+      throw new Error(res.data?.message || "User deletion failed");
+    }
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || error.message || "Failed to delete user";
+    toast.error(errorMessage);
+    throw new Error(errorMessage);
+  } finally {
+    toast.dismiss(toastId);
+  }
+};
+
+// Update User API
+export const updateUserAPI = async (role, id, userData) => {
+  const toastId = toast.loading("Updating user...");
+
+  try {
+    const res = await API.put(`/admin/manage-users/${role}/${id}`, userData);
+
+    if (res.data && res.data.success) {
+      toast.success(res.data.message || "User updated successfully");
+      return res.data;
+    } else {
+      throw new Error(res.data?.message || "User update failed");
+    }
+  } catch (error) {
+    const errorMessage =
+      error.response?.data?.message || error.message || "Failed to update user";
+    toast.error(errorMessage);
+    throw new Error(errorMessage);
+  } finally {
+    toast.dismiss(toastId);
+  }
+};
+

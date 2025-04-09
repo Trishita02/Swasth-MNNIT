@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { Button } from "../../components/Button.jsx";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/Card.jsx";
 import {
@@ -18,92 +18,125 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/Tabs.
 import { Edit, Plus, Search, Trash } from 'lucide-react';
 import { toast,ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { addUserAPI,getAllUsersAPI,deleteUserAPI ,updateUserAPI} from "../../utils/api.jsx";
 
 function ManageUsers() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchType, setSearchType] = useState("name");
+  const [specializationFilter, setSpecializationFilter] = useState("all");
   
-  const [users, setUsers] = useState([
-    { id: 1, name: "Dr. Sharma", username: "sharma.doctor", role: "doctor", phone: "9876543210" },
-    { id: 2, name: "Dr. Kumar", username: "kumar.doctor", role: "doctor", phone: "9876543211" },
-    { id: 3, name: "Nurse Patel", username: "patel.staff", role: "staff", phone: "9876543212" },
-    { id: 4, name: "Nurse Singh", username: "singh.staff", role: "staff", phone: "9876543213" },
-    { id: 5, name: "Admin User", username: "admin.admin", role: "admin", phone: "9876543214" },
-  ]);
+  const [users, setUsers] = useState([]);
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await getAllUsersAPI();
+      setUsers(response.data || []);
+    } catch (error) {
+      toast.error("Failed to load users");
+    }
+  };
+  
 
   const [newUser, setNewUser] = useState({
     name: "",
-    role: "staff",
+    email: "",
     phone: "",
+    role: "staff",
+    specialization: "", 
   });
   
   const [editingUser, setEditingUser] = useState(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
-  const handleAddUser = () => {
+  const handleAddUser = async() => {
     if (!newUser.name.trim() || !newUser.email.trim() || !newUser.phone.trim()) {
       toast.error("Please fill all required fields");
       return;
     }
-    if (newUser.role === 'admin' && !newUser.designation?.trim()) {
-    toast.error("Please enter designation for admin");
-    return;
-  }
 
   if (newUser.role === 'doctor' && !newUser.specialization?.trim()) {
     toast.error("Please enter specialization for doctor");
     return;
   }
+  const exists = users.some(
+    (u) => u.email === newUser.email || u.phone === newUser.phone
+  );
+  
+  if (exists) {
+    toast.error("User with this email or phone already exists");
+    return;
+  }
+  const username = `${newUser.name.trim().toLowerCase().split(" ")[0]}.${newUser.role}`;
 
-    const username = `${newUser.name.toLowerCase().split(" ")[0]}.${newUser.role}`;
+  const userData = {
+    name: newUser.name,
+    email: newUser.email,
+    phone: newUser.phone,
+    role: newUser.role,
+    specialization: newUser.role === 'doctor' ? newUser.specialization : "",
+    username,
+  };
+  try {
+    // Call the API to add user
+    await addUserAPI(userData);
+  setUsers([...users, userData]);
 
-    setUsers([
-      ...users,
-      {
-        id: users.length + 1,
-        name: newUser.name,
-        username,
-        role: newUser.role,
-        phone: newUser.phone,
-      },
-    ]);
-
-    setNewUser({
-      name: "",
-      role: "staff",
-      phone: "",
-    });
+  setNewUser({
+    name: "",
+    email: "",
+    phone: "",
+    role: "staff",
+    specialization: "",
+  });
+    
     
     toast.success("New user has been added successfully");
     setTimeout(() => {
       document.querySelector("[data-state='open']")?.click();
     },800);
+  }catch(error){
+    console.log("error adding user",error)
+  }
   };
   
-  const handleEditUser = () => {
+  const handleEditUser = async () => {
     if (!editingUser) return;
-    
-    if (!editingUser.name.trim() || !editingUser.phone.trim()) {
-      toast.error("Please fill all required fields");
-      return;
+  
+    try {
+      const userData = {
+        name: editingUser.name,
+        email: editingUser.email,
+        phone: editingUser.phone,
+        ...(editingUser.role === 'doctor' && { 
+          specialization: editingUser.specialization 
+        }),
+      };
+  
+      await updateUserAPI(editingUser.role, editingUser._id, userData);
+      toast.success("User updated successfully");
+      fetchUsers(); // Refresh the user list
+      setIsEditDialogOpen(false); // Close the modal
+      
+    } catch (error) {
+      console.error("Error updating user:", error);
+      toast.error(error.response?.data?.message || "Failed to update user");
     }
-    
-    setUsers(users.map(user => 
-      user.id === editingUser.id ? editingUser : user
-    ));
-    
-    setEditingUser(null);
-    setIsEditDialogOpen(false);
-    
-    toast.success("User information has been updated successfully");
-    setTimeout(() => {
-      document.querySelector("[data-state='open']")?.click();
-    },800);
   };
   
-  const handleDeleteUser = (id) => {
-    setUsers(users.filter(user => user.id !== id));
-    toast.success("User has been deleted successfully");
+  
+  const handleDeleteUser = async (role, id) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this user?");
+    if (!confirmDelete) return;
+  
+    try {
+      await deleteUserAPI(role, id);
+      fetchUsers(); // refetch after delete
+    } catch (error) {
+      console.log(error.message);
+    }
   };
 
   const filteredUsers = users.filter((user) => {
@@ -198,23 +231,9 @@ function ManageUsers() {
                     <SelectContent>
                       <SelectItem value="staff">Staff</SelectItem>
                       <SelectItem value="doctor">Doctor</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                {newUser.role === 'admin' && (
-        <div className="grid gap-2">
-          <Label htmlFor="designation">Designation</Label>
-          <Input
-            id="designation"
-            value={newUser.designation || ''}
-            onChange={(e) => setNewUser({ ...newUser, designation: e.target.value })}
-            placeholder="Enter designation"
-            required={newUser.role === 'admin'}
-          />
-        </div>
-      )}
-
                 {newUser.role === "doctor" && (
         <div className="grid gap-2">
           <Label htmlFor="specialization">Specialization</Label>
@@ -226,15 +245,15 @@ function ManageUsers() {
               <SelectValue placeholder="Select specialization" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="cardiology">Dental</SelectItem>
-              <SelectItem value="neurology">Physiotherapist</SelectItem>
-              <SelectItem value="pediatrics">Neuro Physician</SelectItem>
-              <SelectItem value="orthopedics">Orthopedic</SelectItem>
-              <SelectItem value="dermatology">Ayurvedic</SelectItem>
-              <SelectItem value="general">Homeopathic</SelectItem>
-               <SelectItem value="general">Gynecologist</SelectItem>
-                <SelectItem value="general">Pediatrician</SelectItem>
-              <SelectItem value="general">General Physician</SelectItem>
+              <SelectItem value="Dental">Dental</SelectItem>
+              <SelectItem value="Physiotherapist">Physiotherapist</SelectItem>
+              <SelectItem value="Neuro Physician">Neuro Physician</SelectItem>
+              <SelectItem value="Orthopedic">Orthopedic</SelectItem>
+              <SelectItem value="Ayurvedic">Ayurvedic</SelectItem>
+              <SelectItem value="Homeopathic">Homeopathic</SelectItem>
+               <SelectItem value="Gynecologist">Gynecologist</SelectItem>
+                <SelectItem value="Pediatrician">Pediatrician</SelectItem>
+              <SelectItem value="General Physician">General Physician</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -265,7 +284,6 @@ function ManageUsers() {
           <TabsTrigger value="all">All Users</TabsTrigger>
           <TabsTrigger value="doctors">Doctors</TabsTrigger>
           <TabsTrigger value="staff">Staff</TabsTrigger>
-          <TabsTrigger value="admin">Admins</TabsTrigger>
         </TabsList>
         <TabsContent value="all">
           <Card>
@@ -286,7 +304,7 @@ function ManageUsers() {
                 </TableHeader>
                 <TableBody>
                   {filteredUsers.map((user) => (
-                    <TableRow key={user.id}>
+                    <TableRow key={user._id}>
                       <TableCell className="font-medium">{user.name}</TableCell>
                       <TableCell>{user.email || '-'}</TableCell>
                       <TableCell className="capitalize">{user.role}</TableCell>
@@ -305,7 +323,7 @@ function ManageUsers() {
                         <Button 
                           variant="ghost" 
                           size="icon"
-                          onClick={() => handleDeleteUser(user.id)}
+                          onClick={() => handleDeleteUser(user.role, user._id)}
                         >
                           <Trash className="h-4 w-4" />
                         </Button>
@@ -325,64 +343,102 @@ function ManageUsers() {
           </Card>
         </TabsContent>
         <TabsContent value="doctors">
-          <Card>
-            <CardHeader>
-              <CardTitle>Doctors</CardTitle>
-              <CardDescription>Manage doctors in the system</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Specialization</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredUsers
-                    .filter((user) => user.role === "doctor")
-                    .map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell className="font-medium">{user.name}</TableCell>
-                        <TableCell>{user.email || '-'}</TableCell>
-                        <TableCell>{user.specialization || '-'}</TableCell>
-                        <TableCell>{user.phone}</TableCell>
-                        <TableCell className="text-right">
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            onClick={() => {
-                              setEditingUser(user);
-                              setIsEditDialogOpen(true);
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            onClick={() => handleDeleteUser(user.id)}
-                          >
-                            <Trash className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  {filteredUsers.filter((user) => user.role === "doctor").length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={4} className="h-24 text-center">
-                        No doctors found matching your search.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
+  <Card>
+    <CardHeader>
+      <CardTitle>Doctors</CardTitle>
+      <CardDescription>Manage doctors in the system</CardDescription>
+    </CardHeader>
+    <CardContent>
+    <div className="flex items-center gap-4 mb-4">
+  <Select value={specializationFilter} onValueChange={setSpecializationFilter}>
+    <SelectTrigger className="w-[200px]">
+      <SelectValue placeholder="Filter by specialization" />
+    </SelectTrigger>
+    <SelectContent 
+      position="popper"
+      side="bottom"
+      align="start"
+      className="w-[200px] max-h-[300px] overflow-y-auto" // Added max height and scroll
+      style={{
+        scrollbarWidth: 'thin', // For Firefox
+      }}
+    >
+      <SelectItem value="all">All Specializations</SelectItem>
+      <SelectItem value="Dental">Dental</SelectItem>
+      <SelectItem value="Physiotherapist">Physiotherapist</SelectItem>
+      <SelectItem value="Neuro Physician">Neuro Physician</SelectItem>
+      <SelectItem value="Orthopedic">Orthopedic</SelectItem>
+      <SelectItem value="Ayurvedic">Ayurvedic</SelectItem>
+      <SelectItem value="Homeopathic">Homeopathic</SelectItem>
+      <SelectItem value="Gynecologist">Gynecologist</SelectItem>
+      <SelectItem value="Pediatrician">Pediatrician</SelectItem>
+      <SelectItem value="General Physician">General Physician</SelectItem>
+      {/* Add more specializations if needed */}
+    </SelectContent>
+  </Select>
+</div>
+
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Name</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead>Specialization</TableHead>
+            <TableHead>Phone</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {filteredUsers
+            .filter((user) => user.role === "doctor")
+            .filter((user) => 
+              specializationFilter === "all" || 
+              user.specialization === specializationFilter
+            )
+            .map((user) => (
+              <TableRow key={user._id}>
+                <TableCell className="font-medium">{user.name}</TableCell>
+                <TableCell>{user.email || '-'}</TableCell>
+                <TableCell>{user.specialization || '-'}</TableCell>
+                <TableCell>{user.phone}</TableCell>
+                <TableCell className="text-right">
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => {
+                      setEditingUser(user);
+                      setIsEditDialogOpen(true);
+                    }}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => handleDeleteUser(user.role, user._id)}
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          {filteredUsers
+            .filter((user) => user.role === "doctor")
+            .filter((user) => 
+              specializationFilter === "all" || 
+              user.specialization === specializationFilter
+            ).length === 0 && (
+              <TableRow>
+                <TableCell colSpan={5} className="h-24 text-center">
+                  No doctors found matching your criteria.
+                </TableCell>
+              </TableRow>
+            )}
+        </TableBody>
+      </Table>
+    </CardContent>
+  </Card>
+</TabsContent>
         <TabsContent value="staff">
           <Card>
             <CardHeader>
@@ -403,7 +459,7 @@ function ManageUsers() {
                   {filteredUsers
                     .filter((user) => user.role === "staff")
                     .map((user) => (
-                      <TableRow key={user.id}>
+                      <TableRow key={user._id}>
                         <TableCell className="font-medium">{user.name}</TableCell>
                         <TableCell>{user.email || '-'}</TableCell>
                         <TableCell>{user.phone}</TableCell>
@@ -421,7 +477,7 @@ function ManageUsers() {
                           <Button 
                             variant="ghost" 
                             size="icon"
-                            onClick={() => handleDeleteUser(user.id)}
+                            onClick={() => handleDeleteUser(user.role, user._id)}
                           >
                             <Trash className="h-4 w-4" />
                           </Button>
@@ -440,118 +496,80 @@ function ManageUsers() {
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value="admin">
-          <Card>
-            <CardHeader>
-              <CardTitle>Admins</CardTitle>
-              <CardDescription>Manage admin users in the system</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Designation</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredUsers
-                    .filter((user) => user.role === "admin")
-                    .map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell className="font-medium">{user.name}</TableCell>
-                        <TableCell>{user.email || '-'}</TableCell>
-                        <TableCell>{user.designation}</TableCell>
-                        <TableCell>{user.phone}</TableCell>
-                        <TableCell className="text-right">
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            onClick={() => {
-                              setEditingUser(user);
-                              setIsEditDialogOpen(true);
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            onClick={() => handleDeleteUser(user.id)}
-                          >
-                            <Trash className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  {filteredUsers.filter((user) => user.role === "admin").length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={4} className="h-24 text-center">
-                        No admin users found matching your search.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
       </Tabs>
       
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit User</DialogTitle>
-            <DialogDescription>Update user information.</DialogDescription>
-          </DialogHeader>
-          {editingUser && (
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="edit-name">Full Name</Label>
-                <Input
-                  id="edit-name"
-                  value={editingUser.name}
-                  onChange={(e) => setEditingUser({ ...editingUser, name: e.target.value })}
-                  placeholder="Enter full name"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="edit-role">Role</Label>
-                <Select 
-                  value={editingUser.role} 
-                  onValueChange={(value) => setEditingUser({ ...editingUser, role: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="staff">Staff</SelectItem>
-                    <SelectItem value="doctor">Doctor</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="edit-phone">Phone Number</Label>
-                <Input
-                  id="edit-phone"
-                  value={editingUser.phone}
-                  onChange={(e) => setEditingUser({ ...editingUser, phone: e.target.value })}
-                  placeholder="Enter phone number"
-                />
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button onClick={handleEditUser} className="bg-blue-600 hover:bg-blue-700">
-              Update User
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Edit User</DialogTitle>
+      <DialogDescription>Update user information.</DialogDescription>
+    </DialogHeader>
+    {editingUser && (
+      <div className="grid gap-4 py-4">
+        <div className="grid gap-2">
+          <Label htmlFor="edit-name">Full Name</Label>
+          <Input
+            id="edit-name"
+            value={editingUser.name}
+            onChange={(e) => setEditingUser({ ...editingUser, name: e.target.value })}
+            placeholder="Enter full name"
+            required
+          />
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="edit-email">Email</Label>
+          <Input
+            id="edit-email"
+            type="email"
+            value={editingUser.email}
+            onChange={(e) => setEditingUser({ ...editingUser, email: e.target.value })}
+            placeholder="Enter email"
+            required
+          />
+        </div>
+        {editingUser.role === "doctor" && (
+          <div className="grid gap-2">
+            <Label htmlFor="edit-specialization">Specialization</Label>
+            <Select
+              value={editingUser.specialization}
+              onValueChange={(value) => setEditingUser({ ...editingUser, specialization: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select specialization" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Dental">Dental</SelectItem>
+                <SelectItem value="Physiotherapist">Physiotherapist</SelectItem>
+                <SelectItem value="Neuro Physician">Neuro Physician</SelectItem>
+                <SelectItem value="Orthopedic">Orthopedic</SelectItem>
+                <SelectItem value="Ayurvedic">Ayurvedic</SelectItem>
+                <SelectItem value="Homeopathic">Homeopathic</SelectItem>
+                <SelectItem value="Gynecologist">Gynecologist</SelectItem>
+                <SelectItem value="Pediatrician">Pediatrician</SelectItem>
+                <SelectItem value="General Physician">General Physician</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+        <div className="grid gap-2">
+          <Label htmlFor="edit-phone">Phone Number</Label>
+          <Input
+            id="edit-phone"
+            value={editingUser.phone}
+            onChange={(e) => setEditingUser({ ...editingUser, phone: e.target.value })}
+            placeholder="Enter phone number"
+            required
+          />
+        </div>
+      </div>
+    )}
+    <DialogFooter>
+      <Button onClick={handleEditUser} className="bg-blue-600 hover:bg-blue-700">
+        Update User
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
     </>
   );
 }

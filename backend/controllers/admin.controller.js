@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { Staff } from "../models/staff.js";
 import { Doctor } from "../models/doctor.js";
 import ApiError from "../utils/ApiError.js";
@@ -52,6 +53,114 @@ export const addUser = async (req, res) => {
     console.log(error);
     return res.status(error.statusCode || 500).json(
       new ApiError(error.statusCode || 500, error.message || 'Internal Server Error')
+    );
+  }
+}
+
+
+export const getAllUsers = async (req, res) => {
+  try {
+    const staff = await Staff.find();
+    const doctors = await Doctor.find();
+
+    const users = [
+      ...staff.map(user => ({ ...user._doc, role: 'staff' })),
+      ...doctors.map(user => ({ ...user._doc, role: 'doctor' }))
+    ];
+
+    return res.status(200).json(
+      new ApiResponse(200, users, "All users fetched successfully")
+    );
+  } catch (error) {
+    return res.status(500).json(
+      new ApiError(500, 'Internal Server Error')
+    );
+  }
+}
+
+
+export const deleteUser = async (req, res) => {
+  try {
+    const { id, role } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new ApiError(400, "Invalid User ID");
+    }
+
+    if (!role || !['staff', 'doctor'].includes(role)) {
+      throw new ApiError(400, "Invalid Role");
+    }
+
+    const Model = role === "staff" ? Staff : Doctor;
+
+    const user = await Model.findById(id);
+
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+
+    await user.deleteOne();
+
+    return res.status(200).json(
+      new ApiResponse(200, {}, `${role} deleted successfully`)
+    );
+
+  } catch (error) {
+    console.log(error)
+    return res.status(error.statusCode || 500).json(
+      new ApiError(error.statusCode || 500, error.message || "Internal Server Error")
+    );
+  }
+}
+
+export const updateUser = async (req, res) => {
+  try {
+    const { role, id } = req.params;
+    const { name, email, phone, specialization } = req.body;
+
+    if (!['staff', 'doctor'].includes(role)) {
+      throw new ApiError(400, "Invalid Role");
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new ApiError(400, "Invalid User ID");
+    }
+
+    const Model = role === 'staff' ? Staff : Doctor;
+
+    const user = await Model.findById(id);
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+
+    user.name = name;
+    user.email = email;
+    user.phone = phone;
+
+    // Update specialization if doctor
+    if (role === 'doctor') {
+      user.specialization = specialization;
+    }
+
+    // Update username -> only first part before '.'
+    const existingUsername = user.username; // ex: raj.dr101
+    const parts = existingUsername.split('.');
+    const roleAndSeq = parts[1]; // dr101 or st5
+
+    const newFirstName = name.trim().toLowerCase().split(" ")[0];
+
+    user.username = `${newFirstName}.${roleAndSeq}`;
+
+    await user.save();
+
+    return res.status(200).json(
+      new ApiResponse(200, user, "User updated successfully")
+    );
+
+  } catch (error) {
+    console.log(error);
+    return res.status(error.statusCode || 500).json(
+      new ApiError(error.statusCode || 500, error.message || "Internal Server Error")
     );
   }
 }
