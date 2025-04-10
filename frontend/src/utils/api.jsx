@@ -5,10 +5,10 @@ export const loginAPI = async (username, password) => {
     const toastId=toast.loading("loading...")
     try {
       const response = await API.post("http://localhost:8080/login", { username, password});
+      localStorage.setItem("token", response.data.data.accessToken);
       toast.success("Logged in Successfully");
       return response.data;
     } catch (error) {
-      //console.log(error)
       throw error.response?.data || "Login failed!";
     }finally{
       toast.dismiss(toastId);
@@ -18,11 +18,19 @@ export const loginAPI = async (username, password) => {
   // Logout API
   export const logoutAPI = async () => {
     try {
-      await API.post("/logout");
+      const token = localStorage.getItem("token");
+      await API.post("http://localhost:8080/logout",{},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        localStorage.removeItem("token");
     } catch (error) {
       throw error.response?.data || "Logout failed!";
     }
   };
+  
 
 
 // Add User API
@@ -112,6 +120,35 @@ export const updateUserAPI = async (role, id, userData) => {
     toast.error(errorMessage);
     throw new Error(errorMessage);
   } finally {
+    toast.dismiss(toastId);
+  }
+};
+
+
+// Change Password API
+export const changePasswordAPI = async (role,oldPassword, newPassword, confirmNewPassword) => {
+  const toastId = toast.loading("Changing password...");
+  try {
+    const res = await API.put(`/${role}/change-password`, {
+      oldPassword,
+      newPassword,
+      confirmNewPassword,
+    });
+
+    if (res.data && res.data.success) {
+      toast.success(res.data.message || "Password changed successfully");
+      return res.data;
+    } else {
+      throw new Error(res.data?.message || "Password change failed");
+    }
+  } catch (error) {
+    console.log(error.response.data)
+      const errorMessage =
+        error?.response?.data?.message || "Failed to change password";
+        
+      toast.error(errorMessage);   
+      throw new Error(errorMessage);
+    } finally {
     toast.dismiss(toastId);
   }
 };

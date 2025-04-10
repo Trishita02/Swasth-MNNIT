@@ -37,6 +37,7 @@ export const loginUser = async (req, res) => {
         const options = {
             httpOnly: true,
             secure: true,
+            sameSite: "lax",
         };
 
         res.status(200)
@@ -64,6 +65,7 @@ export const logoutUser = async (req, res) => {
         const options = {
             httpOnly: true,
             secure: true,
+            sameSite: "lax",
         };
 
         // Clear cookies securely
@@ -73,5 +75,31 @@ export const logoutUser = async (req, res) => {
 
     } catch (error) {
         res.status(500).json(new ApiError(500, error.message));
+    }
+};
+
+export const changePassword = async (req, res, next) => {
+    try {
+        const { oldPassword, newPassword, confirmNewPassword } = req.body;
+
+        if (!oldPassword || !newPassword || !confirmNewPassword) {
+            throw new ApiError(400, "All fields are required");
+        }
+        if (newPassword !== confirmNewPassword) {
+            throw new ApiError(400, "New password and confirm password do not match");
+        }
+        const user = req.user;  // user is already attached from isAuthenticated middleware
+        const isMatch = await user.isPasswordCorrect(oldPassword);
+        if (!isMatch) {
+            throw new ApiError(400, "Current password is incorrect");
+        }
+        user.password = newPassword;
+        await user.save();
+        res.status(200).json({
+            success: true,
+            message: "Password changed successfully",
+        });
+    } catch (error) {
+        next(error);
     }
 };

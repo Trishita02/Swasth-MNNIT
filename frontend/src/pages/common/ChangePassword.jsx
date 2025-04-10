@@ -5,6 +5,7 @@ import { Button } from "../../components/Button.jsx";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../../components/Card.jsx";
 import { Input } from "../../components/Input.jsx";
 import { Label } from "../../components/Label.jsx";
+import { changePasswordAPI } from "../../utils/api.jsx";
 
 export default function ChangePassword() {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -19,7 +20,7 @@ export default function ChangePassword() {
     try {
       // Validate passwords
       if (newPassword !== confirmPassword) {
-        throw new Error("New passwords do not match");
+        throw new Error("New password & confirm password do not match");
       }
 
       if (newPassword.length < 6) {
@@ -28,7 +29,9 @@ export default function ChangePassword() {
 
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
-
+      const path = location.pathname;
+      const role = path.split("/")[1];
+      await changePasswordAPI(role,currentPassword, newPassword, confirmPassword);
       toast.success("Your password has been updated successfully"); // Success toast
 
       // Clear form

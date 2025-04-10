@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import { loginUser, logoutUser } from "./controllers/auth.controller.js";
 import { isAuthenticated } from "./middlewares/auth.middleware.js";
 import adminRouter from "./routes/admin.routes.js"
+import errorMiddleware from "./middlewares/error.middleware.js";
 dotenv.config({
     path:'./.env'
 })
@@ -22,10 +23,12 @@ app.use(express.json())
 app.use(express.urlencoded({extended:false}))
 app.use(express.static("public"))
 
+
 // ROUTES
 app.post("/login", loginUser);
 app.post("/logout", isAuthenticated, logoutUser);
 app.use('/admin',adminRouter)
+app.use(errorMiddleware);
 
 //Connect database
 const connectDB=async()=>{

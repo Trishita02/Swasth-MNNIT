@@ -3,17 +3,24 @@ import { NavLink,Link, useNavigate } from "react-router-dom";
 import { LogOut, Menu,} from "lucide-react";
 import { Button } from "../Button.jsx";
 import { Sheet, SheetContent, SheetTrigger } from "../Sheet.jsx";
-
+import { logoutAPI } from "../../utils/api.jsx";
 function Header({sideMenu}){
     const [open, setOpen] = useState(false);
-
+    const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
-  const handleLogout = () => {
-
-    navigate("/");
-
-  };
+    const handleLogout = async () => {
+      try {
+        setIsLoading(true);
+        await logoutAPI(); 
+        setTimeout(() => {
+          setIsLoading(false); 
+          navigate("/"); 
+        }, 2000); 
+      } catch (error) {
+        console.error("Logout Failed:", error);
+      }
+    };
     
     return(
         <>
@@ -70,15 +77,21 @@ function Header({sideMenu}){
 
         {/* Right Side: Logout Button */}
         <Button
-          variant="ghost"
-          className="flex items-center gap-2 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900"
-          onClick={handleLogout}
-        >
-          <LogOut className="h-5 w-5" />
-          Logout
-        </Button>
+  variant="ghost"
+  disabled={isLoading}
+  className="flex items-center gap-2 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900"
+  onClick={handleLogout}
+>
+  {isLoading ? (
+    <span className="animate-pulse">Logging out...</span>
+  ) : (
+    <>
+      <LogOut className="h-5 w-5" />
+      Logout
+    </>
+  )}
+</Button>
       </header>
-        
         </>
     )
 }

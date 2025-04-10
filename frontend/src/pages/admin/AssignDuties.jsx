@@ -228,7 +228,6 @@ const filteredDoctors=newSchedule.specialization
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="doctor">Doctor</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
