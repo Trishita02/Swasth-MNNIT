@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 export const loginAPI = async (username, password) => {
     const toastId=toast.loading("loading...")
     try {
-      const response = await API.post("http://localhost:8080/login", { username, password});
+      const response = await API.post("/login", { username, password});
       localStorage.setItem("token", response.data.data.accessToken);
       toast.success("Logged in Successfully");
       return response.data;
@@ -19,13 +19,13 @@ export const loginAPI = async (username, password) => {
   export const logoutAPI = async () => {
     try {
       const token = localStorage.getItem("token");
-      await API.post("http://localhost:8080/logout",{},
+      await API.post("/logout",{},
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-        localStorage.removeItem("token");
+        
     } catch (error) {
       throw error.response?.data || "Logout failed!";
     }
@@ -153,3 +153,46 @@ export const changePasswordAPI = async (role,oldPassword, newPassword, confirmNe
   }
 };
 
+
+// Notification APIs
+export const createNotificationAPI = async (notificationData) => {
+  const toastId = toast.loading("Creating notification...");
+  try {
+    const res = await API.post("/admin/create-notifications", notificationData);
+    toast.success("Notification created successfully");
+    return res.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || "Failed to create notification";
+    toast.error(errorMessage);
+    throw new Error(errorMessage);
+  } finally {
+    toast.dismiss(toastId);
+  }
+};
+
+export const getAllNotificationsAPI = async () => {
+  try {
+    const res = await API.get("/admin/create-notifications");
+    return res.data.data; 
+  } catch (error) {
+    console.log(error)
+    const errorMessage = error.response?.data?.message || "Failed to fetch notifications";
+    toast.error(errorMessage);
+    throw new Error(errorMessage);
+  }
+};
+
+export const deleteNotificationAPI = async (id) => {
+  const toastId = toast.loading("Deleting notification...");
+  try {
+    const res = await API.delete(`/admin/create-notifications/${id}`);
+    toast.success("Notification deleted successfully");
+    return res.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || "Failed to delete notification";
+    toast.error(errorMessage);
+    throw new Error(errorMessage);
+  } finally {
+    toast.dismiss(toastId);
+  }
+};

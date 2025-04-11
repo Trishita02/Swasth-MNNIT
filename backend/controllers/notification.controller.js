@@ -35,13 +35,13 @@ export const getAllNotifications = async (req, res) => {
         .select("title message recipients createdAt"); // selecting required fields only
   
       const formattedNotifications = notifications.map((notification) => ({
+        id:notification._id,
         title: notification.title,
         message: notification.message,
         recipients: notification.recipients,
         date: notification.createdAt.toLocaleDateString(),  // Date Only
         time: notification.createdAt.toLocaleTimeString(),  // Time Only
       }));
-  
       res.status(200).json({
         success: true,
         data: formattedNotifications,
