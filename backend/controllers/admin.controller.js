@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import { Staff } from "../models/staff.js";
 import { Doctor } from "../models/doctor.js";
+import {Admin} from "../models/admin.model.js"
+import ActivityLog from "../models/activitylog.model.js"
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 
@@ -164,3 +166,61 @@ export const updateUser = async (req, res) => {
     );
   }
 }
+
+
+export const viewActivities = async (req, res) => {
+  try {
+    const logs = await ActivityLog.find().sort({ createdAt: -1 }).lean();
+    
+    // Get all unique user IDs grouped by role
+    const userRefs = {
+      Admin: [],
+      Staff: [],
+      Doctor: []
+    };
+    
+    logs.forEach(log => {
+      if (log.user && log.role) {
+        userRefs[log.role].push(log.user);
+      }
+    });
+
+    // Fetch all users in parallel
+    const [admins, staff, doctors] = await Promise.all([
+      Admin.find({ _id: { $in: userRefs.Admin } }).select('name email').lean(),
+      Staff.find({ _id: { $in: userRefs.Staff } }).select('name email').lean(),
+      Doctor.find({ _id: { $in: userRefs.Doctor } }).select('name email').lean()
+    ]);
+
+    // Create mapping for quick lookup
+    const userMap = {
+      Admin: new Map(admins.map(u => [u._id.toString(), u])),
+      Staff: new Map(staff.map(u => [u._id.toString(), u])),
+      Doctor: new Map(doctors.map(u => [u._id.toString(), u]))
+    };
+
+    const formattedLogs = logs.map(log => {
+      const user = userMap[log.role]?.get(log.user?.toString());
+      return {
+        id: log._id,
+        user: user?.name || '',
+        email: user?.email || '',
+        role: log.role,
+        activity: log.activity,
+        details: log.details,
+        timestamp: log.createdAt
+      };
+    });
+
+    return res.status(200).json(
+      new ApiResponse(200, formattedLogs, "Activity logs fetched successfully")
+    );
+
+  } catch (error) {
+    console.error("Error in viewActivity:", error);
+    return res.status(500).json(
+      new ApiError(500, error.message || "Failed to fetch activity logs")
+    );
+  }
+}
+

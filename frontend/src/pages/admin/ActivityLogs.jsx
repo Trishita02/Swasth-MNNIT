@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { Button } from "../../components/Button.jsx";
 import { Calendar } from "../../components/Calendar.jsx";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/Card.jsx";
@@ -8,80 +8,54 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { CalendarIcon, Search } from 'lucide-react';
 import { format } from "date-fns";
 import { Popover, PopoverContent, PopoverTrigger } from "../../components/PopOver.jsx";
+import { fetchActivityLogsAPI } from "../../utils/api.jsx";
 
 function ActivityLogs() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activityType, setActivityType] = useState("all");
   const [date, setDate] = useState(undefined);
 
-  const [logs, setLogs] = useState([
-    {
-      id: 1,
-      user: "Dr. Sharma",
-      role: "doctor",
-      activity: "login",
-      details: "Logged into the system",
-      timestamp: "2025-03-31T09:15:00",
-    },
-    {
-      id: 2,
-      user: "Admin",
-      role: "admin",
-      activity: "update",
-      details: "Updated staff schedule",
-      timestamp: "2025-03-31T10:30:00",
-    },
-    {
-      id: 3,
-      user: "Nurse Patel",
-      role: "staff",
-      activity: "medicine",
-      details: "Added new medicine stock",
-      timestamp: "2025-03-31T11:45:00",
-    },
-    {
-      id: 4,
-      user: "Dr. Kumar",
-      role: "doctor",
-      activity: "prescription",
-      details: "Created prescription for Rahul Sharma",
-      timestamp: "2025-03-31T12:20:00",
-    },
-    {
-      id: 5,
-      user: "Nurse Singh",
-      role: "staff",
-      activity: "prescription",
-      details: "Marked prescription as completed",
-      timestamp: "2025-03-31T13:10:00",
-    },
-    {
-      id: 6,
-      user: "Admin",
-      role: "admin",
-      activity: "user",
-      details: "Added new staff member",
-      timestamp: "2025-03-31T14:05:00",
-    },
-    {
-      id: 7,
-      user: "Dr. Sharma",
-      role: "doctor",
-      activity: "logout",
-      details: "Logged out of the system",
-      timestamp: "2025-03-31T15:30:00",
-    },
-  ]);
+  const [logs, setLogs] = useState([]);
+  useEffect(() => {
+    const getLogs = async () => {
+      try {
+        const data = await fetchActivityLogsAPI();
+        setLogs(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Error fetching activity logs:", error);
+      }
+    };
+    getLogs();
+  }, []);
 
-  // Filter logs based on search query, activity type, and date
+  // Safe filtering function
   const filteredLogs = logs.filter((log) => {
-    const matchesSearch = log.user.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesActivity = activityType === "all" || log.activity === activityType;
-    const matchesDate = date ? new Date(log.timestamp).toDateString() === date.toDateString() : true;
+    // Safe user check
+    const user = log?.user || '';
+    const matchesSearch = user.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // Safe activity check
+    const matchesActivity = activityType === "all" || log?.activity === activityType;
+    
+    // Safe date check
+    let matchesDate = true;
+    if (date && log?.timestamp) {
+      try {
+        const logDate = new Date(log.timestamp);
+        matchesDate = logDate.toDateString() === date.toDateString();
+      } catch (e) {
+        console.error("Invalid date format in log:", log.timestamp);
+        matchesDate = false;
+      }
+    }
 
     return matchesSearch && matchesActivity && matchesDate;
   });
 
+  // Safe rendering of log data
+  const renderLogCell = (value, fallback = '-') => {
+    return value || fallback;
+  };
   return (
     <>
       <div className="flex items-center justify-between mb-6">
@@ -144,6 +118,7 @@ function ActivityLogs() {
             <TableHeader>
               <TableRow>
                 <TableHead>User</TableHead>
+                <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Activity</TableHead>
                 <TableHead>Details</TableHead>
@@ -152,17 +127,30 @@ function ActivityLogs() {
             </TableHeader>
             <TableBody>
               {filteredLogs.map((log) => (
-                <TableRow key={log.id}>
-                  <TableCell className="font-medium">{log.user}</TableCell>
-                  <TableCell className="capitalize">{log.role}</TableCell>
-                  <TableCell className="capitalize">{log.activity}</TableCell>
-                  <TableCell>{log.details}</TableCell>
-                  <TableCell>{new Date(log.timestamp).toLocaleString()}</TableCell>
+                <TableRow key={log.id || Math.random()}>
+                  <TableCell className="font-medium">
+                    {renderLogCell(log.user)}
+                  </TableCell>
+                  <TableCell>
+                    {renderLogCell(log.email)}
+                  </TableCell>
+                  <TableCell className="capitalize">
+                    {renderLogCell(log.role)}
+                  </TableCell>
+                  <TableCell className="capitalize">
+                    {renderLogCell(log.activity)}
+                  </TableCell>
+                  <TableCell>
+                    {renderLogCell(log.details)}
+                  </TableCell>
+                  <TableCell>
+                    {log?.timestamp ? new Date(log.timestamp).toLocaleString() : '-'}
+                  </TableCell>
                 </TableRow>
               ))}
               {filteredLogs.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center">
+                  <TableCell colSpan={6} className="h-24 text-center">
                     No logs found matching the current filters.
                   </TableCell>
                 </TableRow>

@@ -1,5 +1,5 @@
 import express from "express";
-import { addUser,getAllUsers,deleteUser,updateUser} from "../controllers/admin.controller.js";
+import { addUser,getAllUsers,deleteUser,updateUser,viewActivities} from "../controllers/admin.controller.js";
 import { isAuthenticated } from "../middlewares/auth.middleware.js";
 import {changePassword} from "../controllers/auth.controller.js"
 import { createNotification,getAllNotifications,deleteNotification } from "../controllers/notification.controller.js";
@@ -13,4 +13,5 @@ router.put("/change-password", isAuthenticated, changePassword);
 router.post("/create-notifications",createNotification)
 router.get("/create-notifications",getAllNotifications)
 router.delete("/create-notifications/:id",deleteNotification)
+router.get("/activity-logs",viewActivities)
 export default router;

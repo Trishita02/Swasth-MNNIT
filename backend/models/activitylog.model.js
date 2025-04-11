@@ -1,14 +1,15 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose"
 
 const activityLogSchema = new mongoose.Schema({
   user: {
-    type: String,
-    required: true
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    refPath: 'role'  // Dynamic reference to Admin / Staff / Doctor model
   },
   role: {
     type: String,
-    enum: ['admin', 'doctor', 'staff'],
-    required: true
+    required: true,
+    enum: ['Admin', 'Staff', 'Doctor']  
   },
   activity: {
     type: String,
@@ -18,10 +19,7 @@ const activityLogSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  timestamp: {
-    type: Date,
-    default: Date.now
-  }
-});
+}, { timestamps: true });
 
-module.exports = mongoose.model('ActivityLog', activityLogSchema);
+export default mongoose.model('ActivityLog', activityLogSchema);
+

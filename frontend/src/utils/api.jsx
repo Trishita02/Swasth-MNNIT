@@ -196,3 +196,13 @@ export const deleteNotificationAPI = async (id) => {
     toast.dismiss(toastId);
   }
 };
+
+export const fetchActivityLogsAPI = async () => {
+  try {
+    const response = await API.get("/admin/activity-logs"); 
+    return response.data.data; 
+  } catch (error) {
+    console.error("Error fetching activity logs:", error);
+    throw error;
+  }
+};
