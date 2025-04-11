@@ -24,6 +24,8 @@ function ManageUsers() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchType, setSearchType] = useState("name");
   const [specializationFilter, setSpecializationFilter] = useState("all");
+  const [userToDelete, setUserToDelete] = useState(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   
   const [users, setUsers] = useState([]);
   useEffect(() => {
@@ -128,14 +130,15 @@ function ManageUsers() {
   
   
   const handleDeleteUser = async (role, id) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this user?");
-    if (!confirmDelete) return;
-  
     try {
       await deleteUserAPI(role, id);
+      toast.success("User deleted successfully");
       fetchUsers(); // refetch after delete
     } catch (error) {
-      console.log(error.message);
+      toast.error(error.message || "Failed to delete user");
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setUserToDelete(null);
     }
   };
 
@@ -323,7 +326,10 @@ function ManageUsers() {
                         <Button 
                           variant="ghost" 
                           size="icon"
-                          onClick={() => handleDeleteUser(user.role, user._id)}
+                          onClick={() => {
+                            setUserToDelete({ role: user.role, id: user._id });
+                            setIsDeleteDialogOpen(true);
+                          }}
                         >
                           <Trash className="h-4 w-4" />
                         </Button>
@@ -415,7 +421,10 @@ function ManageUsers() {
                   <Button 
                     variant="ghost" 
                     size="icon"
-                    onClick={() => handleDeleteUser(user.role, user._id)}
+                    onClick={() => {
+                      setUserToDelete({ role: user.role, id: user._id });
+                      setIsDeleteDialogOpen(true);
+                    }}
                   >
                     <Trash className="h-4 w-4" />
                   </Button>
@@ -477,7 +486,10 @@ function ManageUsers() {
                           <Button 
                             variant="ghost" 
                             size="icon"
-                            onClick={() => handleDeleteUser(user.role, user._id)}
+                            onClick={() => {
+                              setUserToDelete({ role: user.role, id: user._id });
+                              setIsDeleteDialogOpen(true);
+                            }}
                           >
                             <Trash className="h-4 w-4" />
                           </Button>
@@ -569,6 +581,35 @@ function ManageUsers() {
       </Button>
     </DialogFooter>
   </DialogContent>
+  {/* Delete Confirmation Dialog */}
+<Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Confirm Deletion</DialogTitle>
+      <DialogDescription>
+        Are you sure you want to delete this user?
+      </DialogDescription>
+    </DialogHeader>
+    <DialogFooter>
+      <Button 
+        variant="outline" 
+        onClick={() => setIsDeleteDialogOpen(false)}
+      >
+        Cancel
+      </Button>
+      <Button 
+        variant="destructive"
+        onClick={() => {
+          if (userToDelete) {
+            handleDeleteUser(userToDelete.role, userToDelete.id);
+          }
+        }}
+      >
+        Delete
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
 </Dialog>
     </>
   );
