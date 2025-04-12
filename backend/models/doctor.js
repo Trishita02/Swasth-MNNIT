@@ -11,15 +11,8 @@ const DoctorSchema = new mongoose.Schema({
   phone: { type: String, required: true, unique: true },
   password: { type: String }, // Encrypted password
   specialization: { type: String, required: true},
-  availability: [
-    {
-      day: { type: String, required: true }, // Example: "Monday"
-      start_time: { type: String, required: true }, // Example: "09:00"
-      end_time: { type: String, required: true }, // Example: "15:00"
-    },
-  ],
-  created_at: { type: Date, default: Date.now },
-});
+  duties: [{ type: mongoose.Schema.Types.ObjectId, ref: "Duty" }],
+},{timestamps:true});
 
 // 🔐 Hash password before saving
 DoctorSchema.pre("save", async function (next) {
