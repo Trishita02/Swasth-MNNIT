@@ -216,3 +216,39 @@ export const getDashboardDetailsAPI=async()=>{
     throw error;
   }
 }
+
+
+// Email APIs
+export const sendDutyChartNowAPI = async () => {
+  const toastId = toast.loading("Sending duty chart...");
+  try {
+    const res = await API.post("/admin/send-dutyChart-now");
+    if (res.data.success === false && res.data.message === "No duties scheduled for today.") {
+      toast.error(res.data.message); 
+    } else {
+      toast.success("Duty chart sent successfully");  // Success message
+    }
+    return res.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || "Failed to send duty chart";
+    toast.error(errorMessage);
+    throw new Error(errorMessage);
+  } finally {
+    toast.dismiss(toastId);
+  }
+};
+
+export const scheduleDutyChartAPI = async (enabled, time) => {
+  const toastId = toast.loading("Updating email schedule...");
+  try {
+    const res = await API.post("/admin/schedule-email", { enabled, time });
+    toast.success(res.data.message || "Email schedule updated successfully");
+    return res.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || "Failed to update email schedule";
+    toast.error(errorMessage);
+    throw new Error(errorMessage);
+  } finally {
+    toast.dismiss(toastId);
+  }
+};

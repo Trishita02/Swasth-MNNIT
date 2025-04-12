@@ -14,36 +14,30 @@ const __dirname = dirname(__filename);
 const generateAndSendDutyChart = async (templateFileName) => {
   try {
     const today = new Date();
-today.setHours(0, 0, 0, 0); // Start of today
+    today.setHours(0, 0, 0, 0); // Start of today
 
-const tomorrow = new Date();
-tomorrow.setHours(0, 0, 0, 0);
-tomorrow.setDate(tomorrow.getDate() + 1); // Start of tomorrow
+    const tomorrow = new Date();
+    tomorrow.setHours(0, 0, 0, 0);
+    tomorrow.setDate(tomorrow.getDate() + 1); // Start of tomorrow
 
-try{
-const doctors = await Doctor.find()
-  .populate({
-    path: "duties",
-    match: {
-      date: {
-        $gte: today,
-        $lt: tomorrow,
-      },
-    },
-  })
-  .then(doctors =>
-    // filter out doctors with no duties today
-    doctors.filter(doc => doc.duties.length > 0)
-  );
+    const doctors = await Doctor.find()
+      .populate({
+        path: "duties",
+        match: {
+          date: {
+            $gte: today,
+            $lt: tomorrow,
+          },
+        },
+      })
+      .then(doctors =>
+        // filter out doctors with no duties today
+        doctors.filter(doc => doc.duties.length > 0)
+      );
 
-    if (!doctors || doctors.length === 0) {
-      return res.status(200).json({ message: "No duties scheduled for today." });
-    }
-    res.status(200).json({ doctors });
-  } catch (error) {
-    console.error("Error fetching doctors or duties:", error);
-    res.status(500).json({ message: "An error occurred while fetching the duty chart." });
-  }
+      if (!doctors || doctors.length === 0) {
+        return { status: "no-duty", message: "No duties scheduled for today." };
+      }
 
     const html = await new Promise((resolve, reject) => {
       ejs.renderFile(
@@ -111,14 +105,18 @@ const doctors = await Doctor.find()
   }
 };
 
+
 export const sendDutyChartNow = async (req, res) => {
-  try {
-    const result = await generateAndSendDutyChart("dutyChartTemplate");
-    res.json({ success: true, message: result });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+  const result = await generateAndSendDutyChart("dutyChartTemplate");
+  if (result.status === "no-duty") {
+    return res.status(200).json({ success: false, message: result.message });
   }
+  if (result.status === "error") {
+    return res.status(500).json({ success: false, message: result.message });
+  }
+  res.status(200).json({ success: true, message: result.message });
 };
+
 
 
 const scheduledJobs = {};
@@ -152,7 +150,14 @@ export const scheduleDutyChart = async (req, res) => {
     const job = cron.schedule(`${minutes} ${hours} * * *`, async () => {
       try {
         console.log(`Sending scheduled duty chart at ${time}`);
-        await generateAndSendDutyChart("dutyChartTemplate");
+        const result = await generateAndSendDutyChart("dutyChartTemplate");
+        if (result.status === "no-duty") {
+          console.log("Skipped sending email: No duties today.");
+          return;
+        }
+        if (result.status === "error") {
+          console.error("Scheduled email error:", result.message);
+        }
       } catch (error) {
         console.error('Error in scheduled duty chart:', error);
       }

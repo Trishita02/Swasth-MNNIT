@@ -40,13 +40,26 @@ import {
 } from "../../components/Table.jsx";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { sendDutyChartNowAPI,scheduleDutyChartAPI } from "../../utils/api.jsx";
 
 export default function AssignDuties() {
+const [isSending, setIsSending] = useState(false); //for loading
 const [date, setDate] = useState(new Date()); // For main calendar
 const [formDate, setFormDate] = useState(new Date()); // For forms
-  const [autoSendEnabled, setAutoSendEnabled] = useState(false);
+const [autoSendEnabled, setAutoSendEnabled] = useState(() => {
+  const saved = localStorage.getItem('autoSendEnabled');
+  return saved === 'true';
+});
   const [emailSent, setEmailSent] = useState(false);
-  const [emailTime, setEmailTime] = useState("08:00");
+  const getCurrentTime = () => {
+    const now = new Date();
+    return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  };
+  
+  // Initialize with current time in correct format
+  const [emailTime, setEmailTime] = useState(() => {
+  return localStorage.getItem('emailTime') || getCurrentTime();
+});
 
   const [schedules, setSchedules] = useState([
     { id: 1, name: "Dr. Sharma", role: "doctor", specialization: "Cardiology", shift: "Morning", startTime: "09:00", endTime: "13:00", date: new Date().toISOString() },
@@ -148,16 +161,97 @@ const filteredDoctors=newSchedule.specialization
     toast.success("Duty deleted successfully");
   };
 
-  const handleSendDutyChart = () => {
-    setEmailSent(true);
-    toast.success(`Duty chart has been emailed to all for ${format(Date.now(), "PPP")}`);
+  const handleSendDutyChart = async () => {
+    try {
+      setIsSending(true);
+      const res=await sendDutyChartNowAPI();
+      if(res.success==false){
+        toast.error("No duties scheduled for today")
+        return;
+      }
+      localStorage.setItem('lastEmailDate', new Date().toDateString());
+      setEmailSent(true);
+      toast.success(`Duty chart has been emailed to all for ${format(date, "PPP")}`);
+    } catch (error) {
+      setEmailSent(false);
+      toast.error("Failed to send duty chart");
+    }finally {
+      setIsSending(false); 
+    }
   };
+  const handleScheduleChange = async () => {
+    try {
+      // Use the selected emailTime instead of current time
+      const selectedTime = emailTime;
+      
+      const response = await scheduleDutyChartAPI(
+        autoSendEnabled,
+        autoSendEnabled ? selectedTime : null
+      );
+      toast.success(autoSendEnabled 
+        ? `Emails scheduled for ${selectedTime} daily`
+        : 'Daily emails disabled');
+        
+      if (response.schedule?.time) {
+        // Only update if server returns a different time
+          setEmailTime(response.schedule.time);
+          localStorage.setItem('emailTime', response.schedule.time);
+      }
+    } catch (error) {
+      toast.error("Failed to update schedule");
+    }
+  };
+// Update the switch toggle to use handleScheduleChange
+const handleAutoSendToggle = async (checked) => {
+  try {
+    setAutoSendEnabled(checked);
+    localStorage.setItem('autoSendEnabled', checked.toString());
+    
+    // Call API immediately when toggling
+    await scheduleDutyChartAPI(
+      checked,
+      checked ? emailTime : null
+    );
+  } catch (error) {
+    toast.error("Failed to update schedule");
+    setAutoSendEnabled(!checked); // Revert if API fails
+  }
+};
+useEffect(() => {
+  //check if we send a email today
+  const lastEmailDate = localStorage.getItem('lastEmailDate');
+  const today = new Date().toDateString();
+  setEmailSent(lastEmailDate === today);
+  
+  const savedEnabled = localStorage.getItem('autoSendEnabled');
+  if (savedEnabled !== null) {
+    setAutoSendEnabled(savedEnabled === 'true');
+  }
+}, []);
 
-  // Reset email sent status when date changes
-  useEffect(() => {
-    setEmailSent(false);
-  }, [date]);
 
+useEffect(() => {
+  // Reset email status when date changes
+  const lastEmailDate = localStorage.getItem('lastEmailDate');
+  const today = new Date().toDateString();
+  
+  setEmailSent(lastEmailDate === today);
+}, [date]);
+
+
+useEffect(() => {
+  // Load saved states
+  const savedEnabled = localStorage.getItem('autoSendEnabled') === 'true';
+  const savedTime = localStorage.getItem('emailTime') || getCurrentTime();
+  
+  setAutoSendEnabled(savedEnabled);
+  setEmailTime(savedTime);
+  
+  // Check if email was sent today
+  const lastEmailDate = localStorage.getItem('lastEmailDate');
+  const today = new Date().toDateString();
+  setEmailSent(lastEmailDate === today);
+}, []);
   return (
     <>
       <div className="flex flex-col gap-4 mb-6">
@@ -165,44 +259,75 @@ const filteredDoctors=newSchedule.specialization
         
         {/* Control Panel */}
         <div className="flex flex-col gap-4 p-4 bg-gray-50 rounded-lg border">
-          <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-            <div className="flex flex-col gap-2 w-full sm:w-auto">
-              <div className="flex items-center gap-3">
-                <button 
-                  onClick={() => setAutoSendEnabled(!autoSendEnabled)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors
-                  ${autoSendEnabled ? "bg-black" : "bg-gray-300"}`}
-                >
-                  <span className={`absolute left-1 h-5 w-5 transform rounded-full bg-white shadow-lg transition
-                    ${autoSendEnabled ? "translate-x-5" : "translate-x-0"}`}
-                  />
-                </button>
+        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+          <div className="flex flex-col gap-2 w-full sm:w-auto">
+          <div className="flex items-center gap-3">
+          <button 
+    onClick={() => handleAutoSendToggle(!autoSendEnabled)}
+    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors
+    ${autoSendEnabled ? "bg-black" : "bg-gray-300"}`}
+  >
+    <span className={`absolute left-1 h-5 w-5 transform rounded-full bg-white shadow-lg transition
+      ${autoSendEnabled ? "translate-x-5" : "translate-x-0"}`}
+    />
+  </button>
                 <label className="text-sm font-medium text-gray-900">
                   Send duty chart daily
                 </label>
-              </div>
-              <div className="flex items-center gap-2">
-                <Label htmlFor="email-time">Email Time:</Label>
-                <Input
-                  id="email-time"
-                  type="time"
-                  value={emailTime}
-                  onChange={(e) => setEmailTime(e.target.value)}
-                  className="w-24"
-                />
-              </div>
             </div>
+
+            <div className="flex items-center gap-2">
+              <Label htmlFor="email-time">Email Time:</Label>
+              <Input
+                id="email-time"
+                type="time"
+                value={emailTime}
+                onChange={(e) => setEmailTime(e.target.value)}
+                className="w-24"
+                disabled={!autoSendEnabled}
+              />
+              <button
+                onClick={handleScheduleChange}
+                disabled={!autoSendEnabled}
+                className={`ml-2 px-3 py-1 rounded ${
+                autoSendEnabled 
+                ? "bg-blue-600 text-white hover:bg-blue-700" 
+                : "bg-gray-200 text-gray-500 cursor-not-allowed"
+              }`}
+            >
+            Apply
+          </button>
+
+            </div>
+          </div>
             
             {/* Send Email Button */}
             <Button 
-              variant="outline" 
-              onClick={handleSendDutyChart} 
-              disabled={emailSent}
-              className="w-full sm:w-auto"
-            >
-              <Mail className="mr-2 h-4 w-4" />
-              {emailSent ? "Email Sent" : "Send Today's Duty Chart"}
-            </Button>
+  variant="outline" 
+  onClick={handleSendDutyChart} 
+  disabled={emailSent || isSending} // Disable during loading or after sent
+  className="w-full sm:w-auto"
+>
+  {isSending ? (
+    <>
+      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      Sending...
+    </>
+  ) : emailSent ? (
+    <>
+      <Mail className="mr-2 h-4 w-4" />
+      Email Sent
+    </>
+  ) : (
+    <>
+      <Mail className="mr-2 h-4 w-4" />
+      Send Today's Duty Chart
+    </>
+  )}
+</Button>
             
             {/* Add Duty Button */}
             <Dialog>
