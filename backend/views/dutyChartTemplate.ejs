@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Duty Chart</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 85%;
+            margin: 0 auto;
+        }
+        .header-container {
+            position: relative;
+            max-width: 800px;
+            margin: 25px auto;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+        }
+        .header {
+            /* display: flex;
+            align-items: center;
+            justify-content: start;
+            gap: 20px;
+            margin-top: 20px; */
+            position: relative;
+            padding-left: 120px;
+            padding-top: 10px;
+            text-align: center;
+        }
+        .logo {
+            width: 220px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 50%;
+            position: absolute;
+            top: 170px;
+            left: 39px;
+            margin: -150px;
+        }
+        .header-text {
+            /* font-size: 28px;
+            font-weight: bold;
+            line-height: 1.5; */
+            text-align: center;
+            margin-left: -50px; /* Pulls text back to center */
+        }
+        .header-text h1 {
+    font-size: 28px;
+    margin: 0 0 10px 0;
+    font-weight: 600;
+    color: #1a3e72;
+}
+
+.institute {
+    font-size: 23px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    padding-bottom: 8px;
+    border-bottom: 3px solid #1a3e72;
+    display: inline-block;
+    color: #333;
+    max-width: 90%; /* Prevents text from getting too close to edges */
+    margin-left: auto;
+    margin-right: auto;
+}
+.duty-chart {
+    font-size: 20px;
+    margin-top: 20px;
+    font-weight: 500;
+    color: #444;
+}
+        /* h3 {
+            margin-top: 20px;
+            line-height: 2.5;
+            font-size: 22px;
+            font-weight: bold;
+            text-align: center;
+            text-decoration: underline;
+        } */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 23px;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th {
+            font-weight: bold;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+        td b {
+            font-size: 23px;
+        }
+        .contact {
+            margin-top: 40px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- Header with Logo Left -->
+    <div class="header-container">
+        <div class="header">
+            <img src="https://www.mnnit.ac.in/upcon2020/assets/img/mnnit_sponsor.png" alt="MNNIT Logo" class="logo">
+            <div class="header-text">
+                <h1>Health Centre</h1>
+                <div class="institute">
+                    Motilal Nehru National Institute of Technology Allahabad – 211004 (India)
+                </div>
+                <div class="duty-chart">
+                    <%= new Date().toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' }) %> Duty chart of Doctor's
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Sl. No</th>
+            <th>Name Of Doctor’s</th>
+            <th>Duty Time</th>
+            <th>Room No.</th>
+        </tr>
+        </thead>
+        <tbody>
+        <% doctors.forEach((doctor, index) => { %>
+        <tr>
+            <td><%= index + 1 %></td>
+            <td>
+                <b><%= doctor.name %></b><br>
+                (<%= doctor.specialization %>)
+            </td>
+            <td>
+                <% doctor.duties.forEach(duty => { %>
+                    <div><%= duty.shift.start_time %> - <%= duty.shift.end_time %></div>
+                <% }) %>
+            </td>
+            <td>
+                <% doctor.duties.forEach(duty => { %>
+                    <div><b><%= duty.room %></b></div>
+                <% }) %>
+            </td>            
+        </tr>
+        <% }) %>
+        </tbody>
+    </table>
+
+    <div class="contact">
+        Contact: 0532-2271089
+    </div>
+
+</div>
+
+</body>
+</html>
