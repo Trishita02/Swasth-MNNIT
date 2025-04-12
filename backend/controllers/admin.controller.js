@@ -224,3 +224,41 @@ export const viewActivities = async (req, res) => {
   }
 }
 
+
+
+export const getDashboardDetails = async (req, res) => {
+  try {
+      const totalStaff = await Staff.countDocuments();
+      const totalDoctor = await Doctor.countDocuments();
+
+      const startOfToday = new Date();
+      startOfToday.setHours(0, 0, 0, 0);
+
+      const endOfToday = new Date();
+      endOfToday.setHours(23, 59, 59, 999);
+
+      const totalActivityToday = await ActivityLog.countDocuments({
+        createdAt: { $gte: startOfToday, $lte: endOfToday }
+      });
+      const latestActivities = await ActivityLog.find()
+      .sort({ createdAt: -1 })
+      .limit(4)
+      .populate('user', 'name')   // Populate only name field from user(Admin/Staff/Doctor)
+      .select('user role details createdAt');
+
+    const activities = latestActivities.map(log => ({
+      name: log.user.name,
+      description: `${log.details}`,
+      createdAt: log.createdAt
+    }));
+      res.status(200).json({
+          totalStaff,
+          totalDoctor,
+          totalActivityToday,
+          latestActivities: activities
+      });
+  } catch (error) {
+      console.log(error);
+      res.status(500).json({ message: "Something went wrong" });
+  }
+};

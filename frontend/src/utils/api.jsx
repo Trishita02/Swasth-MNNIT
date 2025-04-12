@@ -206,3 +206,13 @@ export const fetchActivityLogsAPI = async () => {
     throw error;
   }
 };
+
+export const getDashboardDetailsAPI=async()=>{
+  try{
+    const response=await API.get("/admin/dashboard")
+    return response.data;
+  }catch(error){
+    console.error("Error fetching activity logs:", error);
+    throw error;
+  }
+}
