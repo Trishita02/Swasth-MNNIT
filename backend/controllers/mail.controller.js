@@ -20,6 +20,7 @@ const tomorrow = new Date();
 tomorrow.setHours(0, 0, 0, 0);
 tomorrow.setDate(tomorrow.getDate() + 1); // Start of tomorrow
 
+try{
 const doctors = await Doctor.find()
   .populate({
     path: "duties",
@@ -36,8 +37,13 @@ const doctors = await Doctor.find()
   );
 
     if (!doctors || doctors.length === 0) {
-      throw new Error("No doctors found in database");
+      return res.status(200).json({ message: "No duties scheduled for today." });
     }
+    res.status(200).json({ doctors });
+  } catch (error) {
+    console.error("Error fetching doctors or duties:", error);
+    res.status(500).json({ message: "An error occurred while fetching the duty chart." });
+  }
 
     const html = await new Promise((resolve, reject) => {
       ejs.renderFile(
