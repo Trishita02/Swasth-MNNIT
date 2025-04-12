@@ -1,7 +1,7 @@
 import Sidebar from "../../components/layout/Sidebar"
 import MainContent from "../../components/layout/MainContent"
 import Header from "../../components/layout/Header"
-import { Bell, Home, Package, Settings, Users } from "lucide-react";
+import { Bell, Home, Package, Settings, Users, Calendar } from "lucide-react";
 import { Outlet } from "react-router-dom";
 
 function StaffDashboard(){
@@ -12,6 +12,7 @@ function StaffDashboard(){
         { title: "Patient Records", href: "patient-records", icon: <Users className="h-5 w-5" /> },
         { title: "Medicine Inventory", href: "medicine-inventory", icon: <Package className="h-5 w-5" /> },
         { title: "Prescriptions", href: "prescriptions", icon: <Package className="h-5 w-5" /> },
+        { title: "Duty Schedule", href: "duty-schedule", icon: <Calendar className="h-5 w-5" /> },
         { title: "Notifications", href: "notifications", icon: <Bell className="h-5 w-5" /> },
     ]
 

@@ -72,6 +72,7 @@ function App() {
             <Route path="patient-records/history/:id" element={<PatientHistory />} />
             <Route path="medicine-inventory" element={<MedicinesInventory />} />
             <Route path="prescriptions" element={<StaffPrescriptions />} />
+            <Route path="duty-schedule" element={<DutySchedule />} />
             <Route path="notifications" element={<StaffNotification />} />
           </Route>
         </Route>
