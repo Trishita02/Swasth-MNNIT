@@ -1,22 +1,17 @@
 import mongoose from "mongoose";
 import { Doctor } from "./doctor.model.js";
 
-const DutySchema = new mongoose.Schema(
-  {
-    doctor: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Doctor",
-      required: true,
-    },
-    date: { type: Date, required: true },
-    shift: {
-      start_time: { type: String, required: true },
-      end_time: { type: String, required: true },
-    },
-    room: { type: String, required: true },
+const DutySchema = new mongoose.Schema({
+  user: { type: mongoose.Schema.Types.ObjectId,required: true,refPath: "role"},
+  role: {type: String,required: true,enum: ["Doctor", "Staff"]},
+  date: { type: Date, required: true },
+  shift:{
+    start_time: { type: String, required: true }, 
+    end_time: { type: String, required: true },   
   },
-  { timestamps: true }
-);
+  room: { type: String, required: true },
+}, { timestamps: true });
+
 
 DutySchema.post("save", async function (doc, next) {
   try {
