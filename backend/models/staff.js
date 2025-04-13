@@ -10,6 +10,7 @@ const StaffSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true, trim: true },
   phone: { type: String, required: true, unique: true },
   password: { type: String}, // Encrypted password
+  duties: [{ type: mongoose.Schema.Types.ObjectId, ref: "Duty" }],
   created_at: { type: Date, default: Date.now },
 });
 

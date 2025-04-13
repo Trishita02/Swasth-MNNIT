@@ -4,6 +4,7 @@ import { isAuthenticated } from "../middlewares/auth.middleware.js";
 import {changePassword} from "../controllers/auth.controller.js"
 import { createNotification,getAllNotifications,deleteNotification } from "../controllers/notification.controller.js";
 import {sendDutyChartNow,scheduleDutyChart} from "../controllers/mail.controller.js";
+import { addDuty,updateDuty,deleteDuty,viewAllDuties } from "../controllers/duty.controller.js";
 
 const router = express.Router();
 router.get('/dashboard',getDashboardDetails)
@@ -18,4 +19,8 @@ router.delete("/create-notifications/:id",deleteNotification)
 router.get("/activity-logs",viewActivities)
 router.post("/send-dutyChart-now", sendDutyChartNow);
 router.post("/schedule-email",scheduleDutyChart);
+router.post("/assign-duties",addDuty);
+router.patch("/assign-duties/:dutyId",updateDuty);
+router.delete("/assign-duties/:dutyId",deleteDuty);
+router.get("/assign-duties",viewAllDuties);
 export default router;

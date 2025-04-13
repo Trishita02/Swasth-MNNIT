@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { Doctor } from "./doctor.js";
+import { Staff } from "./staff.js";
 
 const DutySchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId,required: true,refPath: "role"},
@@ -14,28 +15,38 @@ const DutySchema = new mongoose.Schema({
 
 
 DutySchema.post("save", async function (doc, next) {
+  try {
+    if (doc.role === "Doctor") {
+      await Doctor.findByIdAndUpdate(doc.user, {
+        $addToSet: { duties: doc._id }
+      });
+    } else if (doc.role === "Staff") {
+      await Staff.findByIdAndUpdate(doc.user, {
+        $addToSet: { duties: doc._id }
+      });
+    }
+  } catch (error) {
+    console.error("Error updating user's duties:", error);
+  }
+  next();
+});
+
+// Remove duty from user's duties array on delete
+DutySchema.post("findOneAndDelete", async function (doc) {
+  if (doc) {
     try {
-      await Doctor.findByIdAndUpdate(doc.doctor, {
-        $addToSet: { duties: doc._id }},
-        { new: true }
-      );
+      if (doc.role === "Doctor") {
+        await Doctor.findByIdAndUpdate(doc.user, {
+          $pull: { duties: doc._id }
+        });
+      } else if (doc.role === "Staff") {
+        await Staff.findByIdAndUpdate(doc.user, {
+          $pull: { duties: doc._id }
+        });
+      }
     } catch (error) {
-      console.error("Error updating doctor's duties:", error);
+      console.error("Error removing duty from user's duties:", error);
     }
-    next();
-  });
-
-// Update doctor's duties when duty is deleted
-  DutySchema.post("findOneAndDelete", async function (doc) {
-    if (doc) {
-      await Doctor.findByIdAndUpdate(doc.doctor, {
-        $pull: { duties: doc._id }},
-        {new:true},
-      );
-    }
-  });
-
-
-// Prevent duplicate duties for same doctor at same time
-DutySchema.index({ doctor: 1, date: 1, 'shift.start_time': 1 }, { unique: true });
+  }
+});
 export const Duty = mongoose.model("Duty", DutySchema);
