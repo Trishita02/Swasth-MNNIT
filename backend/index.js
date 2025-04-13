@@ -6,6 +6,8 @@ import cookieParser from "cookie-parser";
 import { loginUser, logoutUser } from "./controllers/auth.controller.js";
 import { isAuthenticated } from "./middlewares/auth.middleware.js";
 import adminRouter from "./routes/admin.routes.js"
+import staffRouter from "./routes/staff.routes.js"
+import doctorRoute from "./routes/doctor.route.js"
 import errorMiddleware from "./middlewares/error.middleware.js";
 dotenv.config({
     path:'./.env'
@@ -27,8 +29,10 @@ app.use(express.static("public"))
 // ROUTES
 app.post("/login", loginUser);
 app.post("/logout", isAuthenticated, logoutUser);
-app.use('/admin',adminRouter)
-app.use(errorMiddleware);
+app.use('/admin', adminRouter)
+app.use("/staff", staffRouter)
+app.use("/doctor", doctorRoute)
+// app.use(errorMiddleware);
 
 //Connect database
 const connectDB=async()=>{
@@ -44,7 +48,7 @@ const connectDB=async()=>{
 
 
 // starting server
-const PORT=process.env.PORT || 8000
+const PORT=process.env.PORT 
 connectDB()
 .then(()=>{
     app.listen(PORT,()=>console.log(`Server has started on Port: ${PORT}`))

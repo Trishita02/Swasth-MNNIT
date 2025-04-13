@@ -35,4 +35,5 @@ StaffSchema.methods.generateAccessToken = function () {
   });
 };
 
-export const Staff = mongoose.model("Staff", StaffSchema);
+const Staff = mongoose.model("Staff", StaffSchema);
+export default Staff;

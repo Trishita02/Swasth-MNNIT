@@ -1,29 +1,38 @@
+import { useEffect, useState } from "react"
 import { Button } from "../../components/Button.jsx"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/Card.jsx"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/Table.jsx"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/Tabs.jsx"
 import { ArrowLeft, Calendar } from "lucide-react"
 import { Link, useParams,useNavigate } from "react-router-dom"
+import API from "../../utils/axios.jsx"
 
 export default function PatientHistory() {
+  const [patient, setPatient] = useState({});
+  
   const params = useParams()
-  const patientId = params.id
+  const patientId = params.id;
   // console.log("history id: ",patientId)
   const navigate = useNavigate();
 
+  
+  useEffect(() => {
+    API.get(`/staff/getPatientbyId/${patientId}`)
+      .then((res) => {
+        if (res.data) {
+          console.log(res.data);
+          setPatient(res.data);
+        } else {
+          console.error("Failed to fetch patient:", res.data.message);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching patient:", error);
+      });
+  }, [patientId]);
+
   // Mock patient data - in a real app, this would be fetched from an API
-  const patient = {
-    id: patientId,
-    name: "Rahul Sharma",
-    regNo: patientId,
-    type: "Student",
-    dob: "2001-05-15",
-    gender: "Male",
-    contact: "9876543210",
-    email: "rahul.sharma@mnnit.ac.in",
-    bloodGroup: "O+",
-    allergies: "None",
-  }
+ 
 
   // Mock visit history
   const visitHistory = [
@@ -99,14 +108,11 @@ export default function PatientHistory() {
               <div className="flex flex-col items-center space-y-2 pb-4">
                 <div className="h-24 w-24 rounded-full bg-blue-100 flex items-center justify-center">
                   <span className="text-2xl font-bold text-blue-600">
-                    {patient.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
+                    {patient.name?.charAt(0).toUpperCase()}
                   </span>
                 </div>
                 <h3 className="text-lg font-semibold">{patient.name}</h3>
-                <p className="text-sm text-muted-foreground">{patient.regNo}</p>
+                <p className="text-sm text-muted-foreground">{patient.reg_no}</p>
               </div>
 
               <div className="space-y-2">
@@ -116,7 +122,7 @@ export default function PatientHistory() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm font-medium">Date of Birth:</span>
-                  <span className="text-sm">{patient.dob}</span>
+                  <span className="text-sm">{patient.dob?.slice(0, 10)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm font-medium">Gender:</span>
@@ -124,12 +130,12 @@ export default function PatientHistory() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm font-medium">Blood Group:</span>
-                  <span className="text-sm">{patient.bloodGroup}</span>
+                  <span className="text-sm">{patient.blood_group}</span>
                 </div>
-                <div className="flex justify-between">
+                {/* <div className="flex justify-between">
                   <span className="text-sm font-medium">Contact:</span>
                   <span className="text-sm">{patient.contact}</span>
-                </div>
+                </div> */}
                 <div className="flex justify-between">
                   <span className="text-sm font-medium">Email:</span>
                   <span className="text-sm">{patient.email}</span>
