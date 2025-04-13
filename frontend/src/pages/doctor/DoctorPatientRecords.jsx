@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "../../components/Button.jsx"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/Card.jsx"
 import { Input } from "../../components/Input.jsx"
@@ -10,59 +10,29 @@ import { Popover, PopoverContent, PopoverTrigger } from "../../components/PopOve
 import { Calendar } from "../../components/Calendar.jsx"
 import { format } from "date-fns"
 import { Link } from "react-router-dom"
+import API from "../../utils/axios.jsx"
 
 export default function DoctorPatientRecords() {
   const [searchQuery, setSearchQuery] = useState("")
   const [filterDate, setFilterDate] = useState(undefined)
   const [filterDiagnosis, setFilterDiagnosis] = useState("")
 
-  const [patients, setPatients] = useState([
-    {
-      id: 1,
-      name: "Rahul Sharma",
-      regNo: "BT21CS001",
-      type: "Student",
-      department: "Computer Science",
-      lastVisit: "2025-03-30",
-      diagnosis: "Viral Fever",
-    },
-    {
-      id: 2,
-      name: "Priya Singh",
-      regNo: "BT21EC045",
-      type: "Student",
-      department: "Electronics",
-      lastVisit: "2025-03-29",
-      diagnosis: "Migraine",
-    },
-    {
-      id: 3,
-      name: "Amit Kumar",
-      regNo: "BT20ME032",
-      type: "Student",
-      department: "Mechanical",
-      lastVisit: "2025-03-28",
-      diagnosis: "Ankle Sprain",
-    },
-    {
-      id: 4,
-      name: "Neha Gupta",
-      regNo: "BT22CS078",
-      type: "Student",
-      department: "Computer Science",
-      lastVisit: "2025-03-27",
-      diagnosis: "Cold & Cough",
-    },
-    {
-      id: 5,
-      name: "Dr. Rajesh Verma",
-      regNo: "FAC001",
-      type: "Faculty",
-      department: "Physics",
-      lastVisit: "2025-03-25",
-      diagnosis: "Back Pain",
-    },
-  ])
+  const [patients, setPatients] = useState([])
+
+  useEffect(() => {
+      API.get("/staff/getAllPatients")
+        .then((res) => {
+          if (res.data) {
+            console.log(res.data)
+            setPatients(res.data);
+          } else {
+            console.error("Failed to fetch patients:", res.data.message);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching patients:", error);
+        });
+    }, []);
 
   // List of diagnoses for filtering
   const diagnosesList = [
@@ -75,18 +45,13 @@ export default function DoctorPatientRecords() {
     "Gastritis",
   ]
 
-  const filteredPatients = patients.filter((patient) => {
-    // Filter by registration number
-    const matchesSearch = patient.regNo.toLowerCase().includes(searchQuery.toLowerCase())
-
-    // Filter by date
-    const matchesDate = filterDate ? patient.lastVisit === format(filterDate, "yyyy-MM-dd") : true
-
-    // Filter by diagnosis
-    const matchesDiagnosis = filterDiagnosis ? patient.diagnosis === filterDiagnosis : true
-
-    return matchesSearch && matchesDate && matchesDiagnosis
-  })
+  const filteredPatients = patients
+  .filter(
+    (patient) =>
+      patient.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      patient.regNo.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+  .sort((a, b) => new Date(b.last_visit) - new Date(a.last_visit));
 
   return (
     <>
@@ -154,7 +119,7 @@ export default function DoctorPatientRecords() {
                     <TableHead>Name</TableHead>
                     <TableHead>Reg No.</TableHead>
                     <TableHead>Type</TableHead>
-                    <TableHead>Department</TableHead>
+                    
                     <TableHead>Last Visit</TableHead>
                     <TableHead>Diagnosis</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -162,15 +127,15 @@ export default function DoctorPatientRecords() {
                 </TableHeader>
                 <TableBody>
                   {filteredPatients.map((patient) => (
-                    <TableRow key={patient.id}>
+                    <TableRow key={patient._id}>
                       <TableCell className="font-medium">{patient.name}</TableCell>
-                      <TableCell>{patient.regNo}</TableCell>
+                      <TableCell>{patient.reg_no}</TableCell>
                       <TableCell>{patient.type}</TableCell>
-                      <TableCell>{patient.department}</TableCell>
-                      <TableCell>{patient.lastVisit}</TableCell>
-                      <TableCell>{patient.diagnosis}</TableCell>
+                      
+                      <TableCell>{patient.last_visit?.slice(0, 10)}</TableCell>
+                      <TableCell>{patient.issue}</TableCell>
                       <TableCell className="text-right">
-                        <Link to={`history/${patient.regNo}`}>
+                        <Link to={`history/${patient.reg_no}`}>
                           <Button variant="outline" size="sm">
                             <FileText className="mr-2 h-4 w-4" /> View History
                           </Button>
@@ -202,7 +167,7 @@ export default function DoctorPatientRecords() {
                   <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>Reg No.</TableHead>
-                    <TableHead>Department</TableHead>
+                    
                     <TableHead>Last Visit</TableHead>
                     <TableHead>Diagnosis</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -212,14 +177,14 @@ export default function DoctorPatientRecords() {
                   {filteredPatients
                     .filter((patient) => patient.type === "Student")
                     .map((patient) => (
-                      <TableRow key={patient.id}>
+                      <TableRow key={patient._id}>
                         <TableCell className="font-medium">{patient.name}</TableCell>
-                        <TableCell>{patient.regNo}</TableCell>
-                        <TableCell>{patient.department}</TableCell>
-                        <TableCell>{patient.lastVisit}</TableCell>
-                        <TableCell>{patient.diagnosis}</TableCell>
+                        <TableCell>{patient.reg_no}</TableCell>
+                        
+                        <TableCell>{patient.last_visit?.slice(0, 10)}</TableCell>
+                        <TableCell>{patient.issue}</TableCell>
                         <TableCell className="text-right">
-                          <Link to={`history/${patient.regNo}`}>
+                          <Link to={`history/${patient.reg_no}`}>
                             <Button variant="outline" size="sm">
                               <FileText className="mr-2 h-4 w-4" /> View History
                             </Button>
@@ -251,7 +216,7 @@ export default function DoctorPatientRecords() {
                   <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>Reg No.</TableHead>
-                    <TableHead>Department</TableHead>
+                    
                     <TableHead>Last Visit</TableHead>
                     <TableHead>Diagnosis</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -261,14 +226,14 @@ export default function DoctorPatientRecords() {
                   {filteredPatients
                     .filter((patient) => patient.type === "Faculty")
                     .map((patient) => (
-                      <TableRow key={patient.id}>
+                      <TableRow key={patient._id}>
                         <TableCell className="font-medium">{patient.name}</TableCell>
-                        <TableCell>{patient.regNo}</TableCell>
-                        <TableCell>{patient.department}</TableCell>
-                        <TableCell>{patient.lastVisit}</TableCell>
-                        <TableCell>{patient.diagnosis}</TableCell>
+                        <TableCell>{patient.reg_no}</TableCell>
+                        
+                        <TableCell>{patient.last_visit?.slice(0, 10)}</TableCell>
+                        <TableCell>{patient.issue}</TableCell>
                         <TableCell className="text-right">
-                          <Link to={`history/${patient.regNo}`}>
+                          <Link to={`history/${patient.reg_no}`}>
                             <Button variant="outline" size="sm">
                               <FileText className="mr-2 h-4 w-4" /> View History
                             </Button>

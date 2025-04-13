@@ -1,13 +1,13 @@
-const Staff = require("../models/Staff");
-const Patient = require("../models/Patient");
-const Medicine = require("../models/Medicine");
-const Prescription = require("../models/Prescription");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const Notification = require("../models/Notification");
+import Staff from "../models/staff.model.js";
+import Patient from "../models/patient.model.js";
+import Medicine from "../models/medicine.model.js";
+import Prescription from "../models/prescription.model.js";
+import bcrypt from "bcryptjs";
+import Notification from "../models/notification.model.js";
+import jwt from "jsonwebtoken";
 
 // Change Password
-exports.changePassword = async (req, res) => {
+export const changePassword = async (req, res) => {
   try {
     const { staffId, oldPassword, newPassword } = req.body;
     const staff = await Staff.findById(staffId);
@@ -26,7 +26,7 @@ exports.changePassword = async (req, res) => {
 };
 
 // Search Patient Records
-exports.searchPatients = async (req, res) => {
+export const searchPatients = async (req, res) => {
   try {
     const { query } = req.query;
     const patients = await Patient.find({
@@ -43,7 +43,7 @@ exports.searchPatients = async (req, res) => {
 };
 
 // Check Medicine Inventory & Add New Batch
-exports.manageMedicineInventory = async (req, res) => {
+export const manageMedicineInventory = async (req, res) => {
   try {
     const { name, quantity, expiryDate } = req.body;
     let medicine = await Medicine.findOne({ name });
@@ -63,16 +63,22 @@ exports.manageMedicineInventory = async (req, res) => {
 };
 
 // Add New Patient
-exports.addPatient = async (req, res) => {
+export const addPatient = async (req, res) => {
   try {
-    const { name, email, phone, age, gender, address } = req.body;
+    // console.log("reachewed")
+    const { name, reg_no, age, gender, address, issue, type, blood_group, dob, email, allergies } = req.body;
     const newPatient = new Patient({
       name,
-      email,
-      phone,
+      reg_no,
+      issue,
       age,
       gender,
       address,
+      email,
+      dob, blood_group,
+      last_visit: Date.now(),
+      allergies,
+      type: type // Default type, can be changed later
     });
     await newPatient.save();
     res.json({ message: "Patient added successfully", patient: newPatient });
@@ -82,7 +88,7 @@ exports.addPatient = async (req, res) => {
 };
 
 // Create Prescription
-exports.createPrescription = async (req, res) => {
+export const createPrescription = async (req, res) => {
   try {
     const { patientId, medicines, dosage, instructions } = req.body;
     const newPrescription = new Prescription({
@@ -102,7 +108,7 @@ exports.createPrescription = async (req, res) => {
 };
 
 // Send Notification
-exports.sendNotification = async (req, res) => {
+export const sendNotification = async (req, res) => {
   try {
     const { staffId, message } = req.body;
     const newNotification = new Notification({ staffId, message });
@@ -114,4 +120,31 @@ exports.sendNotification = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }
+};
+
+export const getAllPatients = async (req, res) => {
+  try {
+    const patients = await Patient.find().sort({ updatedAt: -1 }); // Fetch all patients
+    // console.log("Fetched patients:", patients); // Helpful for debugging
+    res.status(200).json(patients); // Respond with status 200 and data
+  } catch (error) {
+    console.error("Error fetching patients:", error.message); // Helpful for debugging
+    res.status(500).json({ message: "Server error" });
+  }
+};
+  
+export const getPatientById = (req, res) => {
+  const { id } = req.params;
+
+  Patient.find({ reg_no: id })
+    .then((patient) => {
+      if (patient.length === 0) {
+        return res.status(404).json({ message: "Patient not found" }); // Use 404
+      }
+      res.status(200).json(patient[0]); // Return single object directly
+    })
+    .catch((error) => {
+      console.error("Error fetching patient:", error);
+      res.status(500).json({ message: "Server error" });
+    });
 };

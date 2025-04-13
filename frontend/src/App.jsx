@@ -22,6 +22,7 @@ import StaffPrescriptions from "./pages/staff/StaffPrescriptions.jsx";
 import DoctorNotification from "./pages/doctor/DoctorNotification.jsx";
 import StaffNotification from "./pages/staff/StaffNotification.jsx";
 import PatientHistory from "./pages/doctor/PatientHistory.jsx";
+import AddPatient from "./pages/staff/AddPatient.jsx";
 
 const ProtectedRoute = () => {
   const token = localStorage.getItem('token');
@@ -71,7 +72,7 @@ function App() {
             <Route path="patient-records" element={<StaffPatientRecords />} />
             <Route path="patient-records/history/:id" element={<PatientHistory />} />
             <Route path="medicine-inventory" element={<MedicinesInventory />} />
-            <Route path="prescriptions" element={<StaffPrescriptions />} />
+            <Route path="add-patient" element={<AddPatient />} />
             <Route path="duty-schedule" element={<DutySchedule />} />
             <Route path="notifications" element={<StaffNotification />} />
           </Route>

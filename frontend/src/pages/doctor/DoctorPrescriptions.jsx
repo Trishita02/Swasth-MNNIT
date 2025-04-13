@@ -1,5 +1,5 @@
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "../../components/Button.jsx"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/Card.jsx"
 import {
@@ -22,6 +22,7 @@ import { Calendar, FileText, Plus, Search, User, X } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "../../components/PopOver.jsx"
 import { format } from "date-fns"
 import { Badge } from "../../components/Badge.jsx"
+import API from "../../utils/axios.jsx"
 
 export default function DoctorPrescriptions() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -31,98 +32,8 @@ export default function DoctorPrescriptions() {
   const [selectedPatient, setSelectedPatient] = useState(null)
   // const { toast } = useToast()
 
-  const [prescriptions, setPrescriptions] = useState([
-    {
-      id: 1,
-      patientName: "Rahul Sharma",
-      regNo: "BT21CS001",
-      date: "2025-03-30",
-      diagnosis: "Viral Fever",
-      issue: "Fever",
-      status: "Completed",
-    },
-    {
-      id: 2,
-      patientName: "Priya Singh",
-      regNo: "BT21EC045",
-      date: "2025-03-29",
-      diagnosis: "Migraine",
-      issue: "Headache",
-      status: "Pending",
-    },
-    {
-      id: 3,
-      patientName: "Amit Kumar",
-      regNo: "BT20ME032",
-      date: "2025-03-28",
-      diagnosis: "Ankle Sprain",
-      issue: "Injury",
-      status: "Pending",
-    },
-    {
-      id: 4,
-      patientName: "Neha Gupta",
-      regNo: "BT22CS078",
-      date: "2025-03-25",
-      diagnosis: "Allergic Rhinitis",
-      issue: "Allergy",
-      status: "Completed",
-    },
-  ])
+  const [prescriptions, setPrescriptions] = useState([])
 
-  // Mock patient data
-  const patients = [
-    {
-      id: 1,
-      name: "Rahul Sharma",
-      regNo: "BT21CS001",
-      type: "Student",
-      department: "Computer Science",
-      age: 22,
-      gender: "Male",
-      bloodGroup: "O+",
-    },
-    {
-      id: 2,
-      name: "Priya Singh",
-      regNo: "BT21EC045",
-      type: "Student",
-      department: "Electronics",
-      age: 21,
-      gender: "Female",
-      bloodGroup: "B+",
-    },
-    {
-      id: 3,
-      name: "Amit Kumar",
-      regNo: "BT20ME032",
-      type: "Student",
-      department: "Mechanical",
-      age: 23,
-      gender: "Male",
-      bloodGroup: "A-",
-    },
-    {
-      id: 4,
-      name: "Neha Gupta",
-      regNo: "BT22CS078",
-      type: "Student",
-      department: "Computer Science",
-      age: 20,
-      gender: "Female",
-      bloodGroup: "AB+",
-    },
-    {
-      id: 5,
-      name: "Dr. Rajesh Verma",
-      regNo: "FAC001",
-      type: "Faculty",
-      department: "Physics",
-      age: 45,
-      gender: "Male",
-      bloodGroup: "O-",
-    },
-  ]
 
   // List of common issues for filtering
   const issuesList = ["Fever", "Headache", "Injury", "Allergy", "Stomach Pain", "Cold & Cough", "Skin Problem"]
@@ -136,19 +47,29 @@ export default function DoctorPrescriptions() {
     followUp: "",
   })
 
-  const handleSearchPatient = () => {
-    const foundPatient = patients.find((patient) => patient.regNo.toLowerCase() === searchQuery.toLowerCase())
-    setSelectedPatient(foundPatient || null)
-
-    if (!foundPatient) {
-      toast({
-        title: "Patient Not Found",
-        description: "No patient found with the provided registration number",
-        variant: "destructive",
-      })
+  useEffect(()=>{
+    const fetchPresciptions = async () => {
+      try {
+        const res = await API.get("/doctor/getAllPrescriptions")
+        console.log(res.data)
+        setPrescriptions(res.data)
+      } catch (error) {
+        console.error("Error fetching patients:", error)
+      }
     }
-  }
 
+    fetchPresciptions()
+  })
+
+  const handleSearch = async () => {
+    try {
+      const res = await API.get(`/doctor/getPrescriptionById/${searchQuery}`);
+      // handle the result (e.g., setPatient or show form)
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  
   const handleAddMedicine = () => {
     setNewPrescription({
       ...newPrescription,
@@ -214,7 +135,7 @@ export default function DoctorPrescriptions() {
   // Filter prescriptions based on search query, date, and issue
   const filteredPrescriptions = prescriptions.filter((prescription) => {
     // Filter by registration number
-    const matchesSearch = prescription.regNo.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesSearch = prescription.reg_no.toLowerCase().includes(searchQuery.toLowerCase())
 
     // Filter by date
     const matchesDate = filterDate ? prescription.date === format(filterDate, "yyyy-MM-dd") : true
@@ -310,8 +231,9 @@ export default function DoctorPrescriptions() {
                 </Button>
               )}
             </div>
+              <Button onClick = {handleSearch}>Search</Button>
 
-            <Popover>
+            {/* <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-[150px] justify-start text-left font-normal">
                   <Calendar className="mr-2 h-4 w-4" />
@@ -341,7 +263,7 @@ export default function DoctorPrescriptions() {
               <Button variant="ghost" size="sm" onClick={clearFilters} className="h-9 px-3">
                 Clear Filters
               </Button>
-            )}
+            )} */}
           </div>
 
           <Dialog>
@@ -365,7 +287,7 @@ export default function DoctorPrescriptions() {
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Enter registration number"
                     />
-                    <Button type="button" onClick={handleSearchPatient}>
+                    <Button type="button" onClick={handleSearch}>
                       Search
                     </Button>
                   </div>
@@ -384,16 +306,16 @@ export default function DoctorPrescriptions() {
                         </div>
                         <div className="space-y-1">
                           <p className="text-sm font-medium">Registration No:</p>
-                          <p className="text-sm">{selectedPatient.regNo}</p>
+                          <p className="text-sm">{selectedPatient.reg_no}</p>
                         </div>
                         <div className="space-y-1">
                           <p className="text-sm font-medium">Type:</p>
                           <p className="text-sm">{selectedPatient.type}</p>
                         </div>
-                        <div className="space-y-1">
+                        {/* <div className="space-y-1">
                           <p className="text-sm font-medium">Department:</p>
                           <p className="text-sm">{selectedPatient.department}</p>
-                        </div>
+                        </div> */}
                         <div className="space-y-1">
                           <p className="text-sm font-medium">Age:</p>
                           <p className="text-sm">{selectedPatient.age} years</p>
@@ -404,7 +326,7 @@ export default function DoctorPrescriptions() {
                         </div>
                         <div className="space-y-1">
                           <p className="text-sm font-medium">Blood Group:</p>
-                          <p className="text-sm">{selectedPatient.bloodGroup}</p>
+                          <p className="text-sm">{selectedPatient.blood_group}</p>
                         </div>
                       </div>
                     </CardContent>
@@ -593,8 +515,7 @@ export default function DoctorPrescriptions() {
       <Tabs defaultValue="all" className="mt-6">
         <TabsList>
           <TabsTrigger value="all">All Prescriptions</TabsTrigger>
-          <TabsTrigger value="pending">Pending</TabsTrigger>
-          <TabsTrigger value="completed">Completed</TabsTrigger>
+         
         </TabsList>
         <TabsContent value="all">
           <Card>
@@ -611,40 +532,28 @@ export default function DoctorPrescriptions() {
                     <TableHead>Date</TableHead>
                     <TableHead>Diagnosis</TableHead>
                     <TableHead>Issue</TableHead>
-                    <TableHead>Status</TableHead>
+                    
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredPrescriptions.map((prescription) => (
+                  {prescriptions.map((prescription) => (
                     <TableRow key={prescription.id}>
-                      <TableCell className="font-medium">{prescription.patientName}</TableCell>
-                      <TableCell>{prescription.regNo}</TableCell>
-                      <TableCell>{prescription.date}</TableCell>
+                      <TableCell className="font-medium">{prescription.name}</TableCell>
+                      <TableCell>{prescription.reg_no}</TableCell>
+                      <TableCell>{prescription.date_of_visit?.slice(0, 10)}</TableCell>
                       <TableCell>{prescription.diagnosis}</TableCell>
-                      <TableCell>{prescription.issue}</TableCell>
-                      <TableCell>
-                        <span
-                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                            prescription.status === "Completed"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-yellow-100 text-yellow-800"
-                          }`}
-                        >
-                          {prescription.status}
-                        </span>
-                      </TableCell>
+                      <TableCell>{prescription.prev_issue}</TableCell>
+                      
                       <TableCell className="text-right">
                         <Button variant="outline" size="sm" onClick={() => handleViewPrescription(prescription)}>
                           <FileText className="mr-2 h-4 w-4" /> View
                         </Button>
-                        <Button variant="outline" size="sm" className="ml-2">
-                          Print
-                        </Button>
+                        
                       </TableCell>
                     </TableRow>
                   ))}
-                  {filteredPrescriptions.length === 0 && (
+                  {prescriptions.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={7} className="h-24 text-center">
                         No prescriptions found matching the current filters.
@@ -656,106 +565,7 @@ export default function DoctorPrescriptions() {
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value="pending">
-          <Card>
-            <CardHeader>
-              <CardTitle>Pending Prescriptions</CardTitle>
-              <CardDescription>Prescriptions waiting to be completed</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Patient Name</TableHead>
-                    <TableHead>Reg No.</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Diagnosis</TableHead>
-                    <TableHead>Issue</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredPrescriptions
-                    .filter((p) => p.status === "Pending")
-                    .map((prescription) => (
-                      <TableRow key={prescription.id}>
-                        <TableCell className="font-medium">{prescription.patientName}</TableCell>
-                        <TableCell>{prescription.regNo}</TableCell>
-                        <TableCell>{prescription.date}</TableCell>
-                        <TableCell>{prescription.diagnosis}</TableCell>
-                        <TableCell>{prescription.issue}</TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="outline" size="sm" onClick={() => handleViewPrescription(prescription)}>
-                            <FileText className="mr-2 h-4 w-4" /> View
-                          </Button>
-                          <Button variant="outline" size="sm" className="ml-2">
-                            Print
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  {filteredPrescriptions.filter((p) => p.status === "Pending").length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={6} className="h-24 text-center">
-                        No pending prescriptions found matching the current filters.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="completed">
-          <Card>
-            <CardHeader>
-              <CardTitle>Completed Prescriptions</CardTitle>
-              <CardDescription>Prescriptions that have been completed</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Patient Name</TableHead>
-                    <TableHead>Reg No.</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Diagnosis</TableHead>
-                    <TableHead>Issue</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredPrescriptions
-                    .filter((p) => p.status === "Completed")
-                    .map((prescription) => (
-                      <TableRow key={prescription.id}>
-                        <TableCell className="font-medium">{prescription.patientName}</TableCell>
-                        <TableCell>{prescription.regNo}</TableCell>
-                        <TableCell>{prescription.date}</TableCell>
-                        <TableCell>{prescription.diagnosis}</TableCell>
-                        <TableCell>{prescription.issue}</TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="outline" size="sm" onClick={() => handleViewPrescription(prescription)}>
-                            <FileText className="mr-2 h-4 w-4" /> View
-                          </Button>
-                          <Button variant="outline" size="sm" className="ml-2">
-                            Print
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  {filteredPrescriptions.filter((p) => p.status === "Completed").length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={6} className="h-24 text-center">
-                        No completed prescriptions found matching the current filters.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
+       
       </Tabs>
       {/* Prescription View Dialog */}
       <Dialog open={isPrescriptionDialogOpen} onOpenChange={setIsPrescriptionDialogOpen}>

@@ -1,40 +1,55 @@
-import { useState } from "react"
-import { Button } from "../../components/Button.jsx"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/Card.jsx"
-import { Input } from "../../components/Input.jsx"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/Table.jsx"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/Tabs.jsx"
-import { FileText, Search } from "lucide-react"
-import { Link } from "react-router-dom"
+import { useEffect, useState } from "react";
+import { Button } from "../../components/Button.jsx";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/Card.jsx";
+import { Input } from "../../components/Input.jsx";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/Table.jsx";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/Tabs.jsx";
+import { FileText, Search } from "lucide-react";
+import { Link } from "react-router-dom";
+import API from "../../utils/axios.jsx";
 
 export default function PatientRecords() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [patients, setPatients] = useState([
-    { id: 1, name: "Rahul Sharma", regNo: "BT21CS001", type: "Student", lastVisit: "2025-03-30", issue: "Fever" },
-    { id: 2, name: "Priya Singh", regNo: "BT21EC045", type: "Student", lastVisit: "2025-03-29", issue: "Headache" },
-    { id: 3, name: "Amit Kumar", regNo: "BT20ME032", type: "Student", lastVisit: "2025-03-28", issue: "Sprain" },
-    { id: 4, name: "Neha Gupta", regNo: "BT22CS078", type: "Student", lastVisit: "2025-03-27", issue: "Cold & Cough" },
-    { id: 5, name: "Dr. Rajesh Verma", regNo: "FAC001", type: "Faculty", lastVisit: "2025-03-25", issue: "Back Pain" },
-  ])
+  const [searchInput, setSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [patients, setPatients] = useState([]);
 
-  const filteredPatients = patients.filter(
-    (patient) =>
-      patient.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      patient.regNo.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+  useEffect(() => {
+    API.get("/staff/getAllPatients")
+      .then((res) => {
+        if (res.data) {
+          setPatients(res.data);
+        } else {
+          console.error("Failed to fetch patients:", res.data.message);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching patients:", error);
+      });
+  }, []);
+
+  const filteredPatients = patients
+    .filter(
+      (patient) =>
+        patient.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        patient.regNo.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a, b) => new Date(b.last_visit) - new Date(a.last_visit));
 
   return (
     <>
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Patient Records</h1>
-        <div className="relative w-64">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by name or reg no."
-            className="pl-8"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+        <div className="flex gap-2 w-96">
+          <div className="relative w-full">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by name or reg no."
+              className="pl-8"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+            />
+          </div>
+          <Button onClick={() => setSearchQuery(searchInput)}>Search</Button>
         </div>
       </div>
 
@@ -44,6 +59,8 @@ export default function PatientRecords() {
           <TabsTrigger value="students">Students</TabsTrigger>
           <TabsTrigger value="faculty">Faculty</TabsTrigger>
         </TabsList>
+
+        {/* All Patients Tab */}
         <TabsContent value="all">
           <Card>
             <CardHeader>
@@ -63,27 +80,37 @@ export default function PatientRecords() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredPatients.map((patient) => (
-                    <TableRow key={patient.id}>
-                      <TableCell className="font-medium">{patient.name}</TableCell>
-                      <TableCell>{patient.regNo}</TableCell>
-                      <TableCell>{patient.type}</TableCell>
-                      <TableCell>{patient.lastVisit}</TableCell>
-                      <TableCell>{patient.issue}</TableCell>
-                      <TableCell className="text-right">
-                      <Link to={`history/${patient.regNo}`}>
-                          <Button variant="outline" size="sm">
-                            <FileText className="mr-2 h-4 w-4" /> View History
-                          </Button>
-                        </Link>
+                  {filteredPatients.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center text-muted-foreground">
+                        No patients found
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : (
+                    filteredPatients.map((patient) => (
+                      <TableRow key={patient._id}>
+                        <TableCell className="font-medium">{patient.name}</TableCell>
+                        <TableCell>{patient.reg_no}</TableCell>
+                        <TableCell>{patient.type}</TableCell>
+                        <TableCell>{patient.last_visit?.slice(0, 10)}</TableCell>
+                        <TableCell>{patient.issue}</TableCell>
+                        <TableCell className="text-right">
+                          <Link to={`history/${patient.reg_no}`}>
+                            <Button variant="outline" size="sm">
+                              <FileText className="mr-2 h-4 w-4" /> View History
+                            </Button>
+                          </Link>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Student Patients Tab */}
         <TabsContent value="students">
           <Card>
             <CardHeader>
@@ -102,28 +129,38 @@ export default function PatientRecords() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredPatients
-                    .filter((patient) => patient.type === "Student")
-                    .map((patient) => (
-                      <TableRow key={patient.id}>
-                        <TableCell className="font-medium">{patient.name}</TableCell>
-                        <TableCell>{patient.regNo}</TableCell>
-                        <TableCell>{patient.lastVisit}</TableCell>
-                        <TableCell>{patient.issue}</TableCell>
-                        <TableCell className="text-right">
-                        <Link to={`history/${patient.regNo}`}>
-                          <Button variant="outline" size="sm">
-                            <FileText className="mr-2 h-4 w-4" /> View History
-                          </Button>
-                        </Link>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                  {filteredPatients.filter((patient) => patient.type === "Student").length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-muted-foreground">
+                        No students found
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredPatients
+                      .filter((patient) => patient.type === "Student")
+                      .map((patient) => (
+                        <TableRow key={patient._id}>
+                          <TableCell className="font-medium">{patient.name}</TableCell>
+                          <TableCell>{patient.reg_no}</TableCell>
+                          <TableCell>{patient.last_visit?.slice(0, 10)}</TableCell>
+                          <TableCell>{patient.issue}</TableCell>
+                          <TableCell className="text-right">
+                            <Link to={`history/${patient.reg_no}`}>
+                              <Button variant="outline" size="sm">
+                                <FileText className="mr-2 h-4 w-4" /> View History
+                              </Button>
+                            </Link>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Faculty Patients Tab */}
         <TabsContent value="faculty">
           <Card>
             <CardHeader>
@@ -142,23 +179,31 @@ export default function PatientRecords() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredPatients
-                    .filter((patient) => patient.type === "Faculty")
-                    .map((patient) => (
-                      <TableRow key={patient.id}>
-                        <TableCell className="font-medium">{patient.name}</TableCell>
-                        <TableCell>{patient.regNo}</TableCell>
-                        <TableCell>{patient.lastVisit}</TableCell>
-                        <TableCell>{patient.issue}</TableCell>
-                        <TableCell className="text-right">
-                        <Link to={`history/${patient.regNo}`}>
-                          <Button variant="outline" size="sm">
-                            <FileText className="mr-2 h-4 w-4" /> View History
-                          </Button>
-                        </Link>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                  {filteredPatients.filter((patient) => patient.type === "Faculty").length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-muted-foreground">
+                        No faculty found
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredPatients
+                      .filter((patient) => patient.type === "Faculty")
+                      .map((patient) => (
+                        <TableRow key={patient._id}>
+                          <TableCell className="font-medium">{patient.name}</TableCell>
+                          <TableCell>{patient.reg_no}</TableCell>
+                          <TableCell>{patient.last_visit?.slice(0, 10)}</TableCell>
+                          <TableCell>{patient.issue}</TableCell>
+                          <TableCell className="text-right">
+                            <Link to={`history/${patient.reg_no}`}>
+                              <Button variant="outline" size="sm">
+                                <FileText className="mr-2 h-4 w-4" /> View History
+                              </Button>
+                            </Link>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
@@ -166,6 +211,5 @@ export default function PatientRecords() {
         </TabsContent>
       </Tabs>
     </>
-  )
+  );
 }
-
