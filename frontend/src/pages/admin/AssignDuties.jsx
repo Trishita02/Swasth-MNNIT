@@ -46,6 +46,7 @@ export default function AssignDuties() {
 const [isSending, setIsSending] = useState(false); //for loading
 const [date, setDate] = useState(new Date()); // For main calendar
 const [formDate, setFormDate] = useState(new Date()); // For forms
+const [roleFilter, setRoleFilter] = useState('all'); // 'all', 'doctor', or 'staff'
 const [autoSendEnabled, setAutoSendEnabled] = useState(() => {
   const saved = localStorage.getItem('autoSendEnabled');
   return saved === 'true';
@@ -62,34 +63,40 @@ const [autoSendEnabled, setAutoSendEnabled] = useState(() => {
 });
 
   const [schedules, setSchedules] = useState([
-    { id: 1, name: "Dr. Sharma", role: "doctor", specialization: "Cardiology", shift: "Morning", startTime: "09:00", endTime: "13:00", date: new Date().toISOString() },
-    { id: 2, name: "Dr. Kumar", role: "doctor", specialization: "Neurology", shift: "Evening", startTime: "13:00", endTime: "17:00", date: new Date().toISOString() },
-    { id: 3, name: "Admin User", role: "admin", shift: "Full Day", startTime: "09:00", endTime: "17:00", date: new Date().toISOString() },
+    { id: 1, name: "Dr. Sharma", role: "doctor", specialization: "Cardiology", startTime: "09:00", endTime: "13:00", date: new Date().toISOString() },
+    { id: 2, name: "Dr. Kumar", role: "doctor", specialization: "Neurology", startTime: "13:00", endTime: "17:00", date: new Date().toISOString() },
+    { id: 3, name: "Admin User", role: "admin", startTime: "09:00", endTime: "17:00", date: new Date().toISOString() },
   ]);
 
   const [specializations] = useState([
-    "Cardiology",
-    "Neurology",
-    "Pediatrics",
-    "Orthopedics",
-    "Dermatology"
+    "Dental",
+    "Physiotherapist",
+    "Neuro Physician",
+    "Orthopedic",
+    "Ayurvedic",
+    "Homeopathic",
+    "Gynecologist",
+    "Pediatrician",
+    "General Physician"
   ]);
   
 
-  const [doctors] = useState([
-    { id: 1, name: "Dr. Sharma", specialization: "Cardiology" },
-    { id: 2, name: "Dr. Kumar", specialization: "Neurology" },
-    { id: 3, name: "Dr. Gupta", specialization: "Pediatrics" },
-    { id: 4, name: "Dr. Patel", specialization: "Orthopedics" },
-    { id: 5, name: "Dr. Singh", specialization: "Dermatology" }
-  ]);
+const [doctors] = useState([
+  { id: 1, name: "Dr. Sharma", specialization: "Dental", role: "doctor" },
+  { id: 2, name: "Dr. Kumar", specialization:  "Gynecologist", role: "doctor" },
+  { id: 3, name: "Dr. Gupta", specialization:  "Pediatrician", role: "doctor" },
+  { id: 4, name: "Dr. Patel", specialization: "Orthopedic", role: "doctor" },
+  { id: 5, name: "Dr. Singh", specialization: "Dermatology", role: "doctor" },
+  { id: 6, name: "Nurse Smith", role: "staff" },
+  { id: 7, name: "Receptionist Johnson", role: "staff" },
+  { id: 8, name: "Technician Brown", role: "staff" }
+]);
 
   const [editingSchedule, setEditingSchedule] = useState(null);
  const [newSchedule, setNewSchedule] = useState({
   name: "",
   role: "doctor",
   specialization: "",
-  shift: "Morning",
   startTime: "09:00",
   endTime: "17:00",
   date: new Date().toISOString(),
@@ -105,37 +112,45 @@ const filteredDoctors=newSchedule.specialization
   // Filter schedules for the selected date
   const filteredSchedules = schedules.filter(schedule => {
     const scheduleDate = new Date(schedule.date);
-    return isSameDay(scheduleDate, date);
+    return isSameDay(scheduleDate, date) && 
+           (roleFilter === 'all' || schedule.role === roleFilter);
   });
 
   const handleAddSchedule = () => {
-    if (!newSchedule.name || !newSchedule.startTime || !newSchedule.endTime) {
+    // Validate all required fields
+    if (!newSchedule.name || !newSchedule.startTime || !newSchedule.endTime || !newSchedule.date) {
       toast.error("Please fill all required fields");
       return;
     }
-
+  
+    // For doctors, specialization is required
+    if (newSchedule.role === "doctor" && !newSchedule.specialization) {
+      toast.error("Please select a specialization for doctors");
+      return;
+    }
+  
     // Validate time
     if (newSchedule.startTime >= newSchedule.endTime) {
       toast.error("End time must be after start time");
       return;
     }
-
+  
     const newScheduleItem = {
       id: schedules.length + 1,
       ...newSchedule,
       date: format(date, "yyyy-MM-dd"),
     };
-
+  
     setSchedules([...schedules, newScheduleItem]);
     setNewSchedule({
       name: "",
       role: "doctor",
-      shift: "Morning",
+      specialization: "",
       startTime: "09:00",
       endTime: "17:00",
       date: format(new Date(), "yyyy-MM-dd"),
     });
-
+  
     toast.success(`Duty for ${newSchedule.name} has been scheduled successfully`);
   };
 
@@ -337,140 +352,157 @@ useEffect(() => {
                 </Button>
               </DialogTrigger>
               <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Add New Duty</DialogTitle>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  {/* Role Selection */}
-                  <div className="grid gap-2">
-                    <Label htmlFor="role">Role</Label>
-                    <Select
-                      value={newSchedule.role}
-                      onValueChange={(value) => setNewSchedule({ ...newSchedule, role: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select role" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="doctor">Doctor</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  {newSchedule.role === "doctor" && (
-                        <div className="grid gap-2">
-                        <Label htmlFor="specialization">Specialization</Label>
-                        <Select
-                            value={newSchedule.specialization}
-                            onValueChange={(value) => setNewSchedule({ 
-                          ...newSchedule, 
-                          specialization: value,
-                          name: ""
-                        })}>
-                        <SelectTrigger>
-                        <SelectValue placeholder="Select specialization" />
-                        </SelectTrigger>
-                        <SelectContent>
-                        {specializations.map((spec) => (
-                            <SelectItem key={spec} value={spec}>
-                              {spec}
-                            </SelectItem>
-                        ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-                  {/* Name Selection */}
-                  <div className="grid gap-2">
-                    <Label htmlFor="name">Name</Label>
-                    <Select
-                      value={newSchedule.name}
-                      onValueChange={(value) => setNewSchedule({ ...newSchedule, name: value })}
-                    >
-                      <SelectTrigger>
-                      <SelectValue placeholder={newSchedule.role === "doctor" && !newSchedule.specialization
-                        ? "Select specialization first"
-                        : "Select name"
-                      } />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {newSchedule.role === "doctor" && (
-                        filteredDoctors.map(doctor => (
-                        <SelectItem key={doctor.id} value={doctor.name}>
-                        {doctor.name} ({doctor.specialization})
-                        </SelectItem>
-                        ))
-                      )}
-                        {newSchedule.role === "admin" && (
-                          <SelectItem value="Admin User">Admin User</SelectItem>
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  {/* Shift Selection */}
-                  <div className="grid gap-2">
-                    <Label htmlFor="shift">Shift</Label>
-                    <Select
-                      value={newSchedule.shift}
-                      onValueChange={(value) => setNewSchedule({ ...newSchedule, shift: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select shift" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Morning">Morning</SelectItem>
-                        <SelectItem value="Evening">Evening</SelectItem>
-                        <SelectItem value="Full Day">Full Day</SelectItem>
-                        <SelectItem value="Night">Night</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  {/* Time Input - Split into Start and End */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="start-time">Start Time</Label>
-                      <Input
-                        id="start-time"
-                        type="time"
-                        value={newSchedule.startTime}
-                        onChange={(e) => setNewSchedule({ ...newSchedule, startTime: e.target.value })}
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="end-time">End Time</Label>
-                      <Input
-                        id="end-time"
-                        type="time"
-                        value={newSchedule.endTime}
-                        onChange={(e) => setNewSchedule({ ...newSchedule, endTime: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                  
-                  {/* Date Display (read-only since we're using calendar selection) */}
-                  <div className="grid gap-2">
-                  <Calendar 
-    selectedDate={formDate}
-    onDateChange={(date) => {
-      if (date) {
-        setFormDate(date);
-        setNewSchedule({ 
-          ...newSchedule, 
-          date: date.toISOString() 
-        });
-      }
-    }}
-    minDate={new Date()}
-  />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button onClick={handleAddSchedule} className="bg-blue-600 hover:bg-blue-700">
-                    Add Duty
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
+  <DialogHeader>
+    <DialogTitle>Add New Duty</DialogTitle>
+  </DialogHeader>
+  <div className="grid gap-4 py-4">
+    {/* Role Selection */}
+    <div className="grid gap-2">
+      <Label htmlFor="role">Role</Label>
+      <Select
+        value={newSchedule.role}
+        onValueChange={(value) => {
+          setNewSchedule({ 
+            ...newSchedule, 
+            role: value,
+            specialization: value === "staff" ? "" : newSchedule.specialization,
+            name: value === "staff" ? "" : newSchedule.name,
+          });
+        }}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="Select role" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="doctor">Doctor</SelectItem>
+          <SelectItem value="staff">Staff</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+
+    {/* Specialization (only for doctors) */}
+    {newSchedule.role === "doctor" && (
+      <div className="grid gap-2">
+        <Label htmlFor="specialization">Specialization</Label>
+        <Select
+          value={newSchedule.specialization}
+          onValueChange={(value) => {
+            setNewSchedule({ 
+              ...newSchedule, 
+              specialization: value,
+              name: "" // Reset name when specialization changes
+            });
+          }}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select specialization" />
+          </SelectTrigger>
+          <SelectContent>
+            {specializations.map((spec) => (
+              <SelectItem key={spec} value={spec}>
+                {spec}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    )}
+
+    {/* Name Selection */}
+    <div className="grid gap-2">
+      <Label htmlFor="name">Name</Label>
+      <Select
+        value={newSchedule.name}
+        onValueChange={(value) => {
+          const selectedPerson = doctors.find(person => person.name === value);
+          setNewSchedule({ 
+            ...newSchedule, 
+            name: value,
+            specialization: selectedPerson?.specialization || newSchedule.specialization,
+            role: selectedPerson?.role || newSchedule.role
+          });
+        }}
+        disabled={newSchedule.role === "doctor" && !newSchedule.specialization}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder={
+            newSchedule.role === "doctor" && !newSchedule.specialization
+              ? "Select specialization first"
+              : "Select name"
+          } />
+        </SelectTrigger>
+        <SelectContent>
+          {newSchedule.role === "doctor" ? (
+            // Filter doctors by specialization if one is selected
+            doctors
+              .filter(doctor => 
+                doctor.role === "doctor" && 
+                (!newSchedule.specialization || doctor.specialization === newSchedule.specialization)
+              )
+              .map(doctor => (
+                <SelectItem key={doctor.id} value={doctor.name}>
+                  {doctor.name} ({doctor.specialization})
+                </SelectItem>
+              ))
+          ) : (
+            // Show only staff members
+            doctors
+              .filter(person => person.role === "staff")
+              .map(staff => (
+                <SelectItem key={staff.id} value={staff.name}>
+                  {staff.name}
+                </SelectItem>
+              ))
+          )}
+        </SelectContent>
+      </Select>
+    </div>
+
+    {/* Time Input - Split into Start and End */}
+    <div className="grid grid-cols-2 gap-4">
+      <div className="grid gap-2">
+        <Label htmlFor="start-time">Start Time</Label>
+        <Input
+          id="start-time"
+          type="time"
+          value={newSchedule.startTime}
+          onChange={(e) => setNewSchedule({ ...newSchedule, startTime: e.target.value })}
+        />
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor="end-time">End Time</Label>
+        <Input
+          id="end-time"
+          type="time"
+          value={newSchedule.endTime}
+          onChange={(e) => setNewSchedule({ ...newSchedule, endTime: e.target.value })}
+        />
+      </div>
+    </div>
+    
+    {/* Date Display */}
+    <div className="grid gap-2">
+      <Calendar 
+        selectedDate={formDate}
+        onDateChange={(date) => {
+          if (date) {
+            setFormDate(date);
+            setNewSchedule({ 
+              ...newSchedule, 
+              date: date.toISOString() 
+            });
+          }
+        }}
+        minDate={new Date()}
+      />
+    </div>
+  </div>
+  <DialogFooter>
+    <Button onClick={handleAddSchedule} className="bg-blue-600 hover:bg-blue-700">
+      Add Duty
+    </Button>
+  </DialogFooter>
+</DialogContent>
             </Dialog>
           </div>
         </div>
@@ -504,29 +536,48 @@ useEffect(() => {
 
         {/* Schedule Table Card */}
         <Card>
-          <CardHeader>
-            <CardTitle>Duty Schedule</CardTitle>
-            <CardDescription>
-              {`Showing schedules for ${format(date, "PPP")}`}
-            </CardDescription>
-          </CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
+  <div>
+    <CardTitle>Duty Schedule</CardTitle>
+    <CardDescription>
+      {`Showing schedules for ${format(date, "PPP")}`}
+    </CardDescription>
+  </div>
+  <div className="flex items-center gap-2">
+    <Select
+      value={roleFilter}
+      onValueChange={(value) => setRoleFilter(value)}
+    >
+      <SelectTrigger className="w-[100px] h-8">
+        <SelectValue placeholder="Filter" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="all">All Users</SelectItem>
+        <SelectItem value="doctor">Doctors</SelectItem>
+        <SelectItem value="staff">Staff</SelectItem>
+      </SelectContent>
+    </Select>
+  </div>
+</CardHeader>
           <CardContent>
             <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Shift</TableHead>
-                  <TableHead>Time</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
+            <TableHeader>
+  <TableRow>
+    <TableHead>Name</TableHead>
+    <TableHead>Role</TableHead>
+    {roleFilter === 'doctor' && <TableHead>Specialization</TableHead>}
+    <TableHead>Time</TableHead>
+    <TableHead className="text-right">Actions</TableHead>
+  </TableRow>
+</TableHeader>
               <TableBody>
                 {filteredSchedules.map((schedule) => (
                   <TableRow key={schedule.id}>
                     <TableCell className="font-medium">{schedule.name}</TableCell>
                     <TableCell className="capitalize">{schedule.role}</TableCell>
-                    <TableCell>{schedule.shift}</TableCell>
+                    {roleFilter === 'doctor' && (
+        <TableCell>{schedule.specialization}</TableCell>
+      )}
                     <TableCell>{formatTimeDisplay(schedule.startTime, schedule.endTime)}</TableCell>
                     <TableCell className="text-right space-x-2">
                       {/* Edit Button */}
@@ -593,27 +644,6 @@ useEffect(() => {
                                 </SelectContent>
                               </Select>
                             </div>
-                            
-                            {/* Shift Selection */}
-                            <div className="grid gap-2">
-                              <Label>Shift</Label>
-                              <Select
-                                value={editingSchedule?.shift || schedule.shift}
-                                onValueChange={(value) => setEditingSchedule({ 
-                                  ...(editingSchedule || schedule), 
-                                  shift: value 
-                                })}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select shift" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="Morning">Morning</SelectItem>
-                                  <SelectItem value="Evening">Evening</SelectItem>
-                                  <SelectItem value="Full Day">Full Day</SelectItem>
-                                  <SelectItem value="Night">Night</SelectItem>
-                                </SelectContent>
-                              </Select>
                             </div>
                             
                             {/* Time Input - Split into Start and End */}
@@ -658,7 +688,6 @@ useEffect(() => {
     minDate={new Date()}
   />
                             </div>
-                          </div>
                           <DialogFooter>
                             <Button 
                               onClick={handleUpdateSchedule} 
@@ -683,13 +712,16 @@ useEffect(() => {
                 ))}
                 
                 {filteredSchedules.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center text-gray-500">
-                      No duties scheduled for {format(date, "PPP")}.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
+    <TableRow>
+      <TableCell 
+        colSpan={roleFilter === 'doctor' ? 5 : 4} 
+        className="h-24 text-center text-gray-500"
+      >
+        No {roleFilter === 'all' ? '' : roleFilter + ' '}duties scheduled for {format(date, "PPP")}.
+      </TableCell>
+    </TableRow>
+  )}
+</TableBody>
             </Table>
           </CardContent>
         </Card>
