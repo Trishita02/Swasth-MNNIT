@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { Doctor } from "./doctor.model.js";
-import { Staff } from "./staff.model.js";
+import  Staff  from "./staff.model.js";
 
 const DutySchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId,required: true,refPath: "role"},

@@ -1,6 +1,6 @@
 import { Duty } from "../models/duty.model.js";
-import { Doctor } from "../models/doctor.js";
-import { Staff } from "../models/staff.js";
+import { Doctor } from "../models/doctor.model.js";
+import  Staff  from "../models/staff.model.js";
 import  ApiError  from "../utils/ApiError.js";
 import  ApiResponse  from "../utils/ApiResponse.js";
 import mongoose from "mongoose";
@@ -9,7 +9,6 @@ import mongoose from "mongoose";
 export const addDuty = async (req, res) => {
     try {
       const { userId, role, date, shift, room } = req.body;
-  
       // Validation checks
       if (!userId || !role || !date || !shift || !room) {
         throw new ApiError(400, "All fields are required");
@@ -72,11 +71,9 @@ export const addDuty = async (req, res) => {
       });
   
       const populatedDuty = await Duty.findById(duty._id)
-        .populate({
-          path: "user",
-          select: "name email phone specialization"
-        })
-        .lean();
+      .populate("user") 
+      .lean();
+    
   
       return res
         .status(201)
@@ -290,72 +287,64 @@ export const deleteDuty =async (req, res) => {
   };
   
 
-export const viewAllDuties = async (req, res) => {
-    // Get all duties with populated user details
-    const duties = await Duty.aggregate([
-      {
-        $lookup: {
-          from: "doctors",
-          localField: "user",
-          foreignField: "_id",
-          as: "doctor",
-        },
-      },
-      {
-        $lookup: {
-          from: "staff",
-          localField: "user",
-          foreignField: "_id",
-          as: "staff",
-        },
-      },
-      {
-        $addFields: {
-          userDetails: {
-            $cond: {
-              if: { $eq: ["$role", "Doctor"] },
-              then: { $arrayElemAt: ["$doctor", 0] },
-              else: { $arrayElemAt: ["$staff", 0] },
-            },
-          },
-        },
-      },
-      {
-        $project: {
-          _id: 1,
-          date: 1,
-          room: 1,
-          shift: 1,
-          role: 1,
-          "userDetails.name": 1,
-          "userDetails.specialization": 1,
-        },
-      },
-      {
-        $sort: { date: 1, "shift.start_time": 1 }, // Sort by date and time
-      },
-    ]);
+  export const viewAllDuties = async (req, res) => {
+    try {
+      const duties = await Duty.find()
+        .populate("user") // populates full user object
+        .lean();
   
-    // Format the response
-    const formattedDuties = duties.map((duty) => ({
-      id: duty._id,
-      name: duty.userDetails?.name || "Unknown",
-      role: duty.role,
-      specialization: duty.userDetails?.specialization || "N/A",
-      room: duty.room,
-      date: duty.date.toISOString().split("T")[0], // Format date as YYYY-MM-DD
-      start_time: duty.shift.start_time,
-      end_time: duty.shift.end_time,
-    }));
+      const formattedDuties = duties.map((duty) => ({
+        id: duty._id,
+        name: duty.user?.name || "Unknown",
+        role: duty.role,
+        specialization: duty.user?.specialization || "N/A",
+        room: duty.room,
+        date: new Date(duty.date).toISOString().split("T")[0], // YYYY-MM-DD
+        start_time: duty.shift.start_time,
+        end_time: duty.shift.end_time,
+      }));
   
-    return res
-      .status(200)
-      .json(
-        new ApiResponse(
-          200,
-          formattedDuties,
-          "All duties retrieved successfully"
-        )
-      );
+      res.status(200).json({
+        success: true,
+        message: "All duties fetched successfully",
+        data: formattedDuties,
+      });
+    } catch (error) {
+      console.error("Error fetching duties:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch duties",
+        error: error.message,
+      });
+    }
   };
+
+// Get all doctors (optionally filtered by specialization)
+export const getAllDoctors = async (req, res) => {
+  try {
+    const query = {};
+
+    if (req.query.specialization) {
+      query.specialization = {
+        $regex: new RegExp(`^${req.query.specialization}$`, "i"),
+      };
+    }
+
+    const doctors = await Doctor.find(query);
+    res.json(doctors);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+// Get all staff
+export const getAllStaffs = async (req, res) => {
+  try {
+    const staff = await Staff.find({});
+    res.json(staff);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
   

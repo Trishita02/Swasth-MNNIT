@@ -4,7 +4,7 @@ import { isAuthenticated } from "../middlewares/auth.middleware.js";
 import {changePassword} from "../controllers/auth.controller.js"
 import { createNotification,getAllNotifications,deleteNotification } from "../controllers/notification.controller.js";
 import {sendDutyChartNow,scheduleDutyChart} from "../controllers/mail.controller.js";
-import { addDuty,updateDuty,deleteDuty,viewAllDuties } from "../controllers/duty.controller.js";
+import { addDuty,updateDuty,deleteDuty,viewAllDuties,getAllDoctors,getAllStaffs } from "../controllers/duty.controller.js";
 
 const router = express.Router();
 router.get('/dashboard',getDashboardDetails)
@@ -23,4 +23,6 @@ router.post("/assign-duties",addDuty);
 router.patch("/assign-duties/:dutyId",updateDuty);
 router.delete("/assign-duties/:dutyId",deleteDuty);
 router.get("/assign-duties",viewAllDuties);
+router.get("/getAllDoctors",getAllDoctors);
+router.get("/getAllStaffs",getAllStaffs);
 export default router;
