@@ -2,7 +2,8 @@ import mongoose from "mongoose";
 import { Doctor } from "./doctor.js";
 
 const DutySchema = new mongoose.Schema({
-  doctor: { type: mongoose.Schema.Types.ObjectId, ref: "Doctor", required: true },
+  user: { type: mongoose.Schema.Types.ObjectId,required: true,refPath: "role"},
+  role: {type: String,required: true,enum: ["Doctor", "Staff"]},
   date: { type: Date, required: true },
   shift:{
     start_time: { type: String, required: true }, 
