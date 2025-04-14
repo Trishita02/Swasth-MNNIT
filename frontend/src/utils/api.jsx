@@ -270,7 +270,6 @@ export const getAllDutiesAPI = async () => {
 export const createDutyAPI = async (dutyData) => {
   const toastId = toast.loading("Creating duty...");
   try {
-    console.log(dutyData)
     const res = await API.post("/admin/assign-duties", dutyData);
     toast.success("Duty created successfully");
     return res.data;
@@ -283,27 +282,11 @@ export const createDutyAPI = async (dutyData) => {
   }
 };
 
-// Update Duty
-export const updateDutyAPI = async (dutyId, dutyData) => {
-  const toastId = toast.loading("Updating duty...");
-  try {
-    const res = await API.put(`/admin/duties/${dutyId}`, dutyData);
-    toast.success("Duty updated successfully");
-    return res.data;
-  } catch (error) {
-    const errorMessage = error.response?.data?.message || "Failed to update duty";
-    toast.error(errorMessage);
-    throw new Error(errorMessage);
-  } finally {
-    toast.dismiss(toastId);
-  }
-};
-
 // Delete Duty
 export const deleteDutyAPI = async (dutyId) => {
   const toastId = toast.loading("Deleting duty...");
   try {
-    const res = await API.delete(`/admin/duties/${dutyId}`);
+    const res = await API.delete(`/admin/assign-duties/${dutyId}`);
     toast.success("Duty deleted successfully");
     return res.data;
   } catch (error) {
