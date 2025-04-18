@@ -7,7 +7,7 @@ import Notification from "../models/notification.model.js";
 
 export const getAllPrescriptions = async (req, res) => {
     try {
-        const prescriptions = await Prescription.find();
+        const prescriptions = await Prescription.find().sort({ createdAt: -1 });
         res.json(prescriptions);
     } catch (error) {
         res.status(500).json({ message: "Server error" });
@@ -17,11 +17,11 @@ export const getAllPrescriptions = async (req, res) => {
 export const addPrescription = async (req, res) => {
     // console.log("reached for debugging")
     try {
-        const { name, reg_no, date_of_visit, doctor_name, diagnosis, prev_issue, remark, investigation, medicines } = req.body;
+        const { name, reg_no, date_of_visit, doctor_name, diagnosis, prev_issue, remark, investigation, medicines, advice } = req.body;
         // console.log(medicines);
         // Find the patient by reg_no
         const patient = await Patient.findOne({ reg_no });
-        console.log(patient);
+        // console.log(patient);
         if (!patient) {
             return res.status(404).json({ message: "Patient not found" });
         }
@@ -39,13 +39,36 @@ export const addPrescription = async (req, res) => {
             investigation,
             medicines,
             patient: patient._id,
+            advice,
         });
-        console.log(newPrescription);
+        // console.log(newPrescription);
         // Save the prescription to the database
         await newPrescription.save();
 
         return res.status(201).json(newPrescription);
     } catch (error) {
         res.status(500).json({ message: "Server error",error:error.message });
+    }
+}
+
+export const getPrescriptionById = async (req, res) => {
+    try {
+        const reg_no = req.params.reg_no;
+        const prescription = await Prescription.find({ reg_no });
+        if (!prescription) {
+            return res.status(404).json({ message: "Prescription not found" });
+        }
+        res.json(prescription);
+    } catch (error) {
+        res.status(500).json({ message: "Server error" });
+    }
+}
+
+export const getAllMedicines = async (req, res) => {
+    try {
+        const medicines = await Medicine.find().sort({ createdAt: -1 });
+        res.json(medicines);
+    } catch (error) {
+        res.status(500).json({ message: "Server error" });
     }
 }

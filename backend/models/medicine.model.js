@@ -26,38 +26,57 @@ const BatchSchema = new Schema({
 });
 
 const MedicineSchema = new Schema({
-  M_name: {
+  name: {
     type: String,
     required: true,
   },
-  batches: [BatchSchema],
-  brand_name: {
-    type: String,
-    required: true,
-  },
-  type: {
+  category: {
     type: String,
     enum: [
-      "tablet",
-      "capsule",
-      "injection",
-      "syrup",
-      "suspension",
-      "gel",
-      "gargle",
-      "syringe",
-      "",
-      "powder",
-      "drop",
-      "miscellaneous",
+      "Tablet",
+    "Capsule",
+    "Syrup",
+    "Injection",
+    "Ointment",
+    "Drops",
+    "Cream",
+    "Gel",
+    "Powder",
+    "Inhaler",
+    "Lotion",
+    "Spray",
+    "Suppository",
+    "Patch",
+    "Solution",
+    "Suspension",
+    "Granules",
+    "Lozenge",
+    "Nasal Spray",
+    "Ear Drops",
+    "Eye Ointment"
     ],
-    default: "tablet",
+    required: true,
   },
-  quantity: {
+  stock: {
     type: Number,
     required: true,
   },
+  unit: {
+    type: String,  // Assuming unit is a string, like "strips"
+    required: true,
+  },
+  expiry: {
+    type: Date,  // Storing expiry as a Date type for better handling of dates
+    required: true,
+  },
+  batches: [BatchSchema],  // Keeping the batches schema as is
+  supplier: {
+    type: String,
+    required: true,
+  },
 });
+
+
 
 const Medicine = mongoose.model("Medicine", MedicineSchema);
 export default Medicine;

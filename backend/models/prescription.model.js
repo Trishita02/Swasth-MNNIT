@@ -11,12 +11,20 @@ const PrescriptionSchema = new Schema(
     prev_issue: { type: String }, // Previous medical issue
     remark: { type: String }, // Additional doctor comments
     investigation: { type: String }, // Suggested tests or procedures
-    medicines: [{ type: String }], // List of medicines prescribed
+    medicines: [
+  {
+    name: { type: String, required: true },
+    dosage: String,
+    duration: String,
+    instructions: String,
+  }
+] ,// List of medicines prescribed
     patient: {
       type: Schema.Types.ObjectId,
       ref: "Patient",
       required: true,
     }, // Reference to the Patient model
+    advice: { type: String }, // Doctor's advice for the patient
   },
   { timestamps: true }
 );

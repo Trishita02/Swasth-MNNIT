@@ -23,6 +23,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "../../components/PopOve
 import { format } from "date-fns"
 import { Badge } from "../../components/Badge.jsx"
 import API from "../../utils/axios.jsx"
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function DoctorPrescriptions() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -30,73 +32,95 @@ export default function DoctorPrescriptions() {
   const [filterDate, setFilterDate] = useState(undefined)
   const [filterIssue, setFilterIssue] = useState("all")
   const [selectedPatient, setSelectedPatient] = useState(null)
+  const [isFormOpen, setIsFormOpen] = useState(false);
+
+  
   // const { toast } = useToast()
 
   const [prescriptions, setPrescriptions] = useState([])
-
-
-  // List of common issues for filtering
-  const issuesList = ["Fever", "Headache", "Injury", "Allergy", "Stomach Pain", "Cold & Cough", "Skin Problem"]
-
-  const [newPrescription, setNewPrescription] = useState({
-    diagnosis: "",
-    chiefComplaints: "",
-    pastHistory: "",
-    medicines: [{ name: "", dosage: "", duration: "", instructions: "" }],
-    advice: "",
-    followUp: "",
+  
+  const [formData, setFormData] = useState({
+    name: '',
+    reg_no: '',
+    doctor_name: '',
+    diagnosis: '',
+    prev_issue: '',
+    remark: '',
+    investigation: '',
+    medicines: [{ name: '', dosage: '', duration: '', instructions: '' }],
+    advice: '',
   })
+
 
   useEffect(()=>{
     const fetchPresciptions = async () => {
       try {
         const res = await API.get("/doctor/getAllPrescriptions")
-        console.log(res.data)
+        // console.log(res.data)
         setPrescriptions(res.data)
       } catch (error) {
         console.error("Error fetching patients:", error)
       }
     }
-
+    
     fetchPresciptions()
-  })
-
+  }, [])
+  
   const handleSearch = async () => {
     try {
-      const res = await API.get(`/doctor/getPrescriptionById/${searchQuery}`);
+      const res = await API.get(`/doctor/getPrescriptionById/${reg_no}`);
       // handle the result (e.g., setPatient or show form)
     } catch (error) {
       console.error(error);
     }
   };
   
+  const handleInputChange = (e, field) => {
+    setFormData({ ...formData, [field]: e.target.value });
+  };
+
   const handleAddMedicine = () => {
-    setNewPrescription({
-      ...newPrescription,
-      medicines: [...newPrescription.medicines, { name: "", dosage: "", duration: "", instructions: "" }],
-    })
-  }
+    setFormData({
+      ...formData,
+      medicines: [...formData.medicines, { name: '', dosage: '', duration: '', instructions: '' }],
+    });
+  };
 
   const handleRemoveMedicine = (index) => {
-    const updatedMedicines = [...newPrescription.medicines]
-    updatedMedicines.splice(index, 1)
-    setNewPrescription({
-      ...newPrescription,
-      medicines: updatedMedicines,
-    })
-  }
+    const updatedMedicines = formData.medicines.filter((_, i) => i !== index);
+    setFormData({ ...formData, medicines: updatedMedicines });
+  };
 
   const handleMedicineChange = (index, field, value) => {
-    const updatedMedicines = [...newPrescription.medicines]
-    updatedMedicines[index] = {
-      ...updatedMedicines[index],
-      [field]: value,
-    }
-    setNewPrescription({
-      ...newPrescription,
-      medicines: updatedMedicines,
-    })
-  }
+    const updatedMedicines = [...formData.medicines];
+    updatedMedicines[index][field] = value;
+    setFormData({ ...formData, medicines: updatedMedicines });
+  };
+
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const res = API.post("/doctor/addPrescription", formData)
+    // console.log(res.data)
+    const formDataName = formData.name;
+    setFormData({
+      name: "", 
+      
+    reg_no: "",
+    doctor_name: "",
+    diagnosis: "",
+    prev_issue: "",
+    remark: "",
+    investigation: "",
+    medicines: [{ name: "", dosage: "", duration: "", instructions: "" }],
+    advice: "",
+    });
+    setSelectedPatient(null); // Clear selected patient
+    setIsFormOpen(false); // Close form after submission
+    toast.success(`Prescription for ${formDataName} has been created successfully`, {
+            autoClose: 1000,
+          });
+  };
 
   const handleAddPrescription = () => {
     if (!selectedPatient) return
@@ -133,18 +157,16 @@ export default function DoctorPrescriptions() {
   }
 
   // Filter prescriptions based on search query, date, and issue
-  const filteredPrescriptions = prescriptions.filter((prescription) => {
-    // Filter by registration number
-    const matchesSearch = prescription.reg_no.toLowerCase().includes(searchQuery.toLowerCase())
-
-    // Filter by date
-    const matchesDate = filterDate ? prescription.date === format(filterDate, "yyyy-MM-dd") : true
-
-    // Filter by issue
-    const matchesIssue = filterIssue === "all" || prescription.issue === filterIssue
-
-    return matchesSearch && matchesDate && matchesIssue
-  })
+  function filteredPrescriptions(prescriptions, searchQuery) {
+    return prescriptions.filter((prescription) => {
+      const matchesSearch = prescription.reg_no
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
+  
+      return matchesSearch;
+    });
+  }
+  
 
   const clearFilters = () => {
     setFilterDate(undefined)
@@ -162,52 +184,37 @@ export default function DoctorPrescriptions() {
   // Mock prescription details for the selected prescription
   const getPrescriptionDetails = (prescription) => {
     if (!prescription) return null
-
+    console.log(prescription)
     return {
       id: prescription.id,
-      patientName: prescription.patientName,
-      regNo: prescription.regNo,
+      patientName: prescription.name,
+      regNo: prescription.reg_no,
       date: prescription.date,
       diagnosis: prescription.diagnosis,
       issue: prescription.issue,
       status: prescription.status,
-      chiefComplaints: `${prescription.issue}, Weakness, Fatigue`,
-      pastHistory: prescription.issue === "Fever" ? "H/O Typhoid 2 years back" : "No significant past history",
-      medicines: [
-        {
-          name:
-            prescription.issue === "Fever"
-              ? "Paracetamol 500mg"
-              : prescription.issue === "Headache"
-                ? "Ibuprofen 400mg"
-                : prescription.issue === "Injury"
-                  ? "Diclofenac 50mg"
-                  : "Cetirizine 10mg",
-          dosage: "1-0-1",
-          duration: "5 days",
-          instructions: "After meals",
-        },
-        {
-          name:
-            prescription.issue === "Fever"
-              ? "Azithromycin 500mg"
-              : prescription.issue === "Headache"
-                ? "Paracetamol 500mg"
-                : prescription.issue === "Injury"
-                  ? "Paracetamol 500mg"
-                  : "Montelukast 10mg",
-          dosage: "0-0-1",
-          duration: "3 days",
-          instructions: "After dinner",
-        },
-      ],
-      advice: "Plenty of fluids. Rest advised.",
-      followUp: "After 5 days if symptoms persist",
+      chiefComplaints: `${prescription.issue}`,
+      pastHistory: prescription.prev_issue.length>0 ? prescription.prev_issue : "No significant past history",
+      medicines: prescription.medicines,
+      advice: prescription.advice,
     }
   }
 
   return (
     <>
+        <ToastContainer 
+            position="top-right"
+            autoClose={1000}
+            
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="light"
+        />
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Prescriptions</h1>
         <div className="flex gap-2">
@@ -231,7 +238,7 @@ export default function DoctorPrescriptions() {
                 </Button>
               )}
             </div>
-              <Button onClick = {handleSearch}>Search</Button>
+            <Button onClick={() => setPrescriptions(filteredPrescriptions(prescriptions, searchQuery))}>Search</Button>
 
             {/* <Popover>
               <PopoverTrigger asChild>
@@ -266,218 +273,201 @@ export default function DoctorPrescriptions() {
             )} */}
           </div>
 
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button className="bg-blue-600 hover:bg-blue-700">
-                <Plus className="mr-2 h-4 w-4" /> Create Prescription
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-4xl">
-              <DialogHeader>
-                <DialogTitle>Create New Prescription</DialogTitle>
-                <DialogDescription>Create a detailed prescription for a patient.</DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto pr-2">
-                <div className="grid gap-2">
-                  <Label htmlFor="patientSearch">Search Patient by Registration Number</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="patientSearch"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Enter registration number"
-                    />
-                    <Button type="button" onClick={handleSearch}>
-                      Search
-                    </Button>
-                  </div>
-                </div>
+          <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
 
-                {selectedPatient ? (
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-base">Patient Information</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-3 gap-4">
-                        <div className="space-y-1">
-                          <p className="text-sm font-medium">Name:</p>
-                          <p className="text-sm">{selectedPatient.name}</p>
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-sm font-medium">Registration No:</p>
-                          <p className="text-sm">{selectedPatient.reg_no}</p>
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-sm font-medium">Type:</p>
-                          <p className="text-sm">{selectedPatient.type}</p>
-                        </div>
-                        {/* <div className="space-y-1">
-                          <p className="text-sm font-medium">Department:</p>
-                          <p className="text-sm">{selectedPatient.department}</p>
-                        </div> */}
-                        <div className="space-y-1">
-                          <p className="text-sm font-medium">Age:</p>
-                          <p className="text-sm">{selectedPatient.age} years</p>
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-sm font-medium">Gender:</p>
-                          <p className="text-sm">{selectedPatient.gender}</p>
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-sm font-medium">Blood Group:</p>
-                          <p className="text-sm">{selectedPatient.blood_group}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <div className="flex h-24 items-center justify-center rounded-md border border-dashed">
-                    <div className="flex flex-col items-center text-center">
-                      <User className="h-8 w-8 text-muted-foreground" />
-                      <p className="mt-2 text-sm text-muted-foreground">
-                        Search for a patient by registration number to create a prescription
-                      </p>
-                    </div>
-                  </div>
-                )}
+  <DialogTrigger asChild>
+    <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => setIsFormOpen(true)}>
+      <Plus className="mr-2 h-4 w-4" /> Create Prescription
+    </Button>
+  </DialogTrigger>
 
-                {selectedPatient && (
-                  <>
-                    <div className="grid gap-2">
-                      <Label htmlFor="diagnosis">Diagnosis</Label>
-                      <Input
-                        id="diagnosis"
-                        value={newPrescription.diagnosis}
-                        onChange={(e) => setNewPrescription({ ...newPrescription, diagnosis: e.target.value })}
-                        placeholder="Enter diagnosis"
-                      />
-                    </div>
+  <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+    <DialogHeader>
+      <DialogTitle>Create New Prescription</DialogTitle>
+      <DialogDescription>Create a detailed prescription for a patient.</DialogDescription>
+    </DialogHeader>
 
-                    <div className="grid gap-2">
-                      <Label htmlFor="chiefComplaints">Chief Complaints</Label>
-                      <Textarea
-                        id="chiefComplaints"
-                        value={newPrescription.chiefComplaints}
-                        onChange={(e) => setNewPrescription({ ...newPrescription, chiefComplaints: e.target.value })}
-                        placeholder="Enter chief complaints (comma separated)"
-                        rows={2}
-                      />
-                    </div>
+    
 
-                    <div className="grid gap-2">
-                      <Label htmlFor="pastHistory">Past Medical History</Label>
-                      <Textarea
-                        id="pastHistory"
-                        value={newPrescription.pastHistory}
-                        onChange={(e) => setNewPrescription({ ...newPrescription, pastHistory: e.target.value })}
-                        placeholder="Enter past medical history"
-                        rows={2}
-                      />
-                    </div>
+    <form onSubmit={handleSubmit} className="space-y-4 p-4 bg-white shadow-md rounded-md">
+      <div className="grid gap-4">
+        <div className="grid gap-2">
+          <label htmlFor="name" className="font-medium">Patient Name</label>
+          <input
+            id="name"
+            type="text"
+            value={formData.name}
+            onChange={(e) => handleInputChange(e, 'name')}
+            placeholder="Enter patient name"
+            required
+            className="px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div className="grid gap-2">
+          <label htmlFor="reg_no" className="font-medium">Registration Number</label>
+          <input
+            id="reg_no"
+            type="text"
+            value={formData.reg_no}
+            onChange={(e) => handleInputChange(e, 'reg_no')}
+            placeholder="Enter registration number"
+            required
+            className="px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div className="grid gap-2">
+          <label htmlFor="doctor_name" className="font-medium">Doctor's Name</label>
+          <input
+            id="doctor_name"
+            type="text"
+            value={formData.doctor_name}
+            onChange={(e) => handleInputChange(e, 'doctor_name')}
+            placeholder="Enter doctor's name"
+            required
+            className="px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div className="grid gap-2">
+          <label htmlFor="diagnosis" className="font-medium">Diagnosis</label>
+          <input
+            id="diagnosis"
+            type="text"
+            value={formData.diagnosis}
+            onChange={(e) => handleInputChange(e, 'diagnosis')}
+            placeholder="Enter diagnosis"
+            required
+            className="px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div className="grid gap-2">
+          <label htmlFor="prev_issue" className="font-medium">Previous Medical Issue</label>
+          <input
+            id="prev_issue"
+            type="text"
+            value={formData.prev_issue}
+            onChange={(e) => handleInputChange(e, 'prev_issue')}
+            placeholder="Enter previous medical issue"
+            className="px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div className="grid gap-2">
+          <label htmlFor="remark" className="font-medium">Remark</label>
+          <input
+            id="remark"
+            type="text"
+            value={formData.remark}
+            onChange={(e) => handleInputChange(e, 'remark')}
+            placeholder="Enter additional remarks"
+            className="px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div className="grid gap-2">
+          <label htmlFor="investigation" className="font-medium">Investigation</label>
+          <input
+            id="investigation"
+            type="text"
+            value={formData.investigation}
+            onChange={(e) => handleInputChange(e, 'investigation')}
+            placeholder="Enter suggested investigation"
+            className="px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
 
-                    <div className="grid gap-2">
-                      <div className="flex items-center justify-between">
-                        <Label>Medicines</Label>
-                        <Button type="button" variant="outline" size="sm" onClick={handleAddMedicine}>
-                          Add Medicine
-                        </Button>
-                      </div>
-
-                      {newPrescription.medicines.map((medicine, index) => (
-                        <Card key={index} className="p-4">
-                          <div className="flex justify-between items-start mb-2">
-                            <h4 className="text-sm font-medium">Medicine {index + 1}</h4>
-                            {index > 0 && (
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleRemoveMedicine(index)}
-                                className="h-6 px-2 text-red-500 hover:text-red-700"
-                              >
-                                Remove
-                              </Button>
-                            )}
-                          </div>
-                          <div className="grid gap-3">
-                            <div className="grid grid-cols-1 gap-2">
-                              <Label htmlFor={`medicine-name-${index}`}>Medicine Name</Label>
-                              <Input
-                                id={`medicine-name-${index}`}
-                                value={medicine.name}
-                                onChange={(e) => handleMedicineChange(index, "name", e.target.value)}
-                                placeholder="Enter medicine name"
-                              />
-                            </div>
-                            <div className="grid grid-cols-3 gap-3">
-                              <div className="grid gap-2">
-                                <Label htmlFor={`medicine-dosage-${index}`}>Dosage</Label>
-                                <Input
-                                  id={`medicine-dosage-${index}`}
-                                  value={medicine.dosage}
-                                  onChange={(e) => handleMedicineChange(index, "dosage", e.target.value)}
-                                  placeholder="e.g., 1-0-1"
-                                />
-                              </div>
-                              <div className="grid gap-2">
-                                <Label htmlFor={`medicine-duration-${index}`}>Duration</Label>
-                                <Input
-                                  id={`medicine-duration-${index}`}
-                                  value={medicine.duration}
-                                  onChange={(e) => handleMedicineChange(index, "duration", e.target.value)}
-                                  placeholder="e.g., 5 days"
-                                />
-                              </div>
-                              <div className="grid gap-2">
-                                <Label htmlFor={`medicine-instructions-${index}`}>Instructions</Label>
-                                <Input
-                                  id={`medicine-instructions-${index}`}
-                                  value={medicine.instructions}
-                                  onChange={(e) => handleMedicineChange(index, "instructions", e.target.value)}
-                                  placeholder="e.g., After meals"
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        </Card>
-                      ))}
-                    </div>
-
-                    <div className="grid gap-2">
-                      <Label htmlFor="advice">General Advice</Label>
-                      <Textarea
-                        id="advice"
-                        value={newPrescription.advice}
-                        onChange={(e) => setNewPrescription({ ...newPrescription, advice: e.target.value })}
-                        placeholder="Enter general advice"
-                        rows={2}
-                      />
-                    </div>
-
-                    <div className="grid gap-2">
-                      <Label htmlFor="followUp">Follow-up</Label>
-                      <Input
-                        id="followUp"
-                        value={newPrescription.followUp}
-                        onChange={(e) => setNewPrescription({ ...newPrescription, followUp: e.target.value })}
-                        placeholder="e.g., After 7 days if needed"
-                      />
-                    </div>
-                  </>
-                )}
+        {/* Medicines Section */}
+        <div className="grid gap-4">
+          <label className="font-medium">Medicines</label>
+          {formData.medicines.map((medicine, index) => (
+            <div key={index} className="space-y-2 p-4 border rounded-md">
+              <div className="grid gap-2">
+                <label htmlFor={`medicine-name-${index}`} className="font-medium">Medicine Name</label>
+                <input
+                  id={`medicine-name-${index}`}
+                  type="text"
+                  value={medicine.name}
+                  onChange={(e) => handleMedicineChange(index, 'name', e.target.value)}
+                  placeholder="Enter medicine name"
+                  required
+                  className="px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+                />
               </div>
-              <DialogFooter>
-                <Button
-                  onClick={handleAddPrescription}
-                  className="bg-blue-600 hover:bg-blue-700"
-                  disabled={!selectedPatient}
+              <div className="flex flex-col md:flex-row md:items-end md:space-x-4 space-y-4 md:space-y-0">
+              <div className="flex-1">
+                <label htmlFor={`medicine-dosage-${index}`} className="font-medium">Dosage</label>
+                <input
+                  id={`medicine-dosage-${index}`}
+                  type="text"
+                  value={medicine.dosage}
+                  onChange={(e) => handleMedicineChange(index, 'dosage', e.target.value)}
+                  placeholder="e.g., 500mg"
+                  className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div className="flex-1">
+                <label htmlFor={`medicine-duration-${index}`} className="font-medium">Duration</label>
+                <input
+                  id={`medicine-duration-${index}`}
+                  type="text"
+                  value={medicine.duration}
+                  onChange={(e) => handleMedicineChange(index, 'duration', e.target.value)}
+                  placeholder="e.g., 5 days"
+                  className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div className="flex-1">
+                <label htmlFor={`medicine-instructions-${index}`} className="font-medium">Instructions</label>
+                <input
+                  id={`medicine-instructions-${index}`}
+                  type="text"
+                  value={medicine.instructions}
+                  onChange={(e) => handleMedicineChange(index, 'instructions', e.target.value)}
+                  placeholder="e.g., After meals"
+                  className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+              {index > 0 && (
+                <button
+                  type="button"
+                  onClick={() => handleRemoveMedicine(index)}
+                  className="text-red-600 hover:text-red-700"
                 >
-                  Create Prescription
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+                  Remove Medicine
+                </button>
+              )}
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={handleAddMedicine}
+            className="text-blue-600 hover:text-blue-700"
+          >
+            Add Another Medicine
+          </button>
+        </div>
+
+        {/* Doctor's Advice Section */}
+        <div className="grid gap-2">
+          <label htmlFor="advice" className="font-medium">Doctor's Advice</label>
+          <input
+            id="advice"
+            type="text"
+            value={formData.advice}
+            onChange={(e) => handleInputChange(e, 'advice')}
+            placeholder="Enter doctor's advice"
+            className="px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        {/* Submit Button */}
+        <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700">
+          Submit Prescription
+        </button>
+      </div>
+    </form>
+  </DialogContent>
+</Dialog>
+
         </div>
       </div>
 
@@ -574,24 +564,24 @@ export default function DoctorPrescriptions() {
             <DialogTitle>Prescription Details</DialogTitle>
             <DialogDescription>
               {selectedPrescription &&
-                `Prescription for ${selectedPrescription.patientName} (${selectedPrescription.regNo})`}
+                `Prescription for ${selectedPrescription.name} (${selectedPrescription.reg_no})`}
             </DialogDescription>
           </DialogHeader>
           {selectedPrescription && (
             <div className="space-y-6">
               <div className="flex justify-between items-center border-b pb-4">
                 <div>
-                  <h3 className="font-semibold text-lg">{selectedPrescription.patientName}</h3>
-                  <p className="text-sm text-muted-foreground">Reg No: {selectedPrescription.regNo}</p>
+                  <h3 className="font-semibold text-lg">{selectedPrescription.name}</h3>
+                  <p className="text-sm text-muted-foreground">Reg No: {selectedPrescription.reg_no}</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-medium">Date: {selectedPrescription.date}</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="font-medium">Date: {selectedPrescription.date_of_visit?.slice(0, 10)}</p>
+                  {/* <p className="text-sm text-muted-foreground">
                     Status:{" "}
                     <span className={selectedPrescription.status === "Completed" ? "text-green-600" : "text-amber-600"}>
                       {selectedPrescription.status}
                     </span>
-                  </p>
+                  </p> */}
                 </div>
               </div>
 
@@ -604,10 +594,10 @@ export default function DoctorPrescriptions() {
                         <h4 className="font-medium mb-1">Diagnosis</h4>
                         <p>{details.diagnosis}</p>
                       </div>
-                      <div>
+                      {/* <div>
                         <h4 className="font-medium mb-1">Chief Complaints</h4>
                         <p>{details.chiefComplaints}</p>
-                      </div>
+                      </div> */}
                     </div>
 
                     <div>
@@ -644,10 +634,10 @@ export default function DoctorPrescriptions() {
                         <h4 className="font-medium mb-1">General Advice</h4>
                         <p>{details.advice}</p>
                       </div>
-                      <div>
+                      {/* <div>
                         <h4 className="font-medium mb-1">Follow-up</h4>
                         <p>{details.followUp}</p>
-                      </div>
+                      </div> */}
                     </div>
                   </>
                 )
