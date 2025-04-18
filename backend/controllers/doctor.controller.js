@@ -5,7 +5,7 @@ import Prescription from "../models/prescription.model.js";
 import bcrypt from "bcryptjs";
 import Notification from "../models/notification.model.js";
 import { isAuthenticated } from '../middlewares/auth.middleware.js';
-
+import { generateAndSendPrescription } from "./mail.controller.js";
 
 export const getAllPrescriptions = async (req, res) => {
     try {
@@ -64,7 +64,10 @@ export const addPrescription = async (req, res) => {
         // console.log(newPrescription);
         // Save the prescription to the database
         await newPrescription.save();
-
+        //sending to student through mail
+        await newPrescription.populate('doctor_id');
+        await newPrescription.populate('patient');
+        await generateAndSendPrescription(newPrescription, patient.email);
         return res.status(201).json(newPrescription);
     } catch (error) {
         res.status(500).json({ message: "Server error", error: error.message });

@@ -1,4 +1,7 @@
-import nodemailer from "nodemailer";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 import cron from "node-cron";
 import { Doctor } from "../models/doctor.model.js";
 import { Duty } from "../models/duty.model.js";
@@ -130,5 +133,32 @@ export const scheduleDutyChart = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const generateAndSendPrescription=async(prescription,sendTo)=>{
+  try{
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+    const logoPath = path.join(__dirname, '../public/logo.jpg');
+    const logoBase64 = fs.readFileSync(logoPath).toString('base64');
+    const pdfFile=await generatePdf({ prescription, logoBase64 }, 'prescriptionTemplate', 'prescription.pdf');
+    const receiver = {
+      from: "trishitakesarwani06@gmail.com",
+      to: prescription.patient.email,
+      subject: "Your Prescription",
+      attachments: [
+        {
+          filename: "prescription.pdf",
+          path: pdfFile,
+        },
+      ],
+    };
+
+    const emailResult = await sendEmail(receiver);
+    return emailResult
+  } catch (error) {
+    console.error("Error in sending email:", error);
+    throw error;
   }
 };
