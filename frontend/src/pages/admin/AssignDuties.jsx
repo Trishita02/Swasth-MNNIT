@@ -44,7 +44,6 @@ import {
   scheduleDutyChartAPI,
   getAllDutiesAPI,
   createDutyAPI,
-  updateDutyAPI,
   deleteDutyAPI,
   getAllUsersAPI,
   getDoctorsFromSpecializationAPI,
@@ -67,10 +66,11 @@ export default function AssignDuties() {
   });
   const [schedules, setSchedules] = useState([]);
   const [specializations, setSpecializations] = useState([]);
-  
   const [editingSchedule, setEditingSchedule] = useState(null);
   //state for add duty loading
   const [isAddingDuty, setIsAddingDuty] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+const [dutyToDelete, setDutyToDelete] = useState(null);
   const [specializationList] = useState([
     "Dental",
     "Physiotherapist",
@@ -194,17 +194,42 @@ export default function AssignDuties() {
       toast.error("Please fill all required fields");
       return;
     }
-  
     if (newSchedule.role === "Doctor" && !newSchedule.specialization) {
       toast.error("Please select a specialization for doctors");
       return;
     }
   
-    if (newSchedule.startTime >= newSchedule.endTime) {
-      toast.error("End time must be after start time");
+    const [sHour, sMin] = newSchedule.startTime.split(":").map(Number);
+    const [eHour, eMin] = newSchedule.endTime.split(":").map(Number);
+    
+    const base = new Date(); // today’s date
+    
+    // Create Date objects
+    const start = new Date(base);
+    start.setHours(sHour, sMin, 0, 0);
+    
+    let end = new Date(base);
+    end.setHours(eHour, eMin, 0, 0);
+    
+    // Check for same time
+    if (start.getTime() === end.getTime()) {
+      toast.error("Start time and end time cannot be the same");
       return;
     }
-  
+    
+    // Check for invalid (non-overnight) backward times
+    if (end < start) {
+      const durationMinutes = (end.getTime() + 24 * 60 * 60 * 1000 - start.getTime()) / (1000 * 60);
+    
+      // Optional: prevent unrealistic long shifts (e.g., > 12h)
+      if (durationMinutes > 720) {
+        toast.error("Invalid time range: end time must be after start time or within valid shift duration");
+        return;
+      }
+    
+      // If shift duration is valid and crosses midnight → allow
+    }
+    
     try {
       setIsAddingDuty(true);
       
@@ -230,26 +255,11 @@ export default function AssignDuties() {
           start_time: newSchedule.startTime,  
           end_time: newSchedule.endTime      
         },
-        date: localDate,
+        date: format(localDate, 'yyyy-MM-dd'), 
         room: newSchedule.room
       };
-  
       const response = await createDutyAPI(dutyData);
-      
-      // Ensure the response has the expected structure
-      const createdDuty = {
-        _id: response._id || response.data._id,
-        user: response.userId || response.data.userId,
-        role: response.role || response.data.role,
-        name: response.name || response.data.name,
-        specialization: response.specialization || response.data.specialization || "",
-        start_time: response.start_time || response.data.start_time,
-        end_time: response.end_time || response.data.end_time,
-        date: response.date || response.data.date,
-        room: response.room || response.data.room
-      };
-      
-      setSchedules(prev => [...prev, createdDuty]);
+      await fetchData();
       setNewSchedule({
         userId: "",
         role: "Doctor",
@@ -269,41 +279,18 @@ export default function AssignDuties() {
     }
   };
 
-  const handleUpdateSchedule = async () => {
-    if (!editingSchedule) return;
-
-    try {
-      const selectedUser = users.find(u => u._id === editingSchedule.user);
-
-      const updatedData = {
-        user: editingSchedule.user,
-        role: editingSchedule.role,
-        name: selectedUser?.name || editingSchedule.name,
-        specialization: selectedUser?.specialization || editingSchedule.specialization,
-        start_time: editingSchedule.startTime,
-        end_time: editingSchedule.endTime,
-        date: new Date(editingSchedule.date).toISOString(),
-        room: editingSchedule.room
-      };
-
-      const updatedDuty = await updateDutyAPI(editingSchedule._id, updatedData);
-      
-      setSchedules(prev => prev.map(schedule => 
-        schedule._id === editingSchedule._id ? updatedDuty : schedule
-      ));
-      
-      setEditingSchedule(null);
-      toast.success("Duty updated successfully");
-    } catch (error) {
-      toast.error(error.message || "Failed to update duty");
-    }
+  const handleDeleteClick = (dutyId) => {
+    setDutyToDelete(dutyId);
+    setIsDeleteDialogOpen(true);
   };
-
-  const handleDeleteSchedule = async (id) => {
+  
+  const handleDeleteSchedule = async () => {
     try {
-      await deleteDutyAPI(id);
-      setSchedules(prev => prev.filter(schedule => schedule._id !== id));
+      await deleteDutyAPI(dutyToDelete);
+      await fetchData();
       toast.success("Duty deleted successfully");
+      setIsDeleteDialogOpen(false);
+      setDutyToDelete(null);
     } catch (error) {
       toast.error(error.message || "Failed to delete duty");
     }
@@ -365,26 +352,6 @@ export default function AssignDuties() {
     }
   };
 
-  // Get filtered users based on role and specialization
-  const getFilteredUsers = () => {
-    // Return empty array if no users or no role selected
-    if (!users.length || !newSchedule.role) return [];
-  
-    if (newSchedule.role === "Doctor") {
-      // If specialization is selected, filter doctors by specialization
-      if (newSchedule.specialization) {
-        return users.filter(user => 
-          user?.role === "doctor" && 
-          user?.specialization === newSchedule.specialization
-        );
-      }
-      // Otherwise return all doctors
-      return users.filter(user => user?.role === "doctor");
-    }
-    
-    // For staff - return all staff members
-    return users.filter(user => user?.role === "staff");
-  };
 
   return (
     <>
@@ -707,14 +674,15 @@ export default function AssignDuties() {
                 </TableHeader>
                 <TableBody>
                   {filteredSchedules.map((schedule) => {
-                    const user = users.find(u => u._id === schedule.user || u._id === schedule.userId);
+                     const userName = schedule.user?.name || schedule.name;
+                     const userSpecialization = schedule.user?.specialization || schedule.specialization;
                     return (
                       <TableRow key={schedule._id}>
                         <TableCell className="font-medium">
-                        {user?.name || schedule.name}
-          {schedule.role === "Doctor" && schedule.specialization && (
+                        {userName}
+          {schedule.role === "Doctor" && userSpecialization && (
             <span className="text-xs text-gray-500 block">
-              {schedule.specialization}
+              {userSpecialization}
             </span>
           )}
                         </TableCell>
@@ -722,101 +690,13 @@ export default function AssignDuties() {
                         <TableCell>{schedule.room}</TableCell>
                         <TableCell>{formatTimeDisplay(schedule.start_time, schedule.end_time)}</TableCell>
                         <TableCell className="text-right space-x-2">
-                          {/* Edit Button */}
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button 
-                                variant="ghost" 
-                                size="icon"
-                                onClick={() => setEditingSchedule({...schedule})}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-[425px]">
-                              <DialogHeader>
-                                <DialogTitle>Edit Duty Schedule</DialogTitle>
-                                <DialogDescription>
-                                  Make changes to the duty schedule here. Click save when you're done.
-                                </DialogDescription>
-                              </DialogHeader>
-                              <div className="grid gap-4 py-4">
-                                {/* Room Input */}
-                                <div className="grid gap-2">
-                                  <Label htmlFor="room">Room</Label>
-                                  <Input
-                                    id="room"
-                                    value={editingSchedule?.room || schedule.room}
-                                    onChange={(e) => setEditingSchedule({ 
-                                      ...(editingSchedule || schedule), 
-                                      room: e.target.value 
-                                    })}
-                                    placeholder="Enter room number"
-                                  />
-                                </div>
-
-                                {/* Time Input - Split into Start and End */}
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div className="grid gap-2">
-                                    <Label htmlFor="start-time">Start Time</Label>
-                                    <Input
-                                      id="start-time"
-                                      type="time"
-                                      value={editingSchedule?.start_time || schedule.start_time}
-                                      onChange={(e) => setEditingSchedule({ 
-                                        ...(editingSchedule || schedule), 
-                                        start_time: e.target.value 
-                                      })}
-                                    />
-                                  </div>
-                                  <div className="grid gap-2">
-                                    <Label htmlFor="end-time">End Time</Label>
-                                    <Input
-                                      id="end-time"
-                                      type="time"
-                                      value={editingSchedule?.end_time || schedule.end_time}
-                                      onChange={(e) => setEditingSchedule({ 
-                                        ...(editingSchedule || schedule), 
-                                        end_time: e.target.value 
-                                      })}
-                                    />
-                                  </div>
-                                </div>
-                                
-                                {/* Date Display */}
-                                <div className="grid gap-2">
-                                  <Calendar 
-                                    selectedDate={new Date(editingSchedule?.date || schedule.date)}
-                                    onDateChange={(date) => {
-                                      if (date) {
-                                        setEditingSchedule({ 
-                                          ...(editingSchedule || schedule), 
-                                          date: date.toISOString() 
-                                        });
-                                      }
-                                    }}
-                                    minDate={new Date()}
-                                  />
-                                </div>
-                              </div>
-                              <DialogFooter>
-                                <Button 
-                                  onClick={handleUpdateSchedule} 
-                                  className="bg-blue-600 hover:bg-blue-700"
-                                >
-                                  Save Changes
-                                </Button>
-                              </DialogFooter>
-                            </DialogContent>
-                          </Dialog>
+                          
                           
                           {/* Delete Button */}
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={() => handleDeleteSchedule(schedule._id)}
+                          <Button variant="ghost" size="icon" 
+                              onClick={() => handleDeleteClick(schedule.id)}
                           >
-                            <Trash className="h-4 w-4" />
+                          <Trash className="h-4 w-4" />
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -839,7 +719,31 @@ export default function AssignDuties() {
           </CardContent>
         </Card>
       </div>
-      
+        {/* Delete Confirmation Dialog */}
+<Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Confirm Deletion</DialogTitle>
+      <DialogDescription>
+        Are you sure you want to delete this duty schedule?
+      </DialogDescription>
+    </DialogHeader>
+    <DialogFooter>
+      <Button 
+        variant="outline" 
+        onClick={() => setIsDeleteDialogOpen(false)}
+      >
+        Cancel
+      </Button>
+      <Button 
+        variant="destructive"
+        onClick={handleDeleteSchedule}
+      >
+        Delete
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
       <ToastContainer position="top-right" autoClose={3000} />
     </>
   );

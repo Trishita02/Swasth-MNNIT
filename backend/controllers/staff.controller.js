@@ -6,24 +6,6 @@ import bcrypt from "bcryptjs";
 import Notification from "../models/notification.model.js";
 import jwt from "jsonwebtoken";
 
-// Change Password
-export const changePassword = async (req, res) => {
-  try {
-    const { staffId, oldPassword, newPassword } = req.body;
-    const staff = await Staff.findById(staffId);
-    if (!staff) return res.status(404).json({ message: "Staff not found" });
-
-    const isMatch = await bcrypt.compare(oldPassword, staff.password);
-    if (!isMatch)
-      return res.status(400).json({ message: "Incorrect old password" });
-
-    staff.password = await bcrypt.hash(newPassword, 10);
-    await staff.save();
-    res.json({ message: "Password updated successfully" });
-  } catch (error) {
-    res.status(500).json({ message: "Server error" });
-  }
-};
 
 // Search Patient Records
 export const searchPatients = async (req, res) => {
