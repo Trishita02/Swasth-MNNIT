@@ -6,7 +6,9 @@ const PrescriptionSchema = new Schema(
     name: { type: String, required: true },
     reg_no: { type: String, required: true }, // Links to patient's reg_no
     date_of_visit: { type: Date, default: Date.now }, // Defaults to current date
-    doctor_name: { type: String, required: true },
+    doctor_id: {type: Schema.Types.ObjectId,
+      ref: "Doctor",
+      required: true,},
     diagnosis: { type: String, required: true },
     prev_issue: { type: String }, // Previous medical issue
     remark: { type: String }, // Additional doctor comments
