@@ -92,3 +92,22 @@ export const getAllMedicines = async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 }
+
+export const printPrescription = async (req, res) => {
+    try {
+      const { id } = req.params;
+  
+      const prescription = await Prescription.findById(id)
+      .populate('doctor_id', 'name specialization phone')  
+      .populate('patient', 'name reg_no age gender')
+  
+      if (!prescription) {
+        return res.status(404).send("Prescription not found.");
+      }
+      res.render("prescriptionTemplate", { prescription });
+    } catch (error) {
+      console.error("Error rendering prescription by ID:", error);
+      res.status(500).send("Something went wrong.");
+    }
+  };
+  
