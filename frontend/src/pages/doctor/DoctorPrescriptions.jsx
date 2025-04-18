@@ -43,7 +43,6 @@ export default function DoctorPrescriptions() {
   const [formData, setFormData] = useState({
     name: '',
     reg_no: '',
-    doctor_name: '',
     diagnosis: '',
     prev_issue: '',
     remark: '',
@@ -108,7 +107,6 @@ export default function DoctorPrescriptions() {
       name: "", 
       
     reg_no: "",
-    doctor_name: "",
     diagnosis: "",
     prev_issue: "",
     remark: "",
@@ -316,18 +314,8 @@ export default function DoctorPrescriptions() {
             className="px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        <div className="grid gap-2">
-          <label htmlFor="doctor_name" className="font-medium">Doctor's Name</label>
-          <input
-            id="doctor_name"
-            type="text"
-            value={formData.doctor_name}
-            onChange={(e) => handleInputChange(e, 'doctor_name')}
-            placeholder="Enter doctor's name"
-            required
-            className="px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
+        
+        
         <div className="grid gap-2">
           <label htmlFor="diagnosis" className="font-medium">Diagnosis</label>
           <input

@@ -4,21 +4,39 @@ import Medicine from "../models/medicine.model.js";
 import Prescription from "../models/prescription.model.js";
 import bcrypt from "bcryptjs";
 import Notification from "../models/notification.model.js";
+import  {isAuthenticated}  from '../middlewares/auth.middleware.js';
+
 
 export const getAllPrescriptions = async (req, res) => {
     try {
-        const prescriptions = await Prescription.find().sort({ createdAt: -1 });
+        const username = req.user.name; // Authenticated user from middleware
+        // console.log("Authenticated User:", user);
+
+        const prescriptions = await Prescription.find({doctor_name: username}).sort({ createdAt: -1 });
+        // console.log(prescriptions)
         res.json(prescriptions);
     } catch (error) {
+        console.error("Error fetching prescriptions:", error);
         res.status(500).json({ message: "Server error" });
     }
-}
+};
+
+
+// export const getAllPrescriptions = async (req, res) => {
+//     console.log(req);
+//     try {
+//         const prescriptions = await Prescription.find().sort({ createdAt: -1 });
+//         res.json(prescriptions);
+//     } catch (error) {
+//         res.status(500).json({ message: "Server error" });
+//     }
+// }
 
 export const addPrescription = async (req, res) => {
     // console.log("reached for debugging")
     try {
-        console.log(req.body);
-        const { name, reg_no, doctor_name, diagnosis, prev_issue, remark, investigation, medicines, advice } = req.body;
+        // console.log(req.body);
+        const { name, reg_no, diagnosis, prev_issue, remark, investigation, medicines, advice } = req.body;
         // console.log(medicines);
         // Find the patient by reg_no
         const patient = await Patient.findOne({ reg_no });
@@ -29,11 +47,12 @@ export const addPrescription = async (req, res) => {
 
         // Create a new prescription
         // console.log("sefsac")
+        const username = req.user.name;
         const newPrescription = new Prescription({
             name,
             reg_no,
             date_of_visit : new Date(),
-            doctor_name,
+            doctor_name : username,
             diagnosis,
             prev_issue,
             remark,
@@ -42,7 +61,7 @@ export const addPrescription = async (req, res) => {
             patient: patient._id,
             advice,
         });
-        console.log(newPrescription);
+        // console.log(newPrescription);
         // Save the prescription to the database
         await newPrescription.save();
 
