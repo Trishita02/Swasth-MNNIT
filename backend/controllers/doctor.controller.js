@@ -17,7 +17,8 @@ export const getAllPrescriptions = async (req, res) => {
 export const addPrescription = async (req, res) => {
     // console.log("reached for debugging")
     try {
-        const { name, reg_no, date_of_visit, doctor_name, diagnosis, prev_issue, remark, investigation, medicines, advice } = req.body;
+        console.log(req.body);
+        const { name, reg_no, doctor_name, diagnosis, prev_issue, remark, investigation, medicines, advice } = req.body;
         // console.log(medicines);
         // Find the patient by reg_no
         const patient = await Patient.findOne({ reg_no });
@@ -31,7 +32,7 @@ export const addPrescription = async (req, res) => {
         const newPrescription = new Prescription({
             name,
             reg_no,
-            date_of_visit,
+            date_of_visit : new Date(),
             doctor_name,
             diagnosis,
             prev_issue,
@@ -41,7 +42,7 @@ export const addPrescription = async (req, res) => {
             patient: patient._id,
             advice,
         });
-        // console.log(newPrescription);
+        console.log(newPrescription);
         // Save the prescription to the database
         await newPrescription.save();
 

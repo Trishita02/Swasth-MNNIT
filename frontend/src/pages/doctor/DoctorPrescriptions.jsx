@@ -38,6 +38,7 @@ export default function DoctorPrescriptions() {
   // const { toast } = useToast()
 
   const [prescriptions, setPrescriptions] = useState([])
+  const [newPrescription, setNewPrescription] = useState([])
   
   const [formData, setFormData] = useState({
     name: '',
@@ -122,39 +123,39 @@ export default function DoctorPrescriptions() {
           });
   };
 
-  const handleAddPrescription = () => {
-    if (!selectedPatient) return
+  // const handleAddPrescription = () => {
+  //   if (!selectedPatient) return
 
-    setPrescriptions([
-      ...prescriptions,
-      {
-        id: prescriptions.length + 1,
-        patientName: selectedPatient.name,
-        regNo: selectedPatient.regNo,
-        date: new Date().toISOString().split("T")[0],
-        diagnosis: newPrescription.diagnosis,
-        issue: newPrescription.chiefComplaints.split(",")[0], // Use first complaint as issue
-        status: "Pending",
-      },
-    ])
+  //   setPrescriptions([
+  //     ...prescriptions,
+  //     {
+  //       id: prescriptions.length + 1,
+  //       patientName: selectedPatient.name,
+  //       regNo: selectedPatient.regNo,
+  //       date: new Date().toISOString().split("T")[0],
+  //       diagnosis: newPrescription.diagnosis,
+  //       issue: newPrescription.chiefComplaints.split(",")[0], // Use first complaint as issue
+  //       status: "Pending",
+  //     },
+  //   ])
 
-    setNewPrescription({
-      diagnosis: "",
-      chiefComplaints: "",
-      pastHistory: "",
-      medicines: [{ name: "", dosage: "", duration: "", instructions: "" }],
-      advice: "",
-      followUp: "",
-    })
+  //   setNewPrescription({
+  //     diagnosis: "",
+  //     chiefComplaints: "",
+  //     pastHistory: "",
+  //     medicines: [{ name: "", dosage: "", duration: "", instructions: "" }],
+  //     advice: "",
+  //     followUp: "",
+  //   })
 
-    setSelectedPatient(null)
-    setSearchQuery("")
+  //   setSelectedPatient(null)
+  //   setSearchQuery("")
 
-    toast({
-      title: "Prescription Created",
-      description: `Prescription for ${selectedPatient.name} has been created successfully`,
-    })
-  }
+  //   toast({
+  //     title: "Prescription Created",
+  //     description: `Prescription for ${selectedPatient.name} has been created successfully`,
+  //   })
+  // }
 
   // Filter prescriptions based on search query, date, and issue
   function filteredPrescriptions(prescriptions, searchQuery) {
