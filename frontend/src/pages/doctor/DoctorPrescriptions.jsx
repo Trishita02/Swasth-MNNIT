@@ -25,6 +25,7 @@ import { Badge } from "../../components/Badge.jsx"
 import API from "../../utils/axios.jsx"
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { printPrescriptionAPI } from "../../utils/api.jsx"
 
 export default function DoctorPrescriptions() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -634,7 +635,7 @@ export default function DoctorPrescriptions() {
 
               <DialogFooter>
                 <Button onClick={() => setIsPrescriptionDialogOpen(false)}>Close</Button>
-                <Button className="bg-blue-600 hover:bg-blue-700">Print Prescription</Button>
+                <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => printPrescriptionAPI(selectedPrescription._id)}>Print Prescription</Button>
               </DialogFooter>
             </div>
           )}

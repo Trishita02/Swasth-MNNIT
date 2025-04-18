@@ -318,3 +318,24 @@ export const getAllStaffAPI = async () => {
     throw error;
   }
 };
+
+export const printPrescriptionAPI = async (id) => {
+  try {
+    const url = `http://localhost:8080/doctor/print-prescription/${id}`;
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.src = url;
+    document.body.appendChild(iframe);
+    
+    iframe.onload = () => {
+      iframe.contentWindow.print();
+      // Remove the iframe after some time
+      setTimeout(() => {
+        document.body.removeChild(iframe);
+      }, 1000);
+    };
+  } catch (error) {
+    console.error("Error printing prescription:", error);
+    throw error;
+  }
+};
