@@ -64,10 +64,28 @@ export const addPrescription = async (req, res) => {
         // console.log(newPrescription);
         // Save the prescription to the database
         await newPrescription.save();
-        //sending to student through mail
+        
+
+
+        // 1. Handle file uploads (via Multer)
+    const uploadedFiles = [];
+    if (req.files?.labReport) {
+      const labReportUrl = await uploadOnCloudinary(req.files.labReport[0].path);
+      if (labReportUrl) uploadedFiles.push({
+        filename: "lab_report.pdf",
+        path: labReportUrl.url,
+      });
+    }
+    if (req.files?.scan) {
+      const scanUrl = await uploadOnCloudinary(req.files.scan[0].path);
+      if (scanUrl) uploadedFiles.push({
+        filename: "scan.pdf",
+        path: scanUrl.url,
+      });
+    }
         await newPrescription.populate('doctor_id');
         await newPrescription.populate('patient');
-        await generateAndSendPrescription(newPrescription, patient.email);
+        await generateAndSendPrescription(newPrescription,uploadedFiles);
         return res.status(201).json(newPrescription);
     } catch (error) {
         res.status(500).json({ message: "Server error", error: error.message });
