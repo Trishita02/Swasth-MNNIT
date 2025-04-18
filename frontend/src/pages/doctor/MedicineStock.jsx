@@ -1,5 +1,5 @@
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "../../components/Button.jsx"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/Card.jsx"
 import { Input } from "../../components/Input.jsx"
@@ -8,53 +8,22 @@ import { AlertTriangle, Bell, Calendar, Search } from "lucide-react"
 
 export default function MedicineStock() {
   const [searchQuery, setSearchQuery] = useState("")
-  const [medicines, setMedicines] = useState([
-    {
-      id: 1,
-      name: "Paracetamol 500mg",
-      category: "Analgesic",
-      stock: 10,
-      unit: "strips",
-      threshold: 20,
-      expiry: "2026-03-30",
-    },
-    {
-      id: 2,
-      name: "Azithromycin 250mg",
-      category: "Antibiotic",
-      stock: 5,
-      unit: "strips",
-      threshold: 15,
-      expiry: "2026-06-15",
-    },
-    {
-      id: 3,
-      name: "Cetirizine 10mg",
-      category: "Antihistamine",
-      stock: 8,
-      unit: "strips",
-      threshold: 20,
-      expiry: "2026-05-22",
-    },
-    {
-      id: 4,
-      name: "Ibuprofen 400mg",
-      category: "NSAID",
-      stock: 12,
-      unit: "strips",
-      threshold: 25,
-      expiry: "2026-04-18",
-    },
-    {
-      id: 5,
-      name: "Omeprazole 20mg",
-      category: "PPI",
-      stock: 30,
-      unit: "strips",
-      threshold: 15,
-      expiry: "2025-04-30",
-    },
-  ])
+  const [medicines, setMedicines] = useState([])
+  
+  useEffect(() => {
+    // Fetch medicines from the server (mocked here for demonstration)
+    const fetchMedicines = async () => {
+      try {
+        const response = await fetch("/doctor/getAllMedicines") // Replace with your API endpoint
+        const data = await response.json()
+        setMedicines(data)
+      } catch (error) {
+        console.error("Error fetching medicines:", error)
+      }
+    } 
+    fetchMedicines()
+  }, []);
+
 
   const filteredMedicines = medicines.filter(
     (medicine) =>

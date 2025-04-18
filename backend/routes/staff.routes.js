@@ -6,6 +6,7 @@ import {
     searchPatients,
     getAllPatients,
     getPatientById,
+    addMedicine
   } from "../controllers/staff.controller.js";
 import { changePassword } from "../controllers/auth.controller.js";
 import { isAuthenticated } from "../middlewares/auth.middleware.js";
@@ -16,6 +17,7 @@ router.put("/change-password", isAuthenticated, changePassword);
 router.post("/addPatient", addPatient);
 router.post("/manageMedicineInventory", isAuthenticated, manageMedicineInventory);
 router.post("/createPresciption", isAuthenticated, createPrescription);
+router.post("/addMedicine", addMedicine)
 
 router.get("/searchPatients", isAuthenticated, searchPatients);
 router.get("/getAllPatients", isAuthenticated, getAllPatients);

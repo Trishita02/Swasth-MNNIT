@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route,Navigate,Outlet } from "react-router-dom";
 import Home from "./pages/Home.jsx";
+import Login from "./pages/Login.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import AdminLayout from "./pages/admin/AdminLayout.jsx";
 import StaffLayout from "./pages/staff/StaffLayout.jsx";
@@ -35,8 +36,8 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="/login" />} />
-        <Route path="/login" element={<Home />} />
+        <Route path="/" element={<Home/>} />
+        <Route path="/login" element={<Login />} />
         
         <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
           <Route path="/admin" element={<AdminLayout />}>

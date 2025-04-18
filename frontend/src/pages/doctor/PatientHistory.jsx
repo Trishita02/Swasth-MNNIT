@@ -31,61 +31,25 @@ export default function PatientHistory() {
       });
   }, [patientId]);
 
-  // Mock patient data - in a real app, this would be fetched from an API
- 
+  const [prescriptionHistory, setPrescriptionHistory] = useState([]);
 
-  // Mock visit history
-  const visitHistory = [
-    {
-      id: 1,
-      date: "2025-03-30",
-      doctor: "Dr. Kumar",
-      diagnosis: "Viral Fever",
-      symptoms: "Fever, Headache, Body ache",
-      treatment: "Paracetamol 500mg, Rest",
-    },
-    {
-      id: 2,
-      date: "2025-02-15",
-      doctor: "Dr. Sharma",
-      diagnosis: "Common Cold",
-      symptoms: "Runny nose, Sore throat",
-      treatment: "Cetirizine 10mg, Steam inhalation",
-    },
-    {
-      id: 3,
-      date: "2024-11-10",
-      doctor: "Dr. Kumar",
-      diagnosis: "Gastroenteritis",
-      symptoms: "Abdominal pain, Nausea",
-      treatment: "ORS, Omeprazole 20mg",
-    },
-  ]
+  useEffect(() => {
+    API.get(`/doctor/getPrescriptionById/${patientId}`)
+      .then((res) => {
+        if (res.data) {
+          console.log(res.data);
+          setPrescriptionHistory(res.data);
+        } else {
+          console.error("Failed to fetch prescription history:", res.data.message);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching prescription history:", error);
+      });
+  }
+  , [patientId]);
 
-  // Mock prescription history
-  const prescriptionHistory = [
-    {
-      id: 1,
-      date: "2025-03-30",
-      doctor: "Dr. Kumar",
-      medicines: "Paracetamol 500mg - 1 tablet thrice daily\nDomperidone 10mg - 1 tablet before meals",
-      instructions: "Take after food. Drink plenty of fluids.",
-    },
-    {
-      id: 2,
-      date: "2025-02-15",
-      doctor: "Dr. Sharma",
-      medicines: "Cetirizine 10mg - 1 tablet at night\nChloropheniramine 4mg - 1 tablet twice daily",
-      instructions: "Avoid cold beverages. Steam inhalation twice daily.",
-    },
-    {
-      id: 3,
-      date: "2024-11-10",
-      doctor: "Dr. Kumar",
-      medicines: "ORS - 1 packet after each loose stool\nOmeprazole 20mg - 1 capsule before breakfast",
-      instructions: "Light diet. Avoid spicy food.",
-    },
-  ]
+
 
   return (
     <>
@@ -132,10 +96,6 @@ export default function PatientHistory() {
                   <span className="text-sm font-medium">Blood Group:</span>
                   <span className="text-sm">{patient.blood_group}</span>
                 </div>
-                {/* <div className="flex justify-between">
-                  <span className="text-sm font-medium">Contact:</span>
-                  <span className="text-sm">{patient.contact}</span>
-                </div> */}
                 <div className="flex justify-between">
                   <span className="text-sm font-medium">Email:</span>
                   <span className="text-sm">{patient.email}</span>
@@ -149,74 +109,77 @@ export default function PatientHistory() {
           </CardContent>
         </Card>
 
-        <div className="space-y-6">
-          <Tabs defaultValue="visits">
-            <TabsList>
-              <TabsTrigger value="visits">Visit History</TabsTrigger>
-              <TabsTrigger value="prescriptions">Prescription History</TabsTrigger>
-            </TabsList>
-            <TabsContent value="visits">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Visit History</CardTitle>
-                  <CardDescription>Past consultations and diagnoses</CardDescription>
+              <div className="space-y-6">
+                <Tabs defaultValue="prescriptions">
+                  <TabsList>
+                    {/* <TabsTrigger value="visits">Visit History</TabsTrigger> */}
+                    <TabsTrigger value="prescriptions">Prescription History</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="prescriptions">
+                  <Card className="rounded-2xl shadow-md border border-gray-200">
+                <CardHeader className="bg-blue-50 rounded-t-2xl p-6">
+                  <CardTitle className="text-xl text-blue-700 font-bold">Prescription History</CardTitle>
+                  <CardDescription className="text-sm text-gray-600">
+                    Past medications and instructions
+                  </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Doctor</TableHead>
-                        <TableHead>Diagnosis</TableHead>
-                        <TableHead>Symptoms</TableHead>
-                        <TableHead>Treatment</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {visitHistory.map((visit) => (
-                        <TableRow key={visit.id}>
-                          <TableCell>{visit.date}</TableCell>
-                          <TableCell>{visit.doctor}</TableCell>
-                          <TableCell>{visit.diagnosis}</TableCell>
-                          <TableCell>{visit.symptoms}</TableCell>
-                          <TableCell>{visit.treatment}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="prescriptions">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Prescription History</CardTitle>
-                  <CardDescription>Past medications and instructions</CardDescription>
-                </CardHeader>
-                <CardContent>
+                <CardContent className="p-6">
                   <div className="space-y-6">
                     {prescriptionHistory.map((prescription) => (
-                      <Card key={prescription.id} className="border-l-4 border-l-blue-500">
-                        <CardHeader className="pb-2">
+                      <Card
+                        key={prescription._id}
+                        className="border border-blue-100 rounded-xl shadow-sm bg-white hover:shadow-md transition-all duration-300"
+                      >
+                        <CardHeader className="pb-2 border-b px-4 pt-4">
                           <div className="flex items-center justify-between">
-                            <CardTitle className="text-base">
-                              <Calendar className="mr-2 inline-block h-4 w-4" />
-                              {prescription.date}
+                            <CardTitle className="text-base flex items-center gap-2 text-blue-600 font-semibold">
+                              <Calendar className="h-4 w-4" />
+                              {new Date(prescription.date_of_visit).toLocaleDateString()}
                             </CardTitle>
-                            <span className="text-sm text-muted-foreground">{prescription.doctor}</span>
+                            <span className="text-sm text-muted-foreground font-medium">
+                              Dr. {prescription.doctor_name}
+                            </span>
                           </div>
                         </CardHeader>
-                        <CardContent>
-                          <div className="space-y-2">
-                            <div>
-                              <h4 className="text-sm font-medium">Medicines:</h4>
-                              <p className="whitespace-pre-line text-sm">{prescription.medicines}</p>
-                            </div>
-                            <div>
-                              <h4 className="text-sm font-medium">Instructions:</h4>
-                              <p className="text-sm">{prescription.instructions}</p>
-                            </div>
+
+                        <CardContent className="p-4 space-y-4 text-sm text-gray-700">
+                          <div>
+                            <h4 className="font-medium text-gray-600">Diagnosis:</h4>
+                            <p className="">{prescription.diagnosis}</p>
                           </div>
+
+                          <div>
+                            <h4 className="font-medium text-gray-600">Medicines:</h4>
+                            <ul className="list-disc list-inside space-y-1 pl-2">
+                              {prescription.medicines.map((med, index) => (
+                                <li key={index}>
+                                  <span className="font-semibold text-gray-800">{med.name}</span> — {med.dosage}, {med.duration}
+                                  <span className="italic text-gray-600"> ({med.instructions})</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          {prescription.investigation && (
+                            <div>
+                              <h4 className="font-medium text-gray-600">Investigation:</h4>
+                              <p>{prescription.investigation}</p>
+                            </div>
+                          )}
+
+                          {prescription.advice && (
+                            <div>
+                              <h4 className="font-medium text-gray-600">Doctor's Advice:</h4>
+                              <p>{prescription.advice}</p>
+                            </div>
+                          )}
+
+                          {prescription.remark && (
+                            <div>
+                              <h4 className="font-medium text-gray-600">Remarks:</h4>
+                              <p>{prescription.remark}</p>
+                            </div>
+                          )}
                         </CardContent>
                       </Card>
                     ))}

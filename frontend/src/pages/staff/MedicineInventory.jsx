@@ -1,5 +1,5 @@
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "../../components/Button.jsx"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/Card.jsx"
 import {
@@ -18,8 +18,45 @@ import {Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "..
 import { AlertTriangle, Calendar, Plus, Search } from "lucide-react"
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import API from "../../utils/axios.jsx"
 
 export default function MedicinesInventory() {
+
+  const [editingMedicine, setEditingMedicine] = useState({medicineName: "",
+    batchNumber: "",
+    type: "",
+    expiryDate: "",
+    quantity: 0,
+    invoiceDate: "",
+    invoiceNumber: "",
+    supplier: "",});
+
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("")
+    const [medicines, setMedicines] = useState([]);
+    
+    const [newMedicine, setNewMedicine] = useState({
+      medicineName: "",
+      batchNumber: "",
+      type: "",
+      expiryDate: "",
+      quantity: 0,
+      invoiceDate: "",
+      invoiceNumber: "",
+      supplier: "",
+    });
+
+    useEffect(()=>{
+      const fetchMedicines = async () => {
+        try {
+          const response = await API.get("/doctor/getAllMedicines")
+          setMedicines(response.data)
+        } catch (error) {
+          console.error("Error fetching medicines:", error)
+        }
+      }
+      fetchMedicines()
+    }, [])
 
   const medicineTypes = [
     "Tablet",
@@ -45,229 +82,6 @@ export default function MedicinesInventory() {
     "Eye Ointment"
   ];
   
-  const [editingMedicine, setEditingMedicine] = useState({medicineName: "",
-    batchNumber: "",
-    type: "",
-    expiryDate: "",
-    quantity: 0,
-    invoiceDate: "",
-    invoiceNumber: "",
-    supplier: "",});
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("")
-    const [medicines, setMedicines] = useState([
-      {
-        id: 1,
-        medicineName: "Metformin 500mg",
-        batchNumber: "MET500F6",
-        type: "Tablet",
-        expiryDate: "2027-01-01", // Healthy expiry
-        quantity: 8, // Low stock
-        invoiceDate: "2025-03-05",
-        invoiceNumber: "INV1006",
-        supplier: "Alpha Pharma"
-      },
-      {
-        id: 2,
-        medicineName: "Amoxicillin 250mg",
-        batchNumber: "AMOX250G7",
-        type: "Capsule",
-        expiryDate: "2025-04-20", // Expiring soon (within 30 days)
-        quantity: 200,
-        invoiceDate: "2025-03-28",
-        invoiceNumber: "INV1007",
-        supplier: "MedSure Distributors"
-      },
-      {
-        id: 3,
-        medicineName: "Doxycycline 100mg",
-        batchNumber: "DOXY100H8",
-        type: "Tablet",
-        expiryDate: "2025-03-27", // Already expired
-        quantity: 50,
-        invoiceDate: "2024-12-12",
-        invoiceNumber: "INV1008",
-        supplier: "CureMed Pharma"
-      },
-      {
-        id: 25,
-        medicineName: "Ranitidine 150mg",
-        batchNumber: "RAN150I9",
-        type: "Tablet",
-        expiryDate: "2025-04-06", // Expiring today
-        quantity: 90,
-        invoiceDate: "2025-04-01",
-        invoiceNumber: "INV1009",
-        supplier: "HealthBridge Ltd."
-      },
-      {
-        id: 4,
-        medicineName: "Metformin 500mg",
-        batchNumber: "MET500F6",
-        type: "Tablet",
-        expiryDate: "2027-01-01", // Healthy expiry
-        quantity: 6, // Low stock
-        invoiceDate: "2025-03-05",
-        invoiceNumber: "INV1006",
-        supplier: "Alpha Pharma"
-      },
-      {
-        id: 5,
-        medicineName: "Amoxicillin 250mg",
-        batchNumber: "AMOX250G7",
-        type: "Capsule",
-        expiryDate: "2025-04-20", // Expiring soon (within 30 days)
-        quantity: 200,
-        invoiceDate: "2025-03-28",
-        invoiceNumber: "INV1007",
-        supplier: "MedSure Distributors"
-      },
-      {
-        id: 6,
-        medicineName: "Doxycycline 100mg",
-        batchNumber: "DOXY100H8",
-        type: "Tablet",
-        expiryDate: "2025-03-27", // Already expired
-        quantity: 50,
-        invoiceDate: "2024-12-12",
-        invoiceNumber: "INV1008",
-        supplier: "CureMed Pharma"
-      },
-      {
-        id: 7,
-        medicineName: "Ranitidine 150mg",
-        batchNumber: "RAN150I9",
-        type: "Tablet",
-        expiryDate: "2025-04-06", // Expiring today
-        quantity: 90,
-        invoiceDate: "2025-04-01",
-        invoiceNumber: "INV1009",
-        supplier: "HealthBridge Ltd."
-      },
-      {
-        id: 8,
-        medicineName: "Loperamide 2mg",
-        batchNumber: "LOP2K11",
-        type: "Tablet",
-        expiryDate: "2025-04-25", // Expiring soon
-        quantity: 5, // Low stock
-        invoiceDate: "2025-03-25",
-        invoiceNumber: "INV1011",
-        supplier: "VitalCare Pharma"
-      },
-      {
-        id: 9,
-        medicineName: "Levocetirizine 5mg",
-        batchNumber: "LEVO5L12",
-        type: "Tablet",
-        expiryDate: "2027-08-15", // Healthy expiry
-        quantity: 300,
-        invoiceDate: "2025-03-29",
-        invoiceNumber: "INV1012",
-        supplier: "PureMed Corp."
-      },
-      {
-        id: 10,
-        medicineName: "Doxycycline 100mg",
-        batchNumber: "DOXY100H8",
-        type: "Tablet",
-        expiryDate: "2025-03-27", // Already expired
-        quantity: 7,
-        invoiceDate: "2024-12-12",
-        invoiceNumber: "INV1008",
-        supplier: "CureMed Pharma"
-      },
-      {
-        id: 11,
-        medicineName: "Ranitidine 150mg",
-        batchNumber: "RAN150I9",
-        type: "Tablet",
-        expiryDate: "2025-04-06", // Expiring today
-        quantity: 90,
-        invoiceDate: "2025-04-01",
-        invoiceNumber: "INV1009",
-        supplier: "HealthBridge Ltd."
-      },
-      {
-        id: 12,
-        medicineName: "Metformin 500mg",
-        batchNumber: "MET500F6",
-        type: "Tablet",
-        expiryDate: "2027-01-01", // Healthy expiry
-        quantity: 9, // Low stock
-        invoiceDate: "2025-03-05",
-        invoiceNumber: "INV1006",
-        supplier: "Alpha Pharma"
-      },
-      {
-        id: 13,
-        medicineName: "Amoxicillin 250mg",
-        batchNumber: "AMOX250G7",
-        type: "Capsule",
-        expiryDate: "2025-04-20", // Expiring soon (within 30 days)
-        quantity: 200,
-        invoiceDate: "2025-03-28",
-        invoiceNumber: "INV1007",
-        supplier: "MedSure Distributors"
-      },
-      {
-        id: 14,
-        medicineName: "Doxycycline 100mg",
-        batchNumber: "DOXY100H8",
-        type: "Tablet",
-        expiryDate: "2025-03-27", // Already expired
-        quantity: 4,
-        invoiceDate: "2024-12-12",
-        invoiceNumber: "INV1008",
-        supplier: "CureMed Pharma"
-      },
-      {
-        id: 15,
-        medicineName: "Ranitidine 150mg",
-        batchNumber: "RAN150I9",
-        type: "Tablet",
-        expiryDate: "2025-04-06", // Expiring today
-        quantity: 90,
-        invoiceDate: "2025-04-01",
-        invoiceNumber: "INV1009",
-        supplier: "HealthBridge Ltd."
-      },
-      {
-        id: 16,
-        medicineName: "Loperamide 2mg",
-        batchNumber: "LOP2K11",
-        type: "Tablet",
-        expiryDate: "2025-04-25", // Expiring soon
-        quantity: 5, // Low stock
-        invoiceDate: "2025-03-25",
-        invoiceNumber: "INV1011",
-        supplier: "VitalCare Pharma"
-      },
-      {
-        id: 17,
-        medicineName: "Levocetirizine 5mg",
-        batchNumber: "LEVO5L12",
-        type: "Tablet",
-        expiryDate: "2027-08-15", // Healthy expiry
-        quantity: 3,
-        invoiceDate: "2025-03-29",
-        invoiceNumber: "INV1012",
-        supplier: "PureMed Corp."
-      }
-      
-    ]);
-    
-  const [newMedicine, setNewMedicine] = useState({
-    medicineName: "",
-    batchNumber: "",
-    type: "",
-    expiryDate: "",
-    quantity: 0,
-    invoiceDate: "",
-    invoiceNumber: "",
-    supplier: "",
-  })
-
   const handleAddMedicine = () => {
     const {
       medicineName,
@@ -318,6 +132,22 @@ export default function MedicinesInventory() {
         supplier,
       },
     ]);
+    try{
+      console.log(newMedicine);
+      const res = API.post("/staff/addMedicine", {
+        ...newMedicine
+      });
+      if(res.status === 200){
+        toast.success("Added new medicine", {
+          autoClose: 2000,
+        });
+      }
+    } catch (error) {
+      console.error("Error adding medicine:", error);
+      toast.error("Error adding medicine", {
+        autoClose: 2000
+      }); 
+    }
 
     toast.success("Added new medicine",{
       autoClose:1000
@@ -399,8 +229,8 @@ export default function MedicinesInventory() {
 
   const filteredMedicines = medicines.filter(
     (medicine) =>
-      medicine.medicineName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      medicine.type.toLowerCase().includes(searchQuery.toLowerCase()),
+      medicine.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      medicine.category.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
   // Calculate days until expiry
@@ -413,13 +243,13 @@ export default function MedicinesInventory() {
   }
 
   // Get low stock medicines
-  const lowStockMedicines = medicines.filter((m) => m.quantity < 10)
+  const lowStockMedicines = medicines.filter((m) => m.stock < 10)
 
   // Get expiring medicines (within 30 days)
-  const expiringMedicines = medicines.filter((m) => calculateDaysUntilExpiry(m.expiryDate) <= 30)
+  const expiringMedicines = medicines.filter((m) => calculateDaysUntilExpiry(m.expiry) <= 30)
 
   // Get expired medicines
-  const expiredMedicines = medicines.filter((m) => calculateDaysUntilExpiry(m.expiryDate) <= 0)
+  const expiredMedicines = medicines.filter((m) => calculateDaysUntilExpiry(m.expiry) <= 0)
 
   return (
     <>
@@ -483,7 +313,7 @@ export default function MedicinesInventory() {
                 <div className="grid gap-2">
                   <Label htmlFor="batchNumber">Batch No.:</Label>
                   <Input
-                    id="batchNumbner"
+                    id="batchNumber"
                     value={newMedicine.batchNumber}
                     onChange={(e) => setNewMedicine({ ...newMedicine, batchNumber: e.target.value })}
                     placeholder=""
@@ -637,8 +467,8 @@ export default function MedicinesInventory() {
   {/* Body */}
   <div className="max-h-[300px] overflow-y-auto">
     {filteredMedicines.map((medicine) => {
-      const daysUntilExpiry = calculateDaysUntilExpiry(medicine.expiryDate);
-      const isLowStock = medicine.quantity < 10;
+      const daysUntilExpiry = calculateDaysUntilExpiry(medicine.expiry);
+      const isLowStock = medicine.stock < 10;
       const isExpiringSoon = daysUntilExpiry <= 30 && daysUntilExpiry > 0;
       const isExpired = daysUntilExpiry <= 0;
 
@@ -648,11 +478,11 @@ export default function MedicinesInventory() {
           className="grid grid-cols-8 gap-2 px-4 py-2 items-center text-gray-800 border-b hover:bg-gray-50"
         >
           {/* <div className="col-span-1 truncate">{medicine.saltName}</div> */}
-          <div className="col-span-1 font-medium truncate">{medicine.medicineName}</div>
-          <div className="col-span-1 truncate">{medicine.batchNumber}</div>
-          <div className="col-span-1">{medicine.type}</div>
-          <div className="col-span-1">{medicine.quantity}</div>
-          <div className="col-span-1">{medicine.expiryDate}</div>
+          <div className="col-span-1 font-medium truncate">{medicine.name}</div>
+          <div className="col-span-1 truncate">{medicine.batches[0].batch_no}</div>
+          <div className="col-span-1">{medicine.category}</div>
+          <div className="col-span-1">{medicine.stock}</div>
+          <div className="col-span-1">{medicine.expiry?.slice(0, 10)}</div>
 
           {/* Status */}
           <div className="col-span-1 space-y-1">
@@ -729,14 +559,14 @@ export default function MedicinesInventory() {
           key={medicine.id}
           className="grid grid-cols-5 gap-2 px-4 py-2 items-center border-b hover:bg-gray-50"
         >
-          <div className="font-medium truncate">{medicine.medicineName}</div>
+          <div className="font-medium truncate">{medicine.name}</div>
           <div className="text-amber-600 font-medium">
-            {medicine.quantity} {medicine.type}
+            {medicine.stock} {medicine.category}
           </div>
           <div>
-            {medicine.threshold} {medicine.type}
+            {medicine.category}
           </div>
-          <div>{medicine.expiryDate}</div>
+          <div>{medicine.expiry?.slice(0, 10)}</div>
           <div className="text-right">
             <button className="px-2 py-1 text-xs rounded border hover:bg-gray-100"
              onClick={() => {
@@ -783,21 +613,21 @@ export default function MedicinesInventory() {
 
   {/* Body */}
   <div className="max-h-[300px] overflow-y-auto">
-    {expiringMedicines.filter((m) => calculateDaysUntilExpiry(m.expiryDate) > 0).length > 0 ? (
+    {expiringMedicines.filter((m) => calculateDaysUntilExpiry(m.expiry) > 0).length > 0 ? (
       expiringMedicines
-        .filter((m) => calculateDaysUntilExpiry(m.expiryDate) > 0)
+        .filter((m) => calculateDaysUntilExpiry(m.expiry) > 0)
         .map((medicine) => (
           <div
             key={medicine.id}
             className="grid grid-cols-5 gap-2 px-4 py-2 items-center border-b hover:bg-gray-50"
           >
-            <div className="font-medium truncate">{medicine.medicineName}</div>
+            <div className="font-medium truncate">{medicine.name}</div>
             <div>
-              {medicine.quantity} {medicine.type}
+              {medicine.stock} {medicine.category}
             </div>
-            <div>{medicine.expiryDate}</div>
+            <div>{medicine.expiry?.slice(0, 10)}</div>
             <div className="text-amber-600 font-medium">
-              {calculateDaysUntilExpiry(medicine.expiryDate)} days
+              {calculateDaysUntilExpiry(medicine.expiry)} days
             </div>
             <div className="text-right">
               <button className="px-2 py-1 text-xs rounded border hover:bg-gray-100">
@@ -843,11 +673,11 @@ export default function MedicinesInventory() {
           key={medicine.id}
           className="grid grid-cols-4 gap-2 px-4 py-2 items-center border-b hover:bg-gray-50"
         >
-          <div className="font-medium truncate">{medicine.medicineName}</div>
+          <div className="font-medium truncate">{medicine.name}</div>
           <div>
-            {medicine.quantity} {medicine.type}
+            {medicine.stock} {medicine.category}
           </div>
-          <div className="text-red-600 font-medium">{medicine.expiryDate}</div>
+          <div className="text-red-600 font-medium">{medicine.expiry?.slice(0, 10)}</div>
           <div className="text-right">
             <button className="px-2 py-1 text-xs rounded border hover:bg-gray-100">
               Dispose

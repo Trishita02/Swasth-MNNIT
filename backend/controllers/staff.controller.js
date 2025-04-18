@@ -130,3 +130,72 @@ export const getPatientById = (req, res) => {
       res.status(500).json({ message: "Server error" });
     });
 };
+
+export const addMedicine = async (req, res) => {
+  try {
+    const {
+      medicineName,
+      batchNumber,
+      type,
+      expiryDate,
+      quantity,
+      invoiceDate,
+      invoiceNumber,
+      supplier,
+    } = req.body;
+    
+    console.log("medicineName type:", typeof medicineName);
+    console.log("batchNumber type:", typeof batchNumber);
+    console.log("type type:", typeof type);
+    console.log("expiryDate type:", typeof expiryDate);
+    console.log("quantity type:", typeof quantity);
+    console.log("invoiceDate type:", typeof invoiceDate);
+    console.log("invoiceNumber type:", typeof invoiceNumber);
+    console.log("supplier type:", typeof supplier);
+    
+    // Validate input data
+    // if (!medicineName || !batchNumber || !type || !expiryDate || !quantity || !invoiceDate || !invoiceNumber || !supplier) {
+    //   return res.status(400).json({ message: "All fields are required" });
+    // }
+    // Ensure dates are valid
+    const parsedExpiryDate = new Date(expiryDate);
+    const parsedInvoiceDate = new Date(invoiceDate);
+    // console.log("pass1")
+
+    // if (isNaN(parsedExpiryDate) || isNaN(parsedInvoiceDate)) {
+    //   return res.status(400).json({ message: "Invalid date format" });
+    // }
+    // console.log("pass2")
+    const newBatch = {
+      batch_no: batchNumber,
+      expiry: parsedExpiryDate,  
+      b_quantity: quantity,
+      invoice_date: parsedInvoiceDate,  
+      invoice_no: invoiceNumber,
+    };
+
+    // Create a new medicine object with the batches
+    const newMedicine = new Medicine({
+      name: medicineName,
+      category: type,  
+      stock: quantity,
+      unit: "strips",  
+      expiry: parsedExpiryDate,  
+      batches: [newBatch],  
+      supplier: supplier,  
+    });
+
+    // Save the new medicine object to the database
+    await newMedicine.save();
+    console.log("pass3")
+    // Respond with success message and the new medicine data
+    res.status(200).json({
+      message: "Medicine added successfully",
+      medicine: newMedicine,
+    });
+  } catch (error) {
+    console.error("Error adding medicine:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
