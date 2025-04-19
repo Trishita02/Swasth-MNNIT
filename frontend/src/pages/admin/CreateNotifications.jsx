@@ -264,51 +264,43 @@ function Notifications() {
             </DialogContent>
           </Dialog>
         </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Message</TableHead>
-                <TableHead>Recipients</TableHead>
-                <TableHead>Created At</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredNotifications.map((notification) => (
-                <TableRow key={notification._id || notification.id}>
-                  <TableCell className="font-medium">{notification.title}</TableCell>
-                  <TableCell className="max-w-xs truncate">{notification.message}</TableCell>
-                  <TableCell className="capitalize">
-                    {Array.isArray(notification.recipients) 
-                      ? notification.recipients.join(", ")
-                      : notification.recipients}
-                  </TableCell>
-                  <TableCell>
-                    {notification.date} {notification.time}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={() => handleDeleteClick(notification)}
-                    >
-                      <Trash className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {filteredNotifications.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center">
-                    No notifications found matching the current filters.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+        <CardContent className="grid gap-4">
+  {filteredNotifications.length > 0 ? (
+    filteredNotifications.map((notification) => (
+      <Card key={notification._id || notification.id} className="border shadow-sm">
+        <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+          <div>
+            <h3 className="text-lg font-semibold">{notification.title}</h3>
+            <p className="text-sm text-muted-foreground">
+              {notification.date} at {notification.time}
+            </p>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => handleDeleteClick(notification)}
+          >
+            <Trash className="h-4 w-4 text-red-500" />
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <p className="text-sm">{notification.message}</p>
+          <div className="text-sm text-muted-foreground">
+            <span className="font-medium">Recipients:</span>{" "}
+            {Array.isArray(notification.recipients) 
+              ? notification.recipients.join(", ")
+              : notification.recipients}
+          </div>
         </CardContent>
+      </Card>
+    ))
+  ) : (
+    <div className="h-24 flex items-center justify-center text-muted-foreground text-sm">
+      No notifications found matching the current filters.
+    </div>
+  )}
+</CardContent>
+
       </Card>
 
       {/* Delete Confirmation Dialog */}

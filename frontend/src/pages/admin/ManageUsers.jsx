@@ -299,6 +299,7 @@ function ManageUsers() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
+                    <TableHead>Username</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Role</TableHead>
                     <TableHead>Phone</TableHead>
@@ -309,6 +310,7 @@ function ManageUsers() {
                   {filteredUsers.map((user) => (
                     <TableRow key={user._id}>
                       <TableCell className="font-medium">{user.name}</TableCell>
+                      <TableCell className="font-medium">{user.username}</TableCell>
                       <TableCell>{user.email || '-'}</TableCell>
                       <TableCell className="capitalize">{user.role}</TableCell>
                       <TableCell>{user.phone}</TableCell>

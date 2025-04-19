@@ -14,6 +14,16 @@ const notificationSchema = new mongoose.Schema({
     enum: ["all", "admin", "doctor", "staff"],
     required: true,
   },
+  readStatus: {
+    doctor: {
+      type: Boolean,
+      default: false
+    },
+    staff: {
+      type: Boolean,
+      default: false
+    }
+  },
 },{ timestamps: true });
 
 const Notification =  mongoose.model("Notification", notificationSchema);

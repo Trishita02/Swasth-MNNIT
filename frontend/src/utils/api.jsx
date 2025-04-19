@@ -339,3 +339,58 @@ export const printPrescriptionAPI = async (id) => {
     throw error;
   }
 };
+
+export const getDoctorNotificationsAPI = async () => {
+  try {
+    const res = await API.get("/doctor/notifications");
+    return res.data.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const markDoctorNotificationAsReadAPI = async (notificationId) => {
+  try {
+    const res = await API.patch(`/doctor/notifications/${notificationId}/read`);
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const markAllDoctorNotificationsAsReadAPI = async () => {
+  try {
+    const res = await API.patch("/doctor/notifications/mark-all-read");
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Staff Notification APIs
+export const getStaffNotificationsAPI = async () => {
+  try {
+    const res = await API.get("/staff/notifications");
+    return res.data.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const markStaffNotificationAsReadAPI = async (notificationId) => {
+  try {
+    const res = await API.patch(`/staff/notifications/${notificationId}/read`);
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const markAllStaffNotificationsAsReadAPI = async () => {
+  try {
+    const res = await API.patch("/staff/notifications/mark-all-read");
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
+};
