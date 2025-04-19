@@ -127,7 +127,7 @@ function Navbar(){
           required
         />
         {!isValid && email !== "" && (
-          <p className="text-red-700 text-sm">Please enter a valid college email</p>
+          <p className="text-red-700 text-sm">Allow only for college email</p>
         )}
       </div>
 
@@ -176,9 +176,10 @@ function Navbar(){
             <button
               type="button"
               onClick={resendCode}
-              className="text-blue-600 hover:underline"
+              className={`text-blue-600 hover:underline ${isLoading ? "cursor-not-allowed" : "cursor-pointer"}`}
+              disabled={isLoading}
             >
-              Resend Code
+              {isLoading ? "Sending..." : "Resend cdoe"}
             </button>
           </p>
         </div>

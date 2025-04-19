@@ -20,7 +20,7 @@ function AdminDashboard(){
     return(
         <>
         <div className="flex min-h-screen flex-col bg-gray-50">
-        <Header sideMenu={sideMenu}/>
+        <Header sideMenu={sideMenu} showBell={false}/>
 
         <div className="grid flex-1 md:grid-cols-[240px_1fr]">
         <Sidebar sideMenu={sideMenu}/>
