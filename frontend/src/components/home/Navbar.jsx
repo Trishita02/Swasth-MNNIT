@@ -15,6 +15,9 @@ import {
     DialogTrigger,
   } from "../Dialog.jsx"
 import { Sheet, SheetContent, SheetTrigger } from "../Sheet.jsx";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { sendCode,verifyCode } from "../../utils/api.jsx";
 
 function Navbar(){
     const [email, setEmail] = useState("");
@@ -25,6 +28,7 @@ function Navbar(){
     const [isLoading, setIsLoading] = useState(false);
     const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false)
     const [isDutychartDialogOpen, setIsDutychartDialogOpen] = useState(false)
+    const [doctors,setDoctors] = useState([]);
 
     const navigate = useNavigate();
 
@@ -45,12 +49,21 @@ function Navbar(){
       }
 
       const sendEmail = async () => {
-        setIsLoading(true);
-        // await send email API
-        setTimeout(() => {
+        try {
+        //  const toastId = toast.loading("Sending code..");
+          setIsLoading(true);
+          const result = await sendCode(email);
           setCodeSent(true);
           setIsLoading(false);
-        }, 1500);
+          console.log("Response:", result);
+          // toast.dismiss(toastId);
+          toast.success("code sended");
+          toast.warn("if not, check email and click on resend code")
+        } catch (error) {
+          toast.error(`${error}`)
+          setIsLoading(false);
+          console.error("Error sending code:", error);
+        }
       };
 
       const handleCodeChange = (e, index) => {
@@ -64,23 +77,46 @@ function Navbar(){
       };
       
       const verifyEmailCode = async () => {
-        setIsVerifying(true);
-        // await verify code logic
-        setTimeout(() => {
+        try {
+          // const toastId = toast.loading("verifying code..")
+          setIsVerifying(true);
+          const res = await verifyCode(email, emailCode);
+          setDoctors(res.list.doctors || []);
           setIsVerifying(false);
           setEmail("");
           setEmailCode("");
           setIsValid(false);
           setCodeSent(false);
-          setIsLoading(false);
+          // setIsLoading(false);
           setIsVerifying(false);
           setIsEmailDialogOpen(false);
           setIsDutychartDialogOpen(true);
-        }, 1500);
+          toast.success("code varified")
+          // toast.dismiss(toastId);
+        } catch (error) {
+          toast.error(`${error}`);
+          setIsVerifying(false);
+          setEmailCode("");
+          console.error("Verification failed:", error.message);
+        }
       };
 
     return(
         <>
+         <ToastContainer 
+        position="top-right"
+        autoClose={3000}
+        
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-white px-4 md:px-6">
         <div className="flex items-center gap-4">
 

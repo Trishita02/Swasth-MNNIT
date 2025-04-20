@@ -99,7 +99,7 @@ function Header({sideMenu,showBell}){
         <div className="relative inline-block">
           <Bell className="w-8 h-7 text-gray-700 hover:text-gray-400" />
          {count > 0 && (
-          <span className="absolute -top-2 -right-1 bg-red-700 text-white text-xs font-semibold w-5 h-5 flex items-center justify-center rounded-full shadow-md">
+          <span className="absolute -top-2 -right-1 bg-red-700 text-white text-xs font-semibold px-1.5 flex items-center justify-center rounded-full shadow-md">
             {count}
           </span>
           )}

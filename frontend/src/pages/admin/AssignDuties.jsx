@@ -61,9 +61,9 @@ export default function AssignDuties() {
   });
   const [emailSent, setEmailSent] = useState(false);
   const [users, setUsers] = useState([]);
-  const [emailTime, setEmailTime] = useState(() => {
-    return localStorage.getItem('emailTime') || getCurrentTime();
-  });
+  // const [emailTime, setEmailTime] = useState(() => {
+  //   return localStorage.getItem('emailTime') || getCurrentTime();
+  // });
   const [schedules, setSchedules] = useState([]);
   const [specializations, setSpecializations] = useState([]);
   const [editingSchedule, setEditingSchedule] = useState(null);
@@ -122,6 +122,9 @@ const [dutyToDelete, setDutyToDelete] = useState(null);
     const now = new Date();
     return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
   };
+  const [emailTime, setEmailTime] = useState(() => {
+    return localStorage.getItem('emailTime') || getCurrentTime();
+  });
 
   // Fetch all data from API
   const fetchData = async () => {

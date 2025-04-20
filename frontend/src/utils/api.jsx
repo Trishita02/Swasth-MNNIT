@@ -394,3 +394,44 @@ export const markAllStaffNotificationsAsReadAPI = async () => {
     throw error;
   }
 };
+
+
+// home page email varification api
+export const sendCode = async (email) =>{
+  const toastId = toast.loading("Sending code..");
+  try {
+    const res = await API.post("/home/sendCode",{email});
+    
+    if (res.data.success) {
+      toast.success("Verification code sent successfully.");
+    } else {
+      toast.error(res.data.message || "Something went wrong");
+    }
+
+    return res.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || "Failed to send email";
+    toast.error(errorMessage);
+    throw new Error(errorMessage);
+  } finally {
+    toast.dismiss(toastId);
+  }
+}
+
+export const verifyCode = async (email, code) => {
+  const toastId = toast.loading("Verifying code...");
+  try {
+    const res = await API.post("/home/verifyCode", { email, code });
+
+    toast.success(res.data.message || "Email verified successfully");
+    return res.data; // will include `message` and `list` of todayDoctors
+  } catch (error) {
+    const errorMessage =
+      error.response?.data?.error || "Failed to verify code";
+    toast.error(errorMessage);
+    throw new Error(errorMessage);
+  } finally {
+    toast.dismiss(toastId);
+  }
+};
+
