@@ -52,7 +52,7 @@ const todayDutyChart = async () => {
     from:`"Swasth MNNIT" <deepcode143@gmail.com>`,
     to: email,
     subject: "Your Verification Code from Swasth MNNIT",
-    html: `<p>This is your Email varification code: <b>${code}</b></p>`,
+    html: `<p>This is your Email verification code: <b>${code}</b></p>`,
     text: `Your email verification code is ${code}`, 
   };
   
