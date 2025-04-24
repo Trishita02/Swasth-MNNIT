@@ -11,6 +11,7 @@ const DoctorSchema = new mongoose.Schema({
   phone: { type: String, required: true, unique: true },
   password: { type: String }, // Encrypted password
   specialization: { type: String, required: true},
+  patients: [{ type: mongoose.Schema.Types.ObjectId, ref: "Patient" }],
   duties: [{ type: mongoose.Schema.Types.ObjectId, ref: "Duty" }],
 },{timestamps:true});
 

@@ -2,6 +2,8 @@ import Staff from "../models/staff.model.js";
 import Patient from "../models/patient.model.js";
 import Medicine from "../models/medicine.model.js";
 import Prescription from "../models/prescription.model.js";
+import {Doctor} from "../models/doctor.model.js";
+import {Duty}   from "../models/duty.model.js";
 import bcrypt from "bcryptjs";
 import Notification from "../models/notification.model.js";
 import { isAuthenticated } from '../middlewares/auth.middleware.js';
@@ -63,6 +65,13 @@ export const addPrescription = async (req, res) => {
         });
         // console.log(newPrescription);
         // Save the prescription to the database
+        Doctor.findByIdAndUpdate(userId, { $push: { patients: patient._id } }, { new: true })
+        .then((doctor) => {
+            if (!doctor) {
+                return res.status(404).json({ message: "Doctor not found" });
+            }
+            // console.log("Doctor updated successfully:", doctor);
+        })
         await newPrescription.save();
         
 
@@ -131,4 +140,58 @@ export const printPrescription = async (req, res) => {
       res.status(500).send("Something went wrong.");
     }
   };
+
+export const getRecentPatients = async (req, res) => {
+    try {
+        //console.log(req.user._id);
+        const userId = req.user._id; // Authenticated user from middleware
+        const doctor = await Doctor.findById(userId);  // Get the 5 most recent patients
+            console.log(doctor);//
+        const patients = doctor.patients; // Assuming patients is an array of patient IDs
+        const recentPatients = await Patient.find({ _id: { $in: patients } })
+            .sort({ createdAt: -1 })
+            .limit(5); // Get the 5 most recent patients
+            const dutyIds = doctor.duties; // Assuming duties is an array of duty IDs
+            // console.log(dutyIds);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Set to today's start (midnight)
+
+            const upcomingDuties = await Duty.find({
+            _id: { $in: dutyIds },
+            date: { $gte: today }
+            })
+            .sort({ date: 1 }) // Ascending order
+            .limit(5); // Limit to 5 upcoming
+
+            
+        res.json({recentPatients:recentPatients, upcomingDuties: upcomingDuties});
+    } catch (error) {
+        console.error("Error fetching recent patients:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+}
+
+export const getDutySchedule = async (req, res) => {
+    try {
+        const userId = req.user._id; // Authenticated user from middleware
+        // if(req.user.role == 'Staff')
+        let user;
+        if(!req.user.specialization)user = await Staff.findById(userId);
+        else user = await Doctor.findById(userId);
+        // const user = await db.findById(userId);
+        if (!user){
+            return res.status(404).json({ message: "Doctor not found" });
+        }
+        // console.log(user);
+        const dutyIds = user.duties;
+        // console.log(doctor.duties);
+        const duties = await Duty.find({ _id: { $in: dutyIds } });
+        // const duties = doctor.duties;
+        res.json(duties);
+    } catch (error) {
+        console.error("Error fetching duty schedule:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+}
+
   
