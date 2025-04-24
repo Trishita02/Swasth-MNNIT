@@ -4,6 +4,7 @@ import Medicine from "../models/medicine.model.js";
 import Prescription from "../models/prescription.model.js";
 import bcrypt from "bcryptjs";
 import Notification from "../models/notification.model.js";
+import {Duty} from "../models/duty.model.js";
 import jwt from "jsonwebtoken";
 
 
@@ -199,3 +200,102 @@ export const addMedicine = async (req, res) => {
   }
 };
 
+export const getDashboard = async (req, res) => {
+  try {
+      //console.log(req.user._id);
+      const userId = req.user._id; // Authenticated user from middleware
+      const staff = await Staff.findById(userId);  // Get the 5 most recent patients
+      const dutyIds = staff.duties;
+          const today = new Date();
+          today.setHours(0, 0, 0, 0); // Set to today's start (midnight)
+
+          const upcomingDuties = await Duty.find({
+          _id: { $in: dutyIds },
+          date: { $gte: today }
+          })
+          .sort({ date: 1 }) // Ascending order
+          .limit(5); // Limit to 5 upcoming
+
+          
+      res.json({ upcomingDuties: upcomingDuties});
+  } catch (error) {
+      console.error("Error fetching recent patients:", error);
+      res.status(500).json({ message: "Server error" });
+  }
+}
+
+export const updateMedicine = async (req, res) => {
+  try {
+    console.log(req.body);
+    const { id, medicineName, batchNumber, type, expiryDate, quantity, invoiceDate, invoiceNumber, supplier } = req.body;
+    
+    // Validate input data
+    if (!medicineName || !batchNumber || !type || !expiryDate || !quantity || !invoiceDate || !invoiceNumber || !supplier) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    // Ensure dates are valid
+    const parsedExpiryDate = new Date(expiryDate);
+    const parsedInvoiceDate = new Date(invoiceDate);
+
+    if (isNaN(parsedExpiryDate) || isNaN(parsedInvoiceDate)) {
+      return res.status(400).json({ message: "Invalid date format" });
+    }
+
+    // Find the medicine by ID and update it
+    const updatedMedicine = await Medicine.findOneAndUpdate(
+      {name: medicineName},
+      {
+        $set: {
+          name: medicineName,
+          category: type,
+          stock: quantity,
+          unit: "strips",
+          expiry: parsedExpiryDate,
+          batches: [{
+            batch_no: batchNumber,
+            expiry: parsedExpiryDate,
+            b_quantity: quantity,
+            invoice_date: parsedInvoiceDate,
+            invoice_no: invoiceNumber,
+          }],
+          supplier: supplier,
+        },
+      },
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedMedicine) {
+      return res.status(404).json({ message: "Medicine not found" });
+    }
+
+    // Respond with success message and the updated medicine data
+    res.status(200).json({
+      message: "Medicine updated successfully",
+      medicine: updatedMedicine,
+    });
+  } catch (error) {
+    console.error("Error updating medicine:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+}
+
+export const deleteMedicine = async (req, res) => {
+  try {
+    const { id } = req.body; // Assuming you're sending the ID in the request body
+
+    // Find and delete the medicine by ID
+    console.log(id)
+    const deletedMedicine = await Medicine.findOneAndDelete({ _id: id });
+
+    if (!deletedMedicine) {
+      return res.status(404).json({ message: "Medicine not found" });
+    }
+
+    // Respond with success message
+    res.status(200).json({ message: "Medicine deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting medicine:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+}

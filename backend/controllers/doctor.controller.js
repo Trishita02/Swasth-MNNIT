@@ -147,7 +147,7 @@ export const getRecentPatients = async (req, res) => {
         const userId = req.user._id; // Authenticated user from middleware
         const doctor = await Doctor.findById(userId);  // Get the 5 most recent patients
             console.log(doctor);//
-        const patients = doctor.patients; // Assuming patients is an array of patient IDs
+        const patients = doctor.patients; // Assuming patients is   an array of patient IDs
         const recentPatients = await Patient.find({ _id: { $in: patients } })
             .sort({ createdAt: -1 })
             .limit(5); // Get the 5 most recent patients

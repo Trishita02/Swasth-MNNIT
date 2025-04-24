@@ -169,7 +169,7 @@ export default function MedicinesInventory() {
   const handleEditMedicine = () => {
     if (!editingMedicine){ return;}
 
-    // console.log("editing medicine: ",editingMedicine)
+    console.log("editing medicine: ",editingMedicine)
     
     const {
       medicineName,
@@ -209,6 +209,23 @@ export default function MedicinesInventory() {
     setMedicines(medicines.map(medicine => 
       medicine.id === editingMedicine.id ? editingMedicine : medicine
     ));
+
+    try{
+      console.log(editingMedicine);
+      const res = API.post("/staff/updateMedicine", {
+        ...editingMedicine
+      });
+      if(res.status === 200){
+        toast.success("Updated medicine", {
+          autoClose: 2000,
+        });
+      }
+    } catch (error) {
+      console.error("Error updating medicine:", error);
+      toast.error("Error updating medicine", {
+        autoClose: 2000
+      });
+    }
     
     setEditingMedicine({medicineName: "",
       batchNumber: "",
@@ -227,11 +244,38 @@ export default function MedicinesInventory() {
   };
   
 
-  const filteredMedicines = medicines.filter(
-    (medicine) =>
-      medicine.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      medicine.category.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+  const filteredMedicines = medicines.filter((medicine) => {
+    if (!medicine || typeof medicine !== "object") return false;
+  
+    console.log("Checking:", medicine);
+  
+    const name = medicine.name || "";
+    const category = medicine.category || "";
+    return (
+      name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      category.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  });
+
+  const disposeMedicine = async (medicine) => {
+    try {
+      const res = await API.post("/staff/disposeMedicine", {
+        id: medicine._id,
+      });
+      if (res.status === 200) {
+        toast.success("Disposed medicine", {
+          autoClose: 2000,
+        });
+        setMedicines(medicines.filter((m) => m.id !== medicine.id));
+      }
+    } catch (error) {
+      console.error("Error disposing medicine:", error);
+      toast.error("Error disposing medicine", {
+        autoClose: 2000,
+      });
+    }
+  }
+  
 
   // Calculate days until expiry
   const calculateDaysUntilExpiry = (expiryDate) => {
@@ -516,8 +560,20 @@ export default function MedicinesInventory() {
           <div className="col-span-1 text-right">
             <button className="px-2 py-1 text-xs rounded border hover:bg-gray-100"
              onClick={() => {
-              setEditingMedicine(medicine);
+              // console.log(medicine);
+              setEditingMedicine({
+    id: medicine._id,
+    medicineName: medicine.name,
+    batchNumber: medicine.batches[0].batch_no,
+    type: medicine.category,
+    expiryDate: medicine.expiry,
+    quantity: medicine.stock,
+    invoiceDate: medicine.batches[0].invoice_date || "",
+    invoiceNumber: medicine.batches[0].invoice_no || "",
+    supplier: medicine.supplier || "",
+  });
               setIsEditDialogOpen(true);
+              handleEditMedicine(medicine);
             }}
             >
               Update
@@ -630,7 +686,7 @@ export default function MedicinesInventory() {
               {calculateDaysUntilExpiry(medicine.expiry)} days
             </div>
             <div className="text-right">
-              <button className="px-2 py-1 text-xs rounded border hover:bg-gray-100">
+              <button onClick={()=>{disposeMedicine(medicine)}} className="px-2 py-1 text-xs rounded border hover:bg-gray-100">
                 Mark Used
               </button>
             </div>
@@ -679,7 +735,7 @@ export default function MedicinesInventory() {
           </div>
           <div className="text-red-600 font-medium">{medicine.expiry?.slice(0, 10)}</div>
           <div className="text-right">
-            <button className="px-2 py-1 text-xs rounded border hover:bg-gray-100">
+            <button onClick={()=>{disposeMedicine(medicine)}} className="px-2 py-1 text-xs rounded border hover:bg-gray-100">
               Dispose
             </button>
           </div>

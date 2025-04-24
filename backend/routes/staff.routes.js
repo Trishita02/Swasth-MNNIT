@@ -6,7 +6,10 @@ import {
     searchPatients,
     getAllPatients,
     getPatientById,
-    addMedicine
+    addMedicine,
+    getDashboard,
+    updateMedicine,
+    deleteMedicine
   } from "../controllers/staff.controller.js";
 import { changePassword } from "../controllers/auth.controller.js";
 import { isAuthenticated } from "../middlewares/auth.middleware.js";
@@ -19,10 +22,13 @@ router.post("/addPatient", addPatient);
 router.post("/manageMedicineInventory", isAuthenticated, manageMedicineInventory);
 router.post("/createPresciption", isAuthenticated, createPrescription);
 router.post("/addMedicine", addMedicine)
+router.post("/updateMedicine", isAuthenticated, updateMedicine);
+router.post("/disposeMedicine", isAuthenticated, deleteMedicine);
 
 router.get("/searchPatients", isAuthenticated, searchPatients);
 router.get("/getAllPatients", isAuthenticated, getAllPatients);
 router.get("/getPatientbyId/:id", isAuthenticated, getPatientById);
+router.get("/dashboard", isAuthenticated, getDashboard)
 router.get('/notifications', getStaffNotifications);
 router.patch('/notifications/:id/read',isAuthenticated,markStaffNotificationAsRead);
 router.patch('/notifications/mark-all-read',isAuthenticated, markAllStaffNotificationsAsRead);
