@@ -260,10 +260,12 @@ export const getDashboardDetails = async (req, res) => {
     const totalActivityToday = await ActivityLog.countDocuments({
       createdAt: { $gte: startOfToday, $lte: endOfToday },
     });
-    const latestActivities = await ActivityLog.find()
+    const latestActivities = await ActivityLog.find({
+      createdAt: { $gte: startOfToday, $lte: endOfToday }
+    })
       .sort({ createdAt: -1 })
       .limit(4)
-      .populate("user", "name") // Populate only name field from user(Admin/Staff/Doctor)
+      .populate("user", "name")
       .select("user role details createdAt");
 
     const activities = latestActivities.map((log) => ({

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Edit, Mail, Plus, Trash } from "lucide-react";
+import { Edit, Mail, Plus, Trash,RefreshCw } from "lucide-react";
 import { format, isSameDay } from "date-fns";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Button } from "../../components/Button.jsx";
 import { Calendar } from "../../components/Calendar.jsx";
+import { Checkbox } from "../../components/Checkbox.jsx";
 import {
   Card,
   CardContent,
@@ -71,6 +72,10 @@ export default function AssignDuties() {
   const [isAddingDuty, setIsAddingDuty] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 const [dutyToDelete, setDutyToDelete] = useState(null);
+const [isRepeatDialogOpen, setIsRepeatDialogOpen] = useState(false);
+const [repeatDate, setRepeatDate] = useState(new Date());
+const [repeatDuties, setRepeatDuties] = useState([]);
+const [selectedRepeatDuties, setSelectedRepeatDuties] = useState([]);
   const [specializationList] = useState([
     "Dental",
     "Physiotherapist",
@@ -183,6 +188,16 @@ const [dutyToDelete, setDutyToDelete] = useState(null);
   function formatTimeDisplay(startTime, endTime) {
     return `${startTime} - ${endTime}`;
   }
+  const isTimeInPast = (timeString, date) => {
+    if (!isSameDay(date, new Date())) return false;
+    
+    const [hours, minutes] = timeString.split(':').map(Number);
+    const now = new Date();
+    const selectedTime = new Date();
+    selectedTime.setHours(hours, minutes, 0, 0);
+    
+    return selectedTime < now;
+  };
 
   // Filter schedules for the selected date
   const filteredSchedules = schedules.filter(schedule => {
@@ -197,61 +212,75 @@ const [dutyToDelete, setDutyToDelete] = useState(null);
       toast.error("Please fill all required fields");
       return;
     }
+    
     if (newSchedule.role === "Doctor" && !newSchedule.specialization) {
       toast.error("Please select a specialization for doctors");
       return;
     }
   
-    const [sHour, sMin] = newSchedule.startTime.split(":").map(Number);
-    const [eHour, eMin] = newSchedule.endTime.split(":").map(Number);
+    // Convert date string to Date object
+    const selectedDate = new Date(newSchedule.date);
+    const today = new Date();
     
-    const base = new Date(); // today’s date
+    // Check if selected date is today
+    const isToday = isSameDay(selectedDate, today);
     
-    // Create Date objects
-    const start = new Date(base);
-    start.setHours(sHour, sMin, 0, 0);
-    
-    let end = new Date(base);
-    end.setHours(eHour, eMin, 0, 0);
-    
-    // Check for same time
-    if (start.getTime() === end.getTime()) {
-      toast.error("Start time and end time cannot be the same");
-      return;
-    }
-    
-    // Check for invalid (non-overnight) backward times
-    if (end < start) {
-      const durationMinutes = (end.getTime() + 24 * 60 * 60 * 1000 - start.getTime()) / (1000 * 60);
-    
-      // Optional: prevent unrealistic long shifts (e.g., > 12h)
-      if (durationMinutes > 720) {
-        toast.error("Invalid time range: end time must be after start time or within valid shift duration");
+    // Time validation for today's date
+    if (isToday) {
+      const now = new Date();
+      const currentHours = now.getHours();
+      const currentMinutes = now.getMinutes();
+      
+      // Parse start and end times
+      const [startHours, startMinutes] = newSchedule.startTime.split(':').map(Number);
+      const [endHours, endMinutes] = newSchedule.endTime.split(':').map(Number);
+      
+      // Create Date objects for comparison
+      const startTimeObj = new Date();
+      startTimeObj.setHours(startHours, startMinutes, 0, 0);
+      
+      const endTimeObj = new Date();
+      endTimeObj.setHours(endHours, endMinutes, 0, 0);
+      
+      // Check if start time is in the past
+      if (startTimeObj < now) {
+        toast.error("Start time cannot be in the past for today");
         return;
       }
-    
-      // If shift duration is valid and crosses midnight → allow
+      
+      // Check if end time is before start time (unless it's overnight)
+      if (endTimeObj <= startTimeObj) {
+        // Allow overnight shifts (end time next day)
+        const overnightEndTime = new Date(endTimeObj);
+        overnightEndTime.setDate(overnightEndTime.getDate() + 1);
+        
+        if (overnightEndTime - startTimeObj > 12 * 60 * 60 * 1000) { // 12 hours max
+          toast.error("Shift duration cannot exceed 12 hours");
+          return;
+        }
+      }
     }
-    
+  
     try {
       setIsAddingDuty(true);
       
-      // Find the user in filteredUsers instead of users
+      // Find the user in filteredUsers
       const selectedUser = filteredUsers.find(u => u._id === newSchedule.userId);
       
       if (!selectedUser) {
         toast.error("Selected user not found");
         return;
       }
-      const selectedDate = new Date(newSchedule.date);
-    const localDate = new Date(
-      selectedDate.getFullYear(),
-      selectedDate.getMonth(),
-      selectedDate.getDate()
-    );
+  
+      const localDate = new Date(
+        selectedDate.getFullYear(),
+        selectedDate.getMonth(),
+        selectedDate.getDate()
+      );
+  
       const dutyData = {
         userId: newSchedule.userId,
-        role: newSchedule.role === "staff" ? "Staff" : newSchedule.role, // Ensure consistent role format
+        role: newSchedule.role === "staff" ? "Staff" : newSchedule.role,
         name: selectedUser.name,
         specialization: selectedUser?.specialization || "",
         shift: {
@@ -261,8 +290,10 @@ const [dutyToDelete, setDutyToDelete] = useState(null);
         date: format(localDate, 'yyyy-MM-dd'), 
         room: newSchedule.room
       };
+  
       const response = await createDutyAPI(dutyData);
       await fetchData();
+      
       setNewSchedule({
         userId: "",
         role: "Doctor",
@@ -439,7 +470,7 @@ const [dutyToDelete, setDutyToDelete] = useState(null);
                   <Plus className="mr-2 h-4 w-4" /> Add Duty
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Add New Duty</DialogTitle>
                 </DialogHeader>
@@ -553,6 +584,7 @@ const [dutyToDelete, setDutyToDelete] = useState(null);
                         type="time"
                         value={newSchedule.startTime}
                         onChange={(e) => setNewSchedule({ ...newSchedule, startTime: e.target.value })}
+  min={isSameDay(new Date(newSchedule.date), new Date()) ? format(new Date(), 'HH:mm') : undefined}
                       />
                     </div>
                     <div className="grid gap-2">
@@ -562,6 +594,7 @@ const [dutyToDelete, setDutyToDelete] = useState(null);
                         type="time"
                         value={newSchedule.endTime}
                         onChange={(e) => setNewSchedule({ ...newSchedule, endTime: e.target.value })}
+                        min={newSchedule.startTime}
                       />
                     </div>
                   </div>
@@ -575,11 +608,17 @@ const [dutyToDelete, setDutyToDelete] = useState(null);
                           setFormDate(date);
                           setNewSchedule({ 
                             ...newSchedule, 
-                            date: date.toISOString() 
+                            date: date.toISOString(),
+                            // Reset times if changing to today's date
+                            startTime: isSameDay(date, new Date()) 
+                              ? format(new Date(), 'HH:mm')
+                              : newSchedule.startTime,
+                            endTime: isSameDay(date, new Date())
+                              ? ''
+                              : newSchedule.endTime
                           });
                         }
                       }}
-                      minDate={new Date()}
                     />
                   </div>
                 </div>
@@ -604,6 +643,161 @@ const [dutyToDelete, setDutyToDelete] = useState(null);
 </DialogFooter>
               </DialogContent>
             </Dialog>
+
+              {/* Add this button next to your existing "Add Duty" button */}
+<Dialog open={isRepeatDialogOpen} onOpenChange={setIsRepeatDialogOpen}>
+  <DialogTrigger asChild>
+    <Button variant="outline" className="w-full sm:w-auto">
+      <RefreshCw className="mr-2 h-4 w-4" /> Repeat Duty
+    </Button>
+  </DialogTrigger>
+  <DialogContent className="max-h-[90vh] overflow-y-auto">
+    <DialogHeader>
+      <DialogTitle>Repeat Duty From Another Day</DialogTitle>
+      <DialogDescription>
+        Select a date to copy duties to today ({format(new Date(), "PPP")})
+      </DialogDescription>
+    </DialogHeader>
+    <div className="grid gap-4 py-4">
+      {/* Date Selection */}
+      <div className="grid gap-2">
+        <Label>Select Date to Copy From</Label>
+        <Calendar 
+          selectedDate={repeatDate}
+          onDateChange={(date) => {
+            if (date) {
+              setRepeatDate(date);
+              // Filter duties for the selected date
+              const dutiesForDate = schedules.filter(schedule => 
+                isSameDay(new Date(schedule.date), date)
+              );
+              setRepeatDuties(dutiesForDate);
+              setSelectedRepeatDuties([]);
+            }
+          }}
+          maxDate={new Date()}
+        />
+      </div>
+
+      {/* Duties List */}
+      {repeatDuties.length > 0 ? (
+        <div className="grid gap-2">
+          <Label>Select Duties to Repeat</Label>
+          <div className="border rounded-lg p-2 max-h-60 overflow-y-auto">
+  {repeatDuties.map((duty) => {
+    const isChecked = selectedRepeatDuties.includes(duty.id);
+    return (
+      <div key={duty.id} className="flex items-center gap-3 p-2 hover:bg-gray-50">
+       <Checkbox
+      
+  id={`duty-${duty.id}`}
+  checked={selectedRepeatDuties.includes(duty.id)}
+  onChange={() => {
+    setSelectedRepeatDuties(prev =>
+      prev.includes(duty.id)
+        ? prev.filter(id => id !== duty.id) // remove
+        : [...prev, duty.id]               // add
+    );
+  }}
+/>
+        <label htmlFor={`duty-${duty.id}`} className="flex-1 cursor-pointer">
+          <div className="font-medium">{duty.user?.name || duty.name}</div>
+          <div className="text-sm text-gray-500">
+            {formatTimeDisplay(duty.start_time, duty.end_time)} • {duty.room}
+          </div>
+        </label>
+      </div>
+    );
+  })}
+</div>
+
+        </div>
+      ) : (
+        <div className="text-center text-gray-500 py-4">
+          No duties found for {format(repeatDate, "PPP")}
+        </div>
+      )}
+    </div>
+    <DialogFooter>
+    <Button 
+  onClick={async () => {
+    console.log("Selected IDs:", selectedRepeatDuties);
+    console.log("Repeat Duties:", repeatDuties);
+    
+    if (selectedRepeatDuties.length === 0) {
+      toast.error("Please select at least one duty to repeat");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const today = new Date();
+      
+      // Get the selected duties - now using _id consistently
+      const dutiesToRepeat = repeatDuties.filter(duty => 
+        selectedRepeatDuties.includes(duty.id)
+      );
+
+      console.log("Duties to repeat:", dutiesToRepeat);
+
+      if (dutiesToRepeat.length === 0) {
+        toast.error("No matching duties found - please try again");
+        return;
+      } 
+
+      // Create new duties for today
+      const createPromises = dutiesToRepeat.map(duty => {
+        const dutyData = {
+          userId: duty.id,
+          role: duty.role,
+          name: duty.user?.name || duty.name,
+          specialization: duty.user?.specialization || duty.specialization || "",
+          shift: {
+            start_time: duty.shift?.start_time || duty.start_time,
+            end_time: duty.shift?.end_time || duty.end_time
+          },
+          date: format(today, 'yyyy-MM-dd'),
+          room: duty.room
+        };
+
+        if (!dutyData.userId) {
+          console.error("Duty with missing userId:", duty);
+          throw new Error(`Missing userId for duty: ${duty.name}`);
+        }
+
+        return createDutyAPI(dutyData);
+      });
+
+      const results = await Promise.all(createPromises);
+      console.log("Creation results:", results);
+      
+      await fetchData();
+      toast.success(`Successfully repeated ${dutiesToRepeat.length} duty/duties`);
+      setIsRepeatDialogOpen(false);
+    } catch (error) {
+      console.error("Error in repeating duties:", error);
+      toast.error("Failed to repeat duties: " + (error.message || "Unknown error"));
+    } finally {
+      setIsLoading(false);
+    }
+  }}
+  disabled={selectedRepeatDuties.length === 0 || isLoading}
+>
+        {isLoading ? (
+          <>
+            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Processing...
+          </>
+        ) : (
+          `Repeat ${selectedRepeatDuties.length} Selected Duty/Duties`
+        )}
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
           </div>
         </div>
       </div>

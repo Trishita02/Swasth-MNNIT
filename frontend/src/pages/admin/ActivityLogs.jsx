@@ -56,6 +56,26 @@ function ActivityLogs() {
   const renderLogCell = (value, fallback = '-') => {
     return value || fallback;
   };
+  // Add this utility function at the top of your file
+// Add this utility function at the top of your file
+const formatDateTime = (dateString) => {
+  if (!dateString) return '-';
+  
+  try {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    
+    return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+  } catch (error) {
+    console.error("Error formatting date:", error);
+    return '-';
+  }
+};
   return (
     <>
       <div className="flex items-center justify-between mb-6">
@@ -144,7 +164,7 @@ function ActivityLogs() {
                     {renderLogCell(log.details)}
                   </TableCell>
                   <TableCell>
-                    {log?.timestamp ? new Date(log.timestamp).toLocaleString() : '-'}
+                  {formatDateTime(log.timestamp)}
                   </TableCell>
                 </TableRow>
               ))}
