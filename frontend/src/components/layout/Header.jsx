@@ -140,8 +140,8 @@ function Header({sideMenu,showBell}){
           <div className="p-2 space-y-1">
             {/* <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded-md">
               specilization
-            </button>
-            <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded-md">
+            </button> */}
+            {/* <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded-md">
               working time
             </button> */}
             <button className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-50 hover:text-red-600 rounded-md"

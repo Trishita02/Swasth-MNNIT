@@ -105,10 +105,23 @@ export const getPrescriptionById = async (req, res) => {
     try {
         const reg_no = req.params.reg_no;
         const prescription = await Prescription.find({ reg_no });
+        prescription.sort((a, b) => new Date(b.date_of_visit) - new Date(a.date_of_visit));
         if (!prescription) {
             return res.status(404).json({ message: "Prescription not found" });
         }
-        res.json(prescription);
+        const result = [];
+
+        for (let p of prescription) {
+            const doctor = await Doctor.findById(p.doctor_id);
+
+            result.push({
+                ...p._doc,
+                doctor_name: doctor?.name || "Unknown",
+                specialization:doctor?.specialization
+            });
+        }
+        res.json(result);
+    
     } catch (error) {
         res.status(500).json({ message: "Server error" });
     }
@@ -134,7 +147,7 @@ export const printPrescription = async (req, res) => {
       if (!prescription) {
         return res.status(404).send("Prescription not found.");
       }
-      res.render("prescriptionTemplate", { prescription });
+      res.render("prescriptionTemplate", { prescription,logoBase64 });
     } catch (error) {
       console.error("Error rendering prescription by ID:", error);
       res.status(500).send("Something went wrong.");

@@ -9,7 +9,6 @@ import { Link } from "react-router-dom";
 import API from "../../utils/axios.jsx";
 
 export default function PatientRecords() {
-  const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [patients, setPatients] = useState([]);
 
@@ -28,12 +27,18 @@ export default function PatientRecords() {
   }, []);
 
   const filteredPatients = patients
-    .filter(
-      (patient) =>
-        patient.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        patient.regNo.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-    .sort((a, b) => new Date(b.last_visit) - new Date(a.last_visit));
+  .filter((patient) => {
+    if (!searchQuery) return true; // Show all when search is empty
+    
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      patient.name?.toLowerCase().includes(searchLower) ||
+      patient.reg_no?.toLowerCase().includes(searchLower) ||
+      patient.issue?.toLowerCase().includes(searchLower) ||
+      patient.type?.toLowerCase().includes(searchLower)
+    );
+  })
+  .sort((a, b) => new Date(b.last_visit) - new Date(a.last_visit));
 
   return (
     <>
@@ -45,11 +50,18 @@ export default function PatientRecords() {
             <Input
               placeholder="Search by name or reg no."
               className="pl-8"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <Button onClick={() => setSearchQuery(searchInput)}>Search</Button>
+          {searchQuery && (
+            <Button 
+              variant="outline" 
+              onClick={() => setSearchQuery("")}
+            >
+              Clear
+            </Button>
+          )}
         </div>
       </div>
 

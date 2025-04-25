@@ -134,10 +134,11 @@ export default function PatientHistory() {
                           <div className="flex items-center justify-between">
                             <CardTitle className="text-base flex items-center gap-2 text-blue-600 font-semibold">
                               <Calendar className="h-4 w-4" />
-                              {new Date(prescription.date_of_visit).toLocaleDateString()}
+                              {new Date(prescription.date_of_visit).toLocaleDateString('en-GB')}
                             </CardTitle>
                             <span className="text-sm text-muted-foreground font-medium">
                               Dr. {prescription.doctor_name}
+                              <p className="text-xs text-gray-600">{prescription.specialization}</p>
                             </span>
                           </div>
                         </CardHeader>
