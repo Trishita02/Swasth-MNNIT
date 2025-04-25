@@ -435,3 +435,11 @@ export const verifyCode = async (email, code) => {
   }
 };
 
+export const getUser=async()=>{
+  try{
+    const res=API.get("/home/user");
+    return res;
+  }catch(error){
+    throw error.response?.data || "error fetching user details";
+  }
+}

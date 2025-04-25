@@ -5,15 +5,17 @@ import { Button } from "../Button.jsx";
 import { Sheet, SheetContent, SheetTrigger } from "../Sheet.jsx";
 import { logoutAPI } from "../../utils/api.jsx";
 import { LogOut} from "lucide-react";
+import { getUser } from "../../utils/api.jsx";
 
 function Header({sideMenu,showBell}){
     const [open, setOpen] = useState(false);
     const [count, setCount] = useState(2);
     const [openProfile, setOpenProfile] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [user, setUser] = useState(null);
     const navigate = useNavigate();
+  
     const menuRef = useRef(null);
-    
       // Close dropdown on outside click
       useEffect(() => {
         function handleClickOutside(e) {
@@ -38,6 +40,18 @@ function Header({sideMenu,showBell}){
           console.error("Logout Failed:", error);
         }
       };
+      useEffect(() => {
+        const fetchUser = async () => {
+          try {
+            const res = await getUser();
+            setUser(res.data); 
+          } catch (error) {
+            console.error("Error fetching user:", error);
+          }
+        };
+    
+        fetchUser();
+      }, []);
 
     return(
         <>
@@ -119,16 +133,17 @@ function Header({sideMenu,showBell}){
       {openProfile && (
         <div className="absolute right-0 mt-2 w-64 bg-white shadow-xl rounded-xl border z-50">
           <div className="p-4 border-b">
-            <p className="text-sm font-semibold">user name</p>
-            <p className="text-xs text-gray-500">usere@gmail.com</p>
+            <p className="text-sm font-semibold">{user.name}</p>
+            <p className="text-xs text-gray-500">{user.email}</p>
+
           </div>
           <div className="p-2 space-y-1">
-            <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded-md">
+            {/* <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded-md">
               specilization
             </button>
             <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded-md">
               working time
-            </button>
+            </button> */}
             <button className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-50 hover:text-red-600 rounded-md"
             disabled={isLoading}
              onClick={handleLogout}
