@@ -1,10 +1,13 @@
 import express from 'express';
 const router = express.Router();
 import { isAuthenticated } from '../middlewares/auth.middleware.js';
+import { changePassword } from "../controllers/auth.controller.js";
 import { getAllPrescriptions, addPrescription, getPrescriptionById, getAllMedicines,printPrescription, getRecentPatients, getDutySchedule } from '../controllers/doctor.controller.js';
 import { upload } from '../middlewares/multer.middleware.js';
 import { getDoctorNotifications,markDoctorNotificationAsRead,markAllDoctorNotificationsAsRead } from '../controllers/notification.controller.js';
 
+
+router.put("/change-password", isAuthenticated, changePassword);
 router.get("/getAllPrescriptions", isAuthenticated, getAllPrescriptions);
 router.post("/addPrescription",isAuthenticated,
     upload.fields([

@@ -98,5 +98,5 @@ export const verifyCode = async (req, res) => {
 };
 
 export const getUser=async(req,res)=>{
-  return res.json({name:req.user.name,email:req.user.email})
+  return res.json({name:req.user.name,email:req.user.email,role:req.role})
 }

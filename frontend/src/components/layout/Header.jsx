@@ -6,10 +6,10 @@ import { Sheet, SheetContent, SheetTrigger } from "../Sheet.jsx";
 import { logoutAPI } from "../../utils/api.jsx";
 import { LogOut} from "lucide-react";
 import { getUser } from "../../utils/api.jsx";
+import { getStaffNotificationsAPI,getDoctorNotificationsAPI } from "../../utils/api.jsx";
 
 function Header({sideMenu,showBell}){
     const [open, setOpen] = useState(false);
-    const [count, setCount] = useState(2);
     const [openProfile, setOpenProfile] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [user, setUser] = useState(null);
@@ -40,19 +40,29 @@ function Header({sideMenu,showBell}){
           console.error("Logout Failed:", error);
         }
       };
+
+      const [notifications, setNotifications] = useState([]);
       useEffect(() => {
-        const fetchUser = async () => {
+        const fetchUserAndNotifications = async () => {
           try {
             const res = await getUser();
-            setUser(res.data); 
+            setUser(res.data);
+      
+            const data = (res.data.role === "staff")
+              ? await getStaffNotificationsAPI()
+              : await getDoctorNotificationsAPI();
+      
+            setNotifications(data);
           } catch (error) {
-            console.error("Error fetching user:", error);
+            console.error("Error fetching user or notifications:", error);
           }
         };
-    
-        fetchUser();
+      
+        fetchUserAndNotifications();
       }, []);
-
+      
+      const unreadCount = notifications.filter((notification) => !notification.read).length;
+      
     return(
         <>
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-white px-4 md:px-6">
@@ -111,10 +121,10 @@ function Header({sideMenu,showBell}){
           {/* notification show bell */}
           {showBell && (
         <div className="relative inline-block">
-          <Bell className="w-8 h-7 text-gray-700 hover:text-gray-400" />
-         {count > 0 && (
+          <Bell className="w-8 h-7 text-gray-700 hover:text-gray-400"  onClick={() => navigate(`/${user?.role}/notifications`)}  />
+         {unreadCount > 0 && (
           <span className="absolute -top-2 -right-1 bg-red-700 text-white text-xs font-semibold px-1.5 flex items-center justify-center rounded-full shadow-md">
-            {count}
+            {unreadCount}
           </span>
           )}
         </div>

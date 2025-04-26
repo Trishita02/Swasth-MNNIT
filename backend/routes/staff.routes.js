@@ -31,7 +31,7 @@ router.get("/searchPatients", isAuthenticated, searchPatients);
 router.get("/getAllPatients", isAuthenticated, getAllPatients);
 router.get("/getPatientbyId/:id", isAuthenticated, getPatientById);
 router.get("/dashboard", isAuthenticated, getDashboard)
-router.get('/notifications', getStaffNotifications);
+router.get('/notifications', isAuthenticated,getStaffNotifications);
 router.patch('/notifications/:id/read',isAuthenticated,markStaffNotificationAsRead);
 router.patch('/notifications/mark-all-read',isAuthenticated, markAllStaffNotificationsAsRead);
 
