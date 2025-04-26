@@ -117,6 +117,7 @@ export const getPrescriptionById = async (req, res) => {
 export const getAllMedicines = async (req, res) => {
     try {
         const medicines = await Medicine.find().sort({ createdAt: -1 });
+        console.log(medicines)
         res.json(medicines);
     } catch (error) {
         res.status(500).json({ message: "Server error" });
