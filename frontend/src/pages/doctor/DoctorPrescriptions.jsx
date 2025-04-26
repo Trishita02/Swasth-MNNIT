@@ -34,7 +34,9 @@ export default function DoctorPrescriptions() {
   const [filterIssue, setFilterIssue] = useState("all")
   const [selectedPatient, setSelectedPatient] = useState(null)
   const [isFormOpen, setIsFormOpen] = useState(false);
-
+  const [allPrescriptions, setAllPrescriptions] = useState([]);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   
   // const { toast } = useToast()
 
@@ -53,28 +55,46 @@ export default function DoctorPrescriptions() {
   })
 
 
-  useEffect(()=>{
+  useEffect(() => {
     const fetchPresciptions = async () => {
-      try {
-        const res = await API.get("/doctor/getAllPrescriptions")
-        // console.log(res.data)
-        setPrescriptions(res.data)
-      } catch (error) {
-        console.error("Error fetching patients:", error)
-      }
-    }
+        try {
+            const res = await API.get("/doctor/getAllPrescriptions");
+            const today = getTodayUTCDate();
+            
+            const todaysPrescriptions = res.data.filter(prescription => 
+                new Date(prescription.date_of_visit).toISOString().slice(0, 10) === today
+            );
+            
+            setAllPrescriptions(res.data);
+            setPrescriptions(todaysPrescriptions);
+        } catch (error) {
+            console.error("Error fetching patients:", error);
+        }
+    };
     
-    fetchPresciptions()
-  }, [])
+    fetchPresciptions();
+}, []);
   
-  const handleSearch = async () => {
-    try {
-      const res = await API.get(`/doctor/getPrescriptionById/${reg_no}`);
-      // handle the result (e.g., setPatient or show form)
-    } catch (error) {
-      console.error(error);
-    }
-  };
+ // Remove the handleSearch function and replace it with:
+ useEffect(() => {
+  const today = getTodayUTCDate();
+  
+  if (!searchQuery) {
+    // When search is empty, show all of today's prescriptions
+    const todaysPrescriptions = allPrescriptions.filter(prescription => 
+      prescription.date_of_visit?.slice(0, 10) === today
+    );
+    setPrescriptions(todaysPrescriptions);
+    return;
+  }
+  
+  // When searching, still filter by today's date
+  const filtered = allPrescriptions.filter(prescription => 
+    prescription.reg_no.toLowerCase().includes(searchQuery.toLowerCase()) &&
+    prescription.date_of_visit?.slice(0, 10) === today
+  );
+  setPrescriptions(filtered);
+}, [searchQuery, allPrescriptions]);
   
   const handleInputChange = (e, field) => {
     setFormData({ ...formData, [field]: e.target.value });
@@ -98,28 +118,48 @@ export default function DoctorPrescriptions() {
     setFormData({ ...formData, medicines: updatedMedicines });
   };
 
-
   const handleSubmit = (e) => {
     e.preventDefault();
-    const res = API.post("/doctor/addPrescription", formData)
-    // console.log(res.data)
-    const formDataName = formData.name;
-    setFormData({
-      name: "", 
+    setIsConfirmOpen(true); // Show confirmation dialog
+  };
+  const confirmSubmit = async () => {
+    setIsLoading(true); // Start loading
+    
+    try {
+      const res = await API.post("/doctor/addPrescription", formData);
+      const formDataName = formData.name;
       
-    reg_no: "",
-    diagnosis: "",
-    prev_issue: "",
-    remark: "",
-    investigation: "",
-    medicines: [{ name: "", dosage: "", duration: "", instructions: "" }],
-    advice: "",
-    });
-    setSelectedPatient(null); // Clear selected patient
-    setIsFormOpen(false); // Close form after submission
-    toast.success(`Prescription for ${formDataName} has been created successfully`, {
-            autoClose: 1000,
-          });
+      // Reset form
+      setFormData({
+        name: "", 
+        reg_no: "",
+        diagnosis: "",
+        prev_issue: "",
+        remark: "",
+        investigation: "",
+        medicines: [{ name: "", dosage: "", duration: "", instructions: "" }],
+        advice: "",
+      });
+      
+      setSelectedPatient(null);
+      setIsFormOpen(false);
+      setIsConfirmOpen(false);
+      
+      toast.success(`Prescription for ${formDataName} has been created successfully`, {
+        autoClose: 3000,
+      });
+  
+      // Refresh prescriptions list
+      const updatedRes = await API.get("/doctor/getAllPrescriptions");
+      setAllPrescriptions(updatedRes.data);
+      setPrescriptions(updatedRes.data);
+      
+    } catch (error) {
+      console.error("Error submitting prescription:", error);
+      toast.error("Failed to create prescription");
+    } finally {
+      setIsLoading(false); // End loading regardless of success/error
+    }
   };
 
   // const handleAddPrescription = () => {
@@ -157,21 +197,21 @@ export default function DoctorPrescriptions() {
   // }
 
   // Filter prescriptions based on search query, date, and issue
-  function filteredPrescriptions(prescriptions, searchQuery) {
-    return prescriptions.filter((prescription) => {
-      const matchesSearch = prescription.reg_no
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
+  // function filteredPrescriptions(prescriptions, searchQuery) {
+  //   return prescriptions.filter((prescription) => {
+  //     const matchesSearch = prescription.reg_no
+  //       .toLowerCase()
+  //       .includes(searchQuery.toLowerCase());
   
-      return matchesSearch;
-    });
-  }
+  //     return matchesSearch;
+  //   });
+  // }
   
 
-  const clearFilters = () => {
-    setFilterDate(undefined)
-    setFilterIssue("all")
-  }
+  // const clearFilters = () => {
+  //   setFilterDate(undefined)
+  //   setFilterIssue("all")
+  // }
 
   const [selectedPrescription, setSelectedPrescription] = useState(null)
   const [isPrescriptionDialogOpen, setIsPrescriptionDialogOpen] = useState(false)
@@ -199,7 +239,14 @@ export default function DoctorPrescriptions() {
       advice: prescription.advice,
     }
   }
-
+  const getTodayUTCDate = () => {
+    const today = new Date();
+    return new Date(Date.UTC(
+        today.getUTCFullYear(),
+        today.getUTCMonth(),
+        today.getUTCDate()
+    )).toISOString().slice(0, 10); // Returns "YYYY-MM-DD"
+};
   return (
     <>
         <ToastContainer 
@@ -227,18 +274,9 @@ export default function DoctorPrescriptions() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-              {searchQuery && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-0 top-0 h-full"
-                  onClick={() => setSearchQuery("")}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              )}
+              
             </div>
-            <Button onClick={() => setPrescriptions(filteredPrescriptions(prescriptions, searchQuery))}>Search</Button>
+           
 
             {/* <Popover>
               <PopoverTrigger asChild>
@@ -463,23 +501,7 @@ export default function DoctorPrescriptions() {
 
       {(searchQuery || filterDate || filterIssue !== "all") && (
         <div className="mt-2 flex flex-wrap items-center gap-2">
-          {searchQuery && (
-            <Badge variant="secondary" className="px-3 py-1">
-              Reg No: {searchQuery}
-              <Button variant="ghost" size="icon" className="ml-1 h-4 w-4 p-0" onClick={() => setSearchQuery("")}>
-                <X className="h-3 w-3" />
-              </Button>
-            </Badge>
-          )}
 
-          {filterDate && (
-            <Badge variant="secondary" className="px-3 py-1">
-              Date: {format(filterDate, "PPP")}
-              <Button variant="ghost" size="icon" className="ml-1 h-4 w-4 p-0" onClick={() => setFilterDate(undefined)}>
-                <X className="h-3 w-3" />
-              </Button>
-            </Badge>
-          )}
 
           {filterIssue !== "all" && (
             <Badge variant="secondary" className="px-3 py-1">
@@ -493,15 +515,10 @@ export default function DoctorPrescriptions() {
       )}
 
       <Tabs defaultValue="all" className="mt-6">
-        <TabsList>
-          <TabsTrigger value="all">All Prescriptions</TabsTrigger>
-         
-        </TabsList>
         <TabsContent value="all">
           <Card>
             <CardHeader>
-              <CardTitle>All Prescriptions</CardTitle>
-              <CardDescription>View and manage all prescriptions</CardDescription>
+              <CardTitle>Today's Prescriptions</CardTitle>
             </CardHeader>
             <CardContent>
               <Table>
@@ -509,9 +526,8 @@ export default function DoctorPrescriptions() {
                   <TableRow>
                     <TableHead>Patient Name</TableHead>
                     <TableHead>Reg No.</TableHead>
-                    <TableHead>Date</TableHead>
                     <TableHead>Diagnosis</TableHead>
-                    <TableHead>Issue</TableHead>
+                    {/* <TableHead>Issue</TableHead> */}
                     
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -521,9 +537,8 @@ export default function DoctorPrescriptions() {
                     <TableRow key={prescription.id}>
                       <TableCell className="font-medium">{prescription.name}</TableCell>
                       <TableCell>{prescription.reg_no}</TableCell>
-                      <TableCell>{prescription.date_of_visit?.slice(0, 10)}</TableCell>
                       <TableCell>{prescription.diagnosis}</TableCell>
-                      <TableCell>{prescription.prev_issue}</TableCell>
+                      {/* <TableCell>{prescription.prev_issue||'-'}</TableCell> */}
                       
                       <TableCell className="text-right">
                         <Button variant="outline" size="sm" onClick={() => handleViewPrescription(prescription)}>
@@ -536,7 +551,7 @@ export default function DoctorPrescriptions() {
                   {prescriptions.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={7} className="h-24 text-center">
-                        No prescriptions found matching the current filters.
+                        No prescriptions found
                       </TableCell>
                     </TableRow>
                   )}
@@ -641,6 +656,37 @@ export default function DoctorPrescriptions() {
           )}
         </DialogContent>
       </Dialog>
+      {/* Confirmation Dialog */}
+<Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Confirm Prescription</DialogTitle>
+      <DialogDescription>
+        Are you sure you want to submit this prescription for {formData.name}?
+      </DialogDescription>
+    </DialogHeader>
+    <DialogFooter>
+  <Button variant="outline" onClick={() => setIsConfirmOpen(false)} disabled={isLoading}>
+    Cancel
+  </Button>
+  <Button 
+    className="bg-blue-600 hover:bg-blue-700" 
+    onClick={confirmSubmit}
+    disabled={isLoading}
+  >
+    {isLoading ? (
+      <>
+        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Processing...
+      </>
+    ) : "Confirm"}
+  </Button>
+</DialogFooter>
+  </DialogContent>
+</Dialog>
     </>
   )
 }

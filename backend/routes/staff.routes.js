@@ -9,6 +9,7 @@ import {
     addMedicine,
     getDashboard,
     updateMedicine,
+    updateLowStockMedicine,
     deleteMedicine
   } from "../controllers/staff.controller.js";
 import { changePassword } from "../controllers/auth.controller.js";
@@ -23,6 +24,7 @@ router.post("/manageMedicineInventory", isAuthenticated, manageMedicineInventory
 router.post("/createPresciption", isAuthenticated, createPrescription);
 router.post("/addMedicine", addMedicine)
 router.post("/updateMedicine", isAuthenticated, updateMedicine);
+router.post("/updateLowStock",isAuthenticated,updateLowStockMedicine)
 router.post("/disposeMedicine", isAuthenticated, deleteMedicine);
 
 router.get("/searchPatients", isAuthenticated, searchPatients);

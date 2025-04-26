@@ -96,3 +96,7 @@ export const verifyCode = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch today's duty chart" });
   }
 };
+
+export const getUser=async(req,res)=>{
+  return res.json({name:req.user.name,email:req.user.email})
+}

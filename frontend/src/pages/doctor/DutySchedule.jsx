@@ -3,12 +3,13 @@ import { Calendar } from "../../components/Calendar.jsx"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/Card.jsx"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/Table.jsx"
 import { Clock } from "lucide-react"
-import { format } from "date-fns"
+import { format, isSameDay } from "date-fns"
 import API from "../../utils/axios.jsx"
 
 export default function DutySchedule() {
   const [date, setDate] = useState(new Date())
   const [schedules, setSchedules] = useState([])
+  const [filteredSchedules, setFilteredSchedules] = useState([])
 
   useEffect(() => {
     (async () => {
@@ -16,11 +17,23 @@ export default function DutySchedule() {
         const response = await API.get("/doctor/duty-schedule")
         console.log(response.data)
         setSchedules(response.data)
+        setFilteredSchedules(response.data) // Initialize with all schedules
       } catch (error) {
         console.error("Error fetching duty schedules:", error)
       }
     })()
   }, [])
+
+  // Update filtered schedules when date changes
+  useEffect(() => {
+    if (date) {
+      const filtered = schedules.filter(schedule =>
+        isSameDay(new Date(schedule.date), date));
+      setFilteredSchedules(filtered)
+    } else {
+      setFilteredSchedules(schedules)
+    }
+  }, [date, schedules])
 
   // Filter function for upcoming duties (future dates only)
   const filterUpcomingSchedules = (data) => {
@@ -46,21 +59,13 @@ export default function DutySchedule() {
             <CardDescription>Select a date to view your duties</CardDescription>
           </CardHeader>
           <CardContent>
-            <Calendar
-              mode="single"
-              selected={date}
-              onSelect={setDate}
-              className="rounded-md border"
-              modifiers={{
-                booked: scheduleDates,
-              }}
-              modifiersStyles={{
-                booked: {
-                  backgroundColor: "rgba(59, 130, 246, 0.1)",
-                  fontWeight: "bold",
-                  color: "#3b82f6",
-                },
-              }}
+            <Calendar 
+              selectedDate={date}
+              onDateChange={(date) => {
+              if (date) {
+                setDate(date);
+              }
+            }}
             />
           </CardContent>
         </Card>
@@ -80,8 +85,8 @@ export default function DutySchedule() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {schedules.length > 0 ? (
-                  schedules.map((schedule) => (
+                {filteredSchedules.length > 0 ? (
+                  filteredSchedules.map((schedule) => (
                     <TableRow key={schedule._id}>
                       <TableCell>{format(new Date(schedule.date), "PPP")}</TableCell>
                       <TableCell>{schedule.room}</TableCell>

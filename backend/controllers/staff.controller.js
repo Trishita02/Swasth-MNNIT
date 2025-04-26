@@ -144,7 +144,14 @@ export const addMedicine = async (req, res) => {
       invoiceNumber,
       supplier,
     } = req.body;
-    
+    // Check if medicine with the same name already exists
+    const existingMedicine = await Medicine.findOne({ name: medicineName, category: type });
+    if (existingMedicine) {
+      return res.status(409).json({
+        message: "This medicine is already added. Please update the existing record instead.",
+      });
+    }
+
     console.log("medicineName type:", typeof medicineName);
     console.log("batchNumber type:", typeof batchNumber);
     console.log("type type:", typeof type);
@@ -233,7 +240,7 @@ export const updateMedicine = async (req, res) => {
     if (!medicineName || !batchNumber || !type || !expiryDate || !quantity || !invoiceDate || !invoiceNumber || !supplier) {
       return res.status(400).json({ message: "All fields are required" });
     }
-
+    
     // Ensure dates are valid
     const parsedExpiryDate = new Date(expiryDate);
     const parsedInvoiceDate = new Date(invoiceDate);
@@ -241,10 +248,20 @@ export const updateMedicine = async (req, res) => {
     if (isNaN(parsedExpiryDate) || isNaN(parsedInvoiceDate)) {
       return res.status(400).json({ message: "Invalid date format" });
     }
+    const duplicate = await Medicine.findOne({
+      _id: { $ne: id }, // Exclude the current record
+      name: medicineName,
+      category: type,
+    });
 
+    if (duplicate) {
+      return res.status(409).json({
+        message: "Another medicine with the same name and type already exists.",
+      });
+    }
     // Find the medicine by ID and update it
-    const updatedMedicine = await Medicine.findOneAndUpdate(
-      {name: medicineName},
+    const updatedMedicine = await Medicine.findByIdAndUpdate(
+      id, // ✅ Correct way
       {
         $set: {
           name: medicineName,
@@ -262,8 +279,9 @@ export const updateMedicine = async (req, res) => {
           supplier: supplier,
         },
       },
-      { new: true } // Return the updated document
+      { new: true }
     );
+    
 
     if (!updatedMedicine) {
       return res.status(404).json({ message: "Medicine not found" });
@@ -279,7 +297,30 @@ export const updateMedicine = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 }
+export const updateLowStockMedicine=async(req,res)=>{
+  try {
+    const { id, quantity } = req.body;
+    
+    if (!id || !quantity || quantity <= 0) {
+      return res.status(400).json({ message: "Invalid input data" });
+    }
 
+    const updatedMedicine = await Medicine.findByIdAndUpdate(
+      id,
+      { $set: { stock: quantity } },
+      { new: true }
+    );
+
+    if (!updatedMedicine) {
+      return res.status(404).json({ message: "Medicine not found" });
+    }
+
+    res.status(200).json(updatedMedicine);
+  } catch (error) {
+    console.error("Error updating stock:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+}
 export const deleteMedicine = async (req, res) => {
   try {
     const { id } = req.body; // Assuming you're sending the ID in the request body
