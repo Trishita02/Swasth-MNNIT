@@ -266,7 +266,6 @@ const [selectedRepeatDuties, setSelectedRepeatDuties] = useState([]);
       
       // Find the user in filteredUsers
       const selectedUser = filteredUsers.find(u => u._id === newSchedule.userId);
-      
       if (!selectedUser) {
         toast.error("Selected user not found");
         return;
@@ -386,7 +385,16 @@ const [selectedRepeatDuties, setSelectedRepeatDuties] = useState([]);
     }
   };
 
-
+  useEffect(() => {
+    if (isRepeatDialogOpen) {
+      // Filter duties for the selected date whenever dialog opens or date changes
+      const dutiesForDate = schedules.filter(schedule => 
+        isSameDay(new Date(schedule.date), repeatDate)
+      );
+      setRepeatDuties(dutiesForDate);
+      setSelectedRepeatDuties([]);
+    }
+  }, [isRepeatDialogOpen, repeatDate, schedules]);
   return (
     <>
       <div className="flex flex-col gap-4 mb-6">
@@ -645,7 +653,15 @@ const [selectedRepeatDuties, setSelectedRepeatDuties] = useState([]);
             </Dialog>
 
               {/* Add this button next to your existing "Add Duty" button */}
-<Dialog open={isRepeatDialogOpen} onOpenChange={setIsRepeatDialogOpen}>
+              <Dialog 
+  open={isRepeatDialogOpen} 
+  onOpenChange={(open) => {
+    setIsRepeatDialogOpen(open);
+    if (open) {
+      setRepeatDate(new Date()); // Reset to today when opening
+    }
+  }}
+>
   <DialogTrigger asChild>
     <Button variant="outline" className="w-full sm:w-auto">
       <RefreshCw className="mr-2 h-4 w-4" /> Repeat Duty
@@ -654,14 +670,10 @@ const [selectedRepeatDuties, setSelectedRepeatDuties] = useState([]);
   <DialogContent className="max-h-[90vh] overflow-y-auto">
     <DialogHeader>
       <DialogTitle>Repeat Duty From Another Day</DialogTitle>
-      <DialogDescription>
-        Select a date to copy duties to today ({format(new Date(), "PPP")})
-      </DialogDescription>
     </DialogHeader>
     <div className="grid gap-4 py-4">
       {/* Date Selection */}
       <div className="grid gap-2">
-        <Label>Select Date to Copy From</Label>
         <Calendar 
           selectedDate={repeatDate}
           onDateChange={(date) => {
@@ -700,12 +712,25 @@ const [selectedRepeatDuties, setSelectedRepeatDuties] = useState([]);
     );
   }}
 />
-        <label htmlFor={`duty-${duty.id}`} className="flex-1 cursor-pointer">
-          <div className="font-medium">{duty.user?.name || duty.name}</div>
-          <div className="text-sm text-gray-500">
-            {formatTimeDisplay(duty.start_time, duty.end_time)} • {duty.room}
-          </div>
-        </label>
+
+<label htmlFor={`duty-${duty.id}`} className="flex-1 cursor-pointer group">
+  <div className="flex items-baseline justify-between gap-2">
+    <div className="font-medium text-gray-900 group-hover:text-indigo-600 transition-colors">
+      {duty.user?.name || duty.name}
+      <span className="text-xs text-gray-500 block">{duty.role==="Doctor"?duty.specialization:''}</span>
+    </div>
+    {duty.role && (
+      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+        {duty.role}
+      </span>
+    )}
+  </div>
+  <div className="mt-1 flex items-center text-sm text-gray-500 gap-2">
+    <span>{formatTimeDisplay(duty.start_time, duty.end_time)}</span>
+    <span className="text-gray-300">•</span>
+    <span className="text-gray-600 font-medium">{duty.room}</span>
+  </div>
+</label>
       </div>
     );
   })}
@@ -748,7 +773,7 @@ const [selectedRepeatDuties, setSelectedRepeatDuties] = useState([]);
       // Create new duties for today
       const createPromises = dutiesToRepeat.map(duty => {
         const dutyData = {
-          userId: duty.id,
+          userId: duty.user_id,
           role: duty.role,
           name: duty.user?.name || duty.name,
           specialization: duty.user?.specialization || duty.specialization || "",
@@ -759,7 +784,6 @@ const [selectedRepeatDuties, setSelectedRepeatDuties] = useState([]);
           date: format(today, 'yyyy-MM-dd'),
           room: duty.room
         };
-
         if (!dutyData.userId) {
           console.error("Duty with missing userId:", duty);
           throw new Error(`Missing userId for duty: ${duty.name}`);

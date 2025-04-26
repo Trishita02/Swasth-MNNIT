@@ -6,7 +6,7 @@ import  ApiResponse  from "../utils/ApiResponse.js";
 import mongoose from "mongoose";
 
 
-  export const addDuty = async (req, res) => {
+export const addDuty = async (req, res) => {
     try {
       const { userId, role, date, shift, room } = req.body;
       // Validation checks
@@ -160,6 +160,7 @@ export const deleteDuty =async (req, res) => {
   
       const formattedDuties = duties.map((duty) => ({
         id: duty._id,
+        user_id: duty.user,
         name: duty.user?.name || "Unknown",
         role: duty.role,
         specialization: duty.user?.specialization || "N/A",
