@@ -19,10 +19,10 @@ import { getStaffNotifications,markStaffNotificationAsRead,markAllStaffNotificat
 const router = express.Router();
 // console.log("reached router");
 router.put("/change-password", isAuthenticated, changePassword);
-router.post("/addPatient", addPatient);
+router.post("/addPatient", isAuthenticated,addPatient);
 router.post("/manageMedicineInventory", isAuthenticated, manageMedicineInventory);
 router.post("/createPresciption", isAuthenticated, createPrescription);
-router.post("/addMedicine", addMedicine)
+router.post("/addMedicine", isAuthenticated,addMedicine)
 router.post("/updateMedicine", isAuthenticated, updateMedicine);
 router.post("/updateLowStock",isAuthenticated,updateLowStockMedicine)
 router.post("/disposeMedicine", isAuthenticated, deleteMedicine);

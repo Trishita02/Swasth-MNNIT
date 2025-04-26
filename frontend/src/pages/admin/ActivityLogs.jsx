@@ -29,28 +29,33 @@ function ActivityLogs() {
   }, []);
 
   // Safe filtering function
-  const filteredLogs = logs.filter((log) => {
-    // Safe user check
-    const user = log?.user || '';
-    const matchesSearch = user.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    // Safe activity check
-    const matchesActivity = activityType === "all" || log?.activity === activityType;
-    
-    // Safe date check
-    let matchesDate = true;
-    if (date && log?.timestamp) {
-      try {
-        const logDate = new Date(log.timestamp);
-        matchesDate = logDate.toDateString() === date.toDateString();
-      } catch (e) {
-        console.error("Invalid date format in log:", log.timestamp);
-        matchesDate = false;
-      }
-    }
+const filteredLogs = logs.filter((log) => {
+  console.log(log.activity)
+  // User search - handle both object and string cases
+  const userString = typeof log.user === 'object' 
+    ? `${log.user?.name || ''} ${log.user?.email || ''}`.toLowerCase()
+    : String(log.user || '').toLowerCase();
+  
+  const matchesSearch = userString.includes(searchQuery.toLowerCase());
 
-    return matchesSearch && matchesActivity && matchesDate;
-  });
+  // Activity type filtering - case insensitive
+  const matchesActivity = activityType === "all" || 
+    String(log?.activity || '').toLowerCase() === activityType.toLowerCase();
+
+  // Date filtering
+  let matchesDate = true;
+  if (date && log?.timestamp) {
+    try {
+      const logDate = new Date(log.timestamp);
+      matchesDate = logDate.toDateString() === date.toDateString();
+    } catch (e) {
+      console.error("Invalid date format in log:", log.timestamp);
+      matchesDate = false;
+    }
+  }
+
+  return matchesSearch && matchesActivity && matchesDate;
+});
 
   // Safe rendering of log data
   const renderLogCell = (value, fallback = '-') => {
@@ -96,14 +101,16 @@ const formatDateTime = (dateString) => {
                 <SelectValue placeholder="Activity type" />
             </SelectTrigger>
             <SelectContent>
-            <SelectItem value="all">All Activities</SelectItem>
-            <SelectItem value="login">Login</SelectItem>
-            <SelectItem value="logout">Logout</SelectItem>
-            <SelectItem value="update">Update</SelectItem>
-            <SelectItem value="medicine">Medicine</SelectItem>
-            <SelectItem value="prescription">Prescription</SelectItem>
-            <SelectItem value="user">User Management</SelectItem>
-            </SelectContent>
+  <SelectItem value="all">All Activities</SelectItem>
+  <SelectItem value="Login">Login</SelectItem>
+  <SelectItem value="Logout">Logout</SelectItem>
+  <SelectItem value="Password Change">Password Change</SelectItem>
+  <SelectItem value="Prescription">Prescription</SelectItem>
+  <SelectItem value="Patient Added">Patient Added</SelectItem>
+  <SelectItem value="Medicine Added">Medicine Added</SelectItem>
+  <SelectItem value="Medicine Updated">Medicine Updated</SelectItem>
+  <SelectItem value="Medicine Deleted">Medicine Deleted</SelectItem>
+</SelectContent>
         </Select>
 
 <Popover>

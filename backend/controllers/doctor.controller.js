@@ -4,6 +4,7 @@ import Medicine from "../models/medicine.model.js";
 import Prescription from "../models/prescription.model.js";
 import {Doctor} from "../models/doctor.model.js";
 import {Duty}   from "../models/duty.model.js";
+import ActivityLog from "../models/activitylog.model.js"
 import bcrypt from "bcryptjs";
 import Notification from "../models/notification.model.js";
 import { isAuthenticated } from '../middlewares/auth.middleware.js';
@@ -92,7 +93,13 @@ export const addPrescription = async (req, res) => {
         await newPrescription.populate('doctor_id');
         await newPrescription.populate('patient');
         await generateAndSendPrescription(newPrescription, uploadedFiles);
-        
+        const activity = new ActivityLog({
+            user: userId,
+            role: 'Doctor',
+            activity: 'Prescription',
+            details: `Prescription for patient ${reg_no} created`
+          });
+          await activity.save();
         return res.status(201).json(newPrescription);
     } catch (error) {
         res.status(500).json({ message: "Server error", error: error.message });

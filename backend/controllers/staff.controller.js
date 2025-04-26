@@ -5,6 +5,7 @@ import Prescription from "../models/prescription.model.js";
 import bcrypt from "bcryptjs";
 import Notification from "../models/notification.model.js";
 import {Duty} from "../models/duty.model.js";
+import ActivityLog from "../models/activitylog.model.js"
 import jwt from "jsonwebtoken";
 
 
@@ -64,6 +65,13 @@ export const addPatient = async (req, res) => {
       type: type // Default type, can be changed later
     });
     await newPatient.save();
+    const activity = new ActivityLog({
+      user: req.user._id,
+      role: 'Staff',
+      activity: 'Patient Added',
+      details: `Added patient ${name} (${reg_no})`
+    });
+    await activity.save();
     res.json({ message: "Patient added successfully", patient: newPatient });
   } catch (error) {
     res.status(500).json({ message: "Server error" });
@@ -152,14 +160,14 @@ export const addMedicine = async (req, res) => {
       });
     }
 
-    console.log("medicineName type:", typeof medicineName);
-    console.log("batchNumber type:", typeof batchNumber);
-    console.log("type type:", typeof type);
-    console.log("expiryDate type:", typeof expiryDate);
-    console.log("quantity type:", typeof quantity);
-    console.log("invoiceDate type:", typeof invoiceDate);
-    console.log("invoiceNumber type:", typeof invoiceNumber);
-    console.log("supplier type:", typeof supplier);
+    // console.log("medicineName type:", typeof medicineName);
+    // console.log("batchNumber type:", typeof batchNumber);
+    // console.log("type type:", typeof type);
+    // console.log("expiryDate type:", typeof expiryDate);
+    // console.log("quantity type:", typeof quantity);
+    // console.log("invoiceDate type:", typeof invoiceDate);
+    // console.log("invoiceNumber type:", typeof invoiceNumber);
+    // console.log("supplier type:", typeof supplier);
     
     // Validate input data
     // if (!medicineName || !batchNumber || !type || !expiryDate || !quantity || !invoiceDate || !invoiceNumber || !supplier) {
@@ -195,8 +203,17 @@ export const addMedicine = async (req, res) => {
 
     // Save the new medicine object to the database
     await newMedicine.save();
-    console.log("pass3")
+    // console.log("pass3")
     // Respond with success message and the new medicine data
+    // console.log(req.user)
+    const activity = new ActivityLog({
+      user: req.user._id,
+      role: 'Staff',
+      activity: 'Medicine Added',
+      details: `Added ${quantity} units of ${medicineName}`
+    });
+    await activity.save();
+    
     res.status(200).json({
       message: "Medicine added successfully",
       medicine: newMedicine,
@@ -233,7 +250,7 @@ export const getDashboard = async (req, res) => {
 
 export const updateMedicine = async (req, res) => {
   try {
-    console.log(req.body);
+    // console.log(req.body);
     const { id, medicineName, batchNumber, type, expiryDate, quantity, invoiceDate, invoiceNumber, supplier } = req.body;
     
     // Validate input data
@@ -261,7 +278,7 @@ export const updateMedicine = async (req, res) => {
     }
     // Find the medicine by ID and update it
     const updatedMedicine = await Medicine.findByIdAndUpdate(
-      id, // ✅ Correct way
+      id, 
       {
         $set: {
           name: medicineName,
@@ -286,7 +303,13 @@ export const updateMedicine = async (req, res) => {
     if (!updatedMedicine) {
       return res.status(404).json({ message: "Medicine not found" });
     }
-
+    const activity = new ActivityLog({
+      user: req.user._id,
+      role: 'Staff',
+      activity: 'Medicine Updated',
+      details: `Updated medicine ${medicineName} details`
+    });
+    await activity.save();
     // Respond with success message and the updated medicine data
     res.status(200).json({
       message: "Medicine updated successfully",
@@ -326,13 +349,19 @@ export const deleteMedicine = async (req, res) => {
     const { id } = req.body; // Assuming you're sending the ID in the request body
 
     // Find and delete the medicine by ID
-    console.log(id)
+    // console.log(id)
     const deletedMedicine = await Medicine.findOneAndDelete({ _id: id });
 
     if (!deletedMedicine) {
       return res.status(404).json({ message: "Medicine not found" });
     }
-
+    const activity = new ActivityLog({
+      user: req.user._id,
+      role: 'Staff',
+      activity: 'Medicine Deleted',
+      details: `Deleted medicine ${deletedMedicine.name}`
+    });
+    await activity.save();
     // Respond with success message
     res.status(200).json({ message: "Medicine deleted successfully" });
   } catch (error) {
