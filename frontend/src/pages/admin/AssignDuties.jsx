@@ -796,7 +796,7 @@ const [selectedRepeatDuties, setSelectedRepeatDuties] = useState([]);
       console.log("Creation results:", results);
       
       await fetchData();
-      toast.success(`Successfully repeated ${dutiesToRepeat.length} duty/duties`);
+      toast.success(`Successfully repeated ${dutiesToRepeat.length} duty`);
       setIsRepeatDialogOpen(false);
     } catch (error) {
       console.error("Error in repeating duties:", error);
@@ -816,7 +816,7 @@ const [selectedRepeatDuties, setSelectedRepeatDuties] = useState([]);
             Processing...
           </>
         ) : (
-          `Repeat ${selectedRepeatDuties.length} Selected Duty/Duties`
+          `Repeat ${selectedRepeatDuties.length} Selected Duty`
         )}
       </Button>
     </DialogFooter>

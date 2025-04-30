@@ -1,6 +1,6 @@
 import { sendEmail } from "../utils/email.util.js";
 import { Doctor } from "../models/doctor.model.js";
-
+import {Duty} from "../models/duty.model.js"
 const codeStore = new Map();
 const todayDuty = new Map();
 
@@ -85,7 +85,31 @@ export const verifyCode = async (req, res) => {
   // Valid code
   try {
     await todayDutyChart(); // Wait for duty chart to be populated
-    const doctorlist = todayDuty.get("todayDoctors");
+    const now = new Date();
+    const offsetIST = 330; // IST is UTC+5:30 (5*60 + 30 = 330 minutes)
+    const nowIST = new Date(now.getTime() + offsetIST * 60 * 1000);
+    
+    // Set to beginning of day in IST
+    const todayStart = new Date(nowIST);
+    todayStart.setHours(0, 0, 0, 0);
+    // Convert back to UTC for MongoDB query
+    const todayStartUTC = new Date(todayStart.getTime() - offsetIST * 60 * 1000);
+    
+    // Set to end of day in IST
+    const todayEnd = new Date(nowIST);
+    todayEnd.setHours(23, 59, 59, 999);
+    // Convert back to UTC for MongoDB query
+    const todayEndUTC = new Date(todayEnd.getTime() - offsetIST * 60 * 1000);
+
+    // Fetch only today's duties
+    const doctorlist = await Duty.find({
+      date: {
+        $gte: todayStartUTC,
+        $lte: todayEndUTC
+      }
+    })
+    .populate("user") // populates full user object
+    .lean();
     codeStore.delete(email);
     res.status(200).json({
       message: "Email verified successfully",
