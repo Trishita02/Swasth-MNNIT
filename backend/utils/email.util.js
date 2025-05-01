@@ -12,7 +12,11 @@ export const sendEmail = async ( receiver ) => {
       },
     });
 
-    await transporter.sendMail(receiver);
+    const mailOptions = {
+      ...receiver,
+      from: '"Swasth MNNIT" <trishitakesarwani06@gmail.com>', 
+    };
+    await transporter.sendMail(mailOptions);
     console.log("Email sent successfully to:", receiver.to);
     return "Email sent successfully";
   } catch (error) {

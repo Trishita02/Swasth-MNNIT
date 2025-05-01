@@ -46,7 +46,7 @@ const generateAndSendDutyChart = async (templateFileName) => {
     );
 
     const receiver = {
-      from: "trishitakesarwani06@gmail.com",
+      from: '"Swasth MNNIT" <trishitakesarwani06@gmail.com>',
       to: "trishita.2023ca106@mnnit.ac.in",
       subject: "Today Doctors Duty Chart",
       attachments: [
