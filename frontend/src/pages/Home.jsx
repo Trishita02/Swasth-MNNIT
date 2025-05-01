@@ -453,6 +453,12 @@ function Home(){
           </div>
         </div>
       </section>
+      
+          {/* Simple footer with copyright */}
+         <div className="bg-gray-700 text-white py-6 text-center">
+            <p className="text-sm text-gray-100">Copyright © {new Date().getFullYear()} - All Rights Reserved - Swasth MNNIT Hospital Unit</p>
+        </div>
+
     </div>
         </>
     )
