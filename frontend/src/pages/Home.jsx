@@ -259,7 +259,7 @@ function Home(){
       </section>
 
       {/* Doctors Schedule Section with Filtering */}
-      <section className="py-16 bg-white" id="doctors">
+      {/* <section className="py-16 bg-white" id="doctors">
         <div className="container mx-auto px-4">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Doctors' Duty Schedule</h2>
@@ -267,10 +267,10 @@ function Home(){
             Doctors are available according to the following schedule. Please check the timings before your
               visit.
             </p>
-          </div>
+          </div> */}
 
           {/* Search and Filter Controls */}
-          <div className="mb-8 p-4 bg-blue-50 rounded-lg shadow-sm">
+          {/* <div className="mb-8 p-4 bg-blue-50 rounded-lg shadow-sm">
             <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
               <div className="relative w-full md:w-64">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -328,10 +328,10 @@ function Home(){
                 </Button>
               )}
             </div>
-          </div>
+          </div> */}
 
           {/* Doctor Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredDoctors.length > 0 ? (
               filteredDoctors.map((doctor) => (
                 <Card key={doctor.id} className="overflow-hidden hover:shadow-lg transition-shadow">
@@ -370,9 +370,6 @@ function Home(){
 
                     <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
                       <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Available</Badge>
-                      {/* <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-800">
-                        View Details
-                      </Button> */}
                     </div>
                   </CardContent>
                 </Card>
@@ -393,7 +390,7 @@ function Home(){
             )}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Services Section */}
       <section className="py-16 bg-gradient-to-b from-blue-50 to-white">

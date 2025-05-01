@@ -42,7 +42,9 @@ export default function DoctorPrescriptions() {
 
   const [prescriptions, setPrescriptions] = useState([])
   const [newPrescription, setNewPrescription] = useState([])
-  
+  const [patientSuggestions, setPatientSuggestions] = useState([]);
+const [showSuggestions, setShowSuggestions] = useState(false);
+const [allPatients, setAllPatients] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
     reg_no: '',
@@ -53,7 +55,35 @@ export default function DoctorPrescriptions() {
     medicines: [{ name: '', dosage: '', duration: '', instructions: '' }],
     advice: '',
   })
+  // Fetch all patients on component mount
+useEffect(() => {
+  const fetchAllPatients = async () => {
+    try {
+      const res = await API.get("/staff/getAllPatients");
+      setAllPatients(res.data);
+    } catch (error) {
+      console.error("Error fetching patients:", error);
+    }
+  };
+  fetchAllPatients();
+}, []);
 
+// Filter patients based on input
+const handleRegNoChange = (e) => {
+  const value = e.target.value;
+  setFormData({ ...formData, reg_no: value });
+  
+  if (value.length > 0) {
+    const filtered = allPatients.filter(patient => 
+      patient.reg_no.toLowerCase().includes(value.toLowerCase())
+    );
+    setPatientSuggestions(filtered.slice(0, 5)); // Show top 5 matches
+    setShowSuggestions(true);
+  } else {
+    setPatientSuggestions([]);
+    setShowSuggestions(false);
+  }
+};
 
   useEffect(() => {
     const fetchPresciptions = async () => {
@@ -245,8 +275,19 @@ export default function DoctorPrescriptions() {
         today.getUTCFullYear(),
         today.getUTCMonth(),
         today.getUTCDate()
-    )).toISOString().slice(0, 10); // Returns "YYYY-MM-DD"
+    )).toISOString().slice(0, 10); 
 };
+useEffect(() => {
+  const handleClickOutside = (event) => {
+    if (event.target.id !== 'reg_no') {
+      setShowSuggestions(false);
+    }
+  };
+  document.addEventListener('mousedown', handleClickOutside);
+  return () => {
+    document.removeEventListener('mousedown', handleClickOutside);
+  };
+}, []);
   return (
     <>
         <ToastContainer 
@@ -341,20 +382,40 @@ export default function DoctorPrescriptions() {
             className="px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        <div className="grid gap-2">
-          <label htmlFor="reg_no" className="font-medium">Registration Number</label>
-          <input
-            id="reg_no"
-            type="text"
-            value={formData.reg_no}
-            onChange={(e) => handleInputChange(e, 'reg_no')}
-            placeholder="Enter registration number"
-            required
-            className="px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
-          />
+        <div className="grid gap-2 relative">
+  <label htmlFor="reg_no" className="font-medium">Registration Number</label>
+  <input
+    id="reg_no"
+    type="text"
+    value={formData.reg_no}
+    onChange={handleRegNoChange}
+    placeholder="Enter registration number"
+    required
+    className="px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+    autoComplete="off"
+  />
+  {showSuggestions && patientSuggestions.length > 0 && (
+    <div className="absolute z-10 top-full mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
+      {patientSuggestions.map((patient) => (
+        <div
+          key={patient._id}
+          className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex justify-between"
+          onClick={() => {
+            setFormData({
+              ...formData,
+              reg_no: patient.reg_no,
+              name: patient.name,
+            });
+            setShowSuggestions(false);
+          }}
+        >
+          <span>{patient.reg_no}</span>
+          <span className="text-gray-600">{patient.name}</span>
         </div>
-        
-        
+      ))}
+    </div>
+  )}
+</div>  
         <div className="grid gap-2">
           <label htmlFor="diagnosis" className="font-medium">Diagnosis</label>
           <input
@@ -637,7 +698,7 @@ export default function DoctorPrescriptions() {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <h4 className="font-medium mb-1">General Advice</h4>
-                        <p>{details.advice}</p>
+                        <p>{details.advice||"Take medicines as prescribed"}</p>
                       </div>
                       {/* <div>
                         <h4 className="font-medium mb-1">Follow-up</h4>
