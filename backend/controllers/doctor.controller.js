@@ -9,6 +9,9 @@ import bcrypt from "bcryptjs";
 import Notification from "../models/notification.model.js";
 import { isAuthenticated } from '../middlewares/auth.middleware.js';
 import { generateAndSendPrescription } from "./mail.controller.js";
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import fs from 'fs';
 
 export const getAllPrescriptions = async (req, res) => {
     try {
@@ -144,6 +147,8 @@ export const getAllMedicines = async (req, res) => {
 
 export const printPrescription = async (req, res) => {
     try {
+        const __filename = fileURLToPath(import.meta.url);
+        const __dirname = dirname(__filename);
       const { id } = req.params;
   
       const prescription = await Prescription.findById(id)
@@ -153,6 +158,9 @@ export const printPrescription = async (req, res) => {
       if (!prescription) {
         return res.status(404).send("Prescription not found.");
       }
+        
+      const logoPath = join(__dirname, '../public/logo.jpg');
+      const logoBase64 = fs.readFileSync(logoPath).toString('base64');
       res.render("prescriptionTemplate", { prescription,logoBase64 });
     } catch (error) {
       console.error("Error rendering prescription by ID:", error);
