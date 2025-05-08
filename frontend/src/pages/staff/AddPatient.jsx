@@ -59,6 +59,12 @@ export default function AddPatient() {
 
   const handleSubmit = async () => {
     try {
+      if (!formData.name || !formData.age || !formData.gender || !formData.address || 
+        !formData.blood_group || !formData.dob || !formData.issue || !formData.email || 
+        !formData.allergies) {
+      setMessage("Please fill all required fields");
+      return;
+    }
       await API.post("/staff/addPatient", formData);
       setMessage("Patient added successfully!");
       setShowForm(false);
@@ -90,28 +96,28 @@ export default function AddPatient() {
       )}
 
       {showForm && (
-        <div className="space-y-4">
-        {[
-            { label: "Name", name: "name" },
-            { label: "Age", name: "age", type: "number" },
-            { label: "Address", name: "address" },
-            { label: "Blood Group", name: "blood_group" },
-            { label: "DOB", name: "dob", type: "date" },
-            { label: "Issue", name: "issue" },
-            { label: "Email", name: "email", type: "email" },
-            { label: "Allergies", name: "allergies" },
-          ].map(({ label, name, type = "text" }) => (
-            <div key={name}>
-              <label>{label}</label>
-              <Input
-                type={type}
-                name={name}
-                value={formData[name]}
-                onChange={handleChange}
-              />
-            </div>
-          ))}
-
+  <div className="space-y-4">
+    {[
+      { label: "Name", name: "name" },
+      { label: "Age", name: "age", type: "number" },
+      { label: "Address", name: "address" },
+      { label: "Blood Group", name: "blood_group" },
+      { label: "DOB", name: "dob", type: "date" },
+      { label: "Issue", name: "issue", placeholder: "Enter NA if none" },
+      { label: "Email", name: "email", type: "email" },
+      { label: "Allergies", name: "allergies", placeholder: "Enter NA if none" },
+    ].map(({ label, name, type = "text", placeholder }) => (  // Add placeholder here
+      <div key={name}>
+        <label>{label}</label>
+        <Input
+          type={type}
+          name={name}
+          value={formData[name]}
+          onChange={handleChange}
+          placeholder={placeholder}  // Now this will work
+        />
+      </div>
+    ))}
           {/* Gender Dropdown */}
           <div>
             <label>Gender</label>

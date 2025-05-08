@@ -1,10 +1,15 @@
-import nodemailer from "nodemailer";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from 'url';
+import { dirname,join } from 'path';
 import cron from "node-cron";
 import { Doctor } from "../models/doctor.model.js";
 import { Duty } from "../models/duty.model.js";
 import { generatePdf } from "../utils/pdf.util.js";
 import { sendEmail } from "../utils/email.util.js";
-
+import QRCode from "qrcode";
+import {uploadOnCloudinary} from "../utils/cloudinary.js";
+import cloudinary from "cloudinary"
 
 const generateAndSendDutyChart = async (templateFileName) => {
   try {
@@ -41,7 +46,7 @@ const generateAndSendDutyChart = async (templateFileName) => {
     );
 
     const receiver = {
-      from: "trishitakesarwani06@gmail.com",
+      from: '"Swasth MNNIT" <trishitakesarwani06@gmail.com>',
       to: "trishita.2023ca106@mnnit.ac.in",
       subject: "Today Doctors Duty Chart",
       attachments: [
@@ -130,5 +135,53 @@ export const scheduleDutyChart = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
+export const generateAndSendPrescription = async (prescription) => {
+  try {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+
+    // 1. Generate PDF
+    const logoPath = join(__dirname, '../public/logo.jpg');
+    const logoBase64 = fs.readFileSync(logoPath).toString('base64');
+    const pdfPath = await generatePdf({ prescription, logoBase64 }, 'prescriptionTemplate', 'prescription.pdf');
+
+    // 2. Upload PDF with authenticated access
+    const pdfResponse = await uploadOnCloudinary(pdfPath);
+    if (!pdfResponse?.url) throw new Error("PDF upload failed");
+
+    // 3. Generate QR code with authenticated PDF URL
+    const qrCodePath = join(__dirname, '../public/qr-code.png');
+    await QRCode.toFile(qrCodePath, pdfResponse.url, { width: 200 });
+    const qrCodeResponse = await uploadOnCloudinary(qrCodePath);
+
+    // 4. Generate signed URLs for email attachments
+    const signedPdfUrl = cloudinary.url(pdfResponse.public_id, {
+      sign_url: true,
+      secure: true,
+      type: 'authenticated'
+    });
+
+    // 5. Send email with direct Cloudinary links
+    const receiver = {
+      from: process.env.EMAIL_FROM,
+      to: prescription.patient.email,
+      subject: "Your Prescription",
+      html: `
+        <h2>Dear ${prescription.patient.name},</h2>
+        <p>Your prescription is ready. Scan the QR code or click the link below:</p>
+        <img src="${qrCodeResponse.url}" alt="QR Code" style="width:150px;"/>
+        <p><a href="${signedPdfUrl}">Download Prescription</a></p>
+      `,
+      // No need for attachments - using direct links
+    };
+
+    return await sendEmail(receiver);
+  } catch (error) {
+    console.error("Error sending prescription:", error);
+    throw error;
   }
 };

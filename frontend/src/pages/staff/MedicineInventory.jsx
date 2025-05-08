@@ -31,6 +31,7 @@ export default function MedicinesInventory() {
     invoiceNumber: "",
     supplier: "",});
 
+    const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("")
     const [medicines, setMedicines] = useState([]);
@@ -45,7 +46,11 @@ export default function MedicinesInventory() {
       invoiceNumber: "",
       supplier: "",
     });
-
+    const [lowStockUpdate, setLowStockUpdate] = useState({
+      id: "",
+      quantity: 0,
+    });
+    const [isLowStockDialogOpen, setIsLowStockDialogOpen] = useState(false);
     useEffect(()=>{
       const fetchMedicines = async () => {
         try {
@@ -82,7 +87,7 @@ export default function MedicinesInventory() {
     "Eye Ointment"
   ];
   
-  const handleAddMedicine = () => {
+  const handleAddMedicine = async () => {
     const {
       medicineName,
       batchNumber,
@@ -104,73 +109,51 @@ export default function MedicinesInventory() {
       !supplier.trim() ||
       quantity === 0
     ) {
-       // Show error toast
-       toast.error("please fill out all fields", {
-        autoClose: 2000
-      });
+      toast.error("Please fill out all fields", { autoClose: 2000 });
       return;
     }
-    if(quantity<=0 || !Number.isInteger(Number(quantity))){
-      // Show error toast
-      toast.error("please fill right quantity", {
-        autoClose: 2000
-      });
+    
+    if(quantity <= 0 || !Number.isInteger(Number(quantity))) {
+      toast.error("Please fill right quantity", { autoClose: 2000 });
       return;
     }
   
-    setMedicines([
-      ...medicines,
-      {
-        id: medicines.length + 1,
-        medicineName,
-        batchNumber,
-        type,
-        expiryDate,
-        quantity: Number.parseInt(quantity),
-        invoiceDate,
-        invoiceNumber,
-        supplier,
-      },
-    ]);
-    try{
-      console.log(newMedicine);
-      const res = API.post("/staff/addMedicine", {
+    try {
+      const res = await API.post("/staff/addMedicine", {
         ...newMedicine
       });
-      if(res.status === 200){
-        toast.success("Added new medicine", {
-          autoClose: 2000,
+      
+      if(res.status === 200) {
+        toast.success("Added new medicine", { autoClose: 2000 });
+        
+        // Fetch the updated list of medicines
+        const response = await API.get("/doctor/getAllMedicines");
+        setMedicines(response.data);
+        
+        // Reset form
+        setNewMedicine({
+          medicineName: "",
+          batchNumber: "",
+          type: "",
+          expiryDate: "",
+          quantity: 0,
+          invoiceDate: "",
+          invoiceNumber: "",
+          supplier: "",
         });
+        setIsAddDialogOpen(false); 
       }
     } catch (error) {
       console.error("Error adding medicine:", error);
-      toast.error("Error adding medicine", {
-        autoClose: 2000
-      }); 
-    }
+      console.log(error)
+      toast.error(error.response?.data?.message || "Error adding medicine", { autoClose: 2000 });
 
-    toast.success("Added new medicine",{
-      autoClose:1000
-    })
-    // Reset form
-    setNewMedicine({
-      saltName: "",
-      medicineName: "",
-      batchNumber: "",
-      type: "",
-      expiryDate: "",
-      quantity: 0,
-      invoiceDate: "",
-      invoiceNumber: "",
-      supplier: "",
-    });
+    }
   };
 
-  const handleEditMedicine = () => {
-    if (!editingMedicine){ return;}
-
-    // console.log("editing medicine: ",editingMedicine)
-    
+  const handleEditMedicine = async () => {
+    if (!editingMedicine) return;
+  
     const {
       medicineName,
       batchNumber,
@@ -182,56 +165,102 @@ export default function MedicinesInventory() {
       supplier,
     } = editingMedicine;
   
-    if (
-      !medicineName.trim() ||
-      !batchNumber.trim() ||
-      !type.trim() ||
-      !expiryDate.trim() ||
-      !invoiceDate.trim() ||
-      !invoiceNumber.trim() ||
-      !supplier.trim() ||
-      quantity === 0
-    ) {
-       // Show error toast
-       toast.error("please fill out all fields", {
-        autoClose: 2000
+    // Validation checks...
+  
+    try {
+      const res = await API.post("/staff/updateMedicine", {
+        ...editingMedicine
       });
-      return;
+      
+      if(res.status === 200) {
+        toast.success("Updated medicine", { autoClose: 2000 });
+        
+        // Fetch the updated list of medicines
+        const response = await API.get("/doctor/getAllMedicines");
+        setMedicines(response.data);
+        
+        setEditingMedicine({
+          medicineName: "",
+          batchNumber: "",
+          type: "",
+          expiryDate: "",
+          quantity: 0,
+          invoiceDate: "",
+          invoiceNumber: "",
+          supplier: "",
+        });
+        setIsEditDialogOpen(false);
+      }
+    } catch (error) {
+      console.error("Error updating medicine:", error);
+      toast.error(error.response?.data?.message||"Error updating medicine", { autoClose: 2000 });
     }
-    if(quantity<=0 || !Number.isInteger(Number(quantity))){
-      // Show error toast
-      toast.error("please fill right quantity", {
-        autoClose: 2000
-      });
-      return;
-    }
-    
-    setMedicines(medicines.map(medicine => 
-      medicine.id === editingMedicine.id ? editingMedicine : medicine
-    ));
-    
-    setEditingMedicine({medicineName: "",
-      batchNumber: "",
-      type: "",
-      expiryDate: "",
-      quantity: 0,
-      invoiceDate: "",
-      invoiceNumber: "",
-      supplier: "",});
-    setIsEditDialogOpen(false);
-    
-    toast.success("User information has been updated successfully");
-    setTimeout(() => {
-      document.querySelector("[data-state='open']")?.click();
-    },800);
   };
   
+  const handleLowStockUpdate = async () => {
+    if (!lowStockUpdate.id || lowStockUpdate.quantity <= 0) {
+      toast.error("Please enter a valid quantity", { autoClose: 2000 });
+      return;
+    }
+  
+    try {
+      const res = await API.post("/staff/updateLowStock", {
+        id: lowStockUpdate.id,
+        quantity: lowStockUpdate.quantity,
+      });
+      
+      if(res.status === 200) {
+        toast.success("Stock updated successfully", { autoClose: 2000 });
+        
+        // Fetch the updated list of medicines
+        const response = await API.get("/doctor/getAllMedicines");
+        setMedicines(response.data);
+        
+        setLowStockUpdate({
+          id: "",
+          quantity: 0,
+        });
+        setIsLowStockDialogOpen(false);
+      }
+    } catch (error) {
+      console.error("Error updating stock:", error);
+      toast.error(error.response?.data?.message || "Error updating stock", { autoClose: 2000 });
+    }
+  };
 
-  const filteredMedicines = medicines.filter(
-    (medicine) =>
-      medicine.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      medicine.category.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+  const filteredMedicines = medicines.filter((medicine) => {
+    if (!medicine || typeof medicine !== "object") return false;
+  
+    // console.log("Checking:", medicine);
+  
+    const name = medicine.name || "";
+    const category = medicine.category || "";
+    return (
+      name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      category.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  });
+
+const disposeMedicine = async (medicine) => {
+  try {
+    const res = await API.post("/staff/disposeMedicine", {
+      id: medicine._id,
+    });
+    if (res.status === 200) {
+      toast.success("Disposed medicine", {
+        autoClose: 2000,
+      });
+      // Update the medicines state by removing the disposed medicine
+      setMedicines(prevMedicines => prevMedicines.filter((m) => m._id !== medicine._id));
+    }
+  } catch (error) {
+    console.error("Error disposing medicine:", error);
+    toast.error("Error disposing medicine", {
+      autoClose: 2000,
+    });
+  }
+}
+  
 
   // Calculate days until expiry
   const calculateDaysUntilExpiry = (expiryDate) => {
@@ -246,7 +275,11 @@ export default function MedicinesInventory() {
   const lowStockMedicines = medicines.filter((m) => m.stock < 10)
 
   // Get expiring medicines (within 30 days)
-  const expiringMedicines = medicines.filter((m) => calculateDaysUntilExpiry(m.expiry) <= 30)
+  const expiringMedicines = medicines.filter((m) => {
+    const days = calculateDaysUntilExpiry(m.expiry);
+    return days > 0 && days <= 30;
+  });
+  
 
   // Get expired medicines
   const expiredMedicines = medicines.filter((m) => calculateDaysUntilExpiry(m.expiry) <= 0)
@@ -279,15 +312,15 @@ export default function MedicinesInventory() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <Dialog>
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-blue-600 hover:bg-blue-700">
+              <Button className="bg-blue-600 hover:bg-blue-700"  onClick={() => setIsAddDialogOpen(true)}>
                 <Plus className="mr-2 h-4 w-4" /> Add Medicine
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Add Medicine to Inventary !!!</DialogTitle>
+                <DialogTitle>Add Medicine to Inventory !!!</DialogTitle>
                 {/* <DialogDescription>Add a new medicine to the inventory.</DialogDescription> */}
               </DialogHeader>
 
@@ -501,6 +534,11 @@ export default function MedicinesInventory() {
                 Expired
               </span>
             )}
+            {!isLowStock && !isExpiringSoon && !isExpired && (
+            <span className="block rounded bg-green-100 px-2 py-0.5 text-xs text-green-800 w-fit">
+              Up-to-Date
+            </span>
+            )}
           </div>
 
           {/* Days Left */}
@@ -514,14 +552,29 @@ export default function MedicinesInventory() {
 
           {/* Actions */}
           <div className="col-span-1 text-right">
-            <button className="px-2 py-1 text-xs rounded border hover:bg-gray-100"
-             onClick={() => {
-              setEditingMedicine(medicine);
-              setIsEditDialogOpen(true);
-            }}
-            >
-              Update
-            </button>
+          <button 
+  className="px-2 py-1 text-xs rounded border hover:bg-gray-100"
+  onClick={() => {
+    // Format dates for the input fields (YYYY-MM-DD)
+    const formattedExpiry = medicine.expiry?.split('T')[0] || "";
+    const formattedInvoiceDate = medicine.batches[0].invoice_date?.split('T')[0] || "";
+    
+    setEditingMedicine({
+      id: medicine._id,
+      medicineName: medicine.name,
+      batchNumber: medicine.batches[0].batch_no,
+      type: medicine.category,
+      expiryDate: formattedExpiry,
+      quantity: medicine.stock,
+      invoiceDate: formattedInvoiceDate,
+      invoiceNumber: medicine.batches[0].invoice_no || "",
+      supplier: medicine.supplier || "",
+    });
+    setIsEditDialogOpen(true);
+  }}
+>
+  Update
+</button>
             
           </div>
         </div>
@@ -568,14 +621,18 @@ export default function MedicinesInventory() {
           </div>
           <div>{medicine.expiry?.slice(0, 10)}</div>
           <div className="text-right">
-            <button className="px-2 py-1 text-xs rounded border hover:bg-gray-100"
-             onClick={() => {
-              setEditingMedicine(medicine);
-              setIsEditDialogOpen(true);
-            }}
-            >
-              Update Stock
-            </button>
+            <button 
+  className="px-2 py-1 text-xs rounded border hover:bg-gray-100"
+  onClick={() => {
+    setLowStockUpdate({
+      id: medicine._id,
+      quantity: medicine.stock,
+    });
+    setIsLowStockDialogOpen(true);
+  }}
+>
+  Update Stock
+</button>
           </div>
         </div>
       ))
@@ -630,7 +687,7 @@ export default function MedicinesInventory() {
               {calculateDaysUntilExpiry(medicine.expiry)} days
             </div>
             <div className="text-right">
-              <button className="px-2 py-1 text-xs rounded border hover:bg-gray-100">
+              <button onClick={()=>{disposeMedicine(medicine)}} className="px-2 py-1 text-xs rounded border hover:bg-gray-100">
                 Mark Used
               </button>
             </div>
@@ -679,7 +736,7 @@ export default function MedicinesInventory() {
           </div>
           <div className="text-red-600 font-medium">{medicine.expiry?.slice(0, 10)}</div>
           <div className="text-right">
-            <button className="px-2 py-1 text-xs rounded border hover:bg-gray-100">
+            <button onClick={()=>{disposeMedicine(medicine)}} className="px-2 py-1 text-xs rounded border hover:bg-gray-100">
               Dispose
             </button>
           </div>
@@ -702,7 +759,7 @@ export default function MedicinesInventory() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
       <DialogContent>
               <DialogHeader>
-                <DialogTitle>Update Medicine to Inventary !!!</DialogTitle>
+                <DialogTitle>Update Medicine to Inventory !!!</DialogTitle>
                 <DialogDescription>Update Medicine</DialogDescription>
               </DialogHeader>
               <div className="grid grid-cols-2 gap-4 py-4">
@@ -803,6 +860,34 @@ export default function MedicinesInventory() {
               </DialogFooter>
       </DialogContent>
       </Dialog>
+      <Dialog open={isLowStockDialogOpen} onOpenChange={setIsLowStockDialogOpen}>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Update Stock Level</DialogTitle>
+      <DialogDescription>Increase the stock quantity for this medicine</DialogDescription>
+    </DialogHeader>
+    <div className="grid gap-4 py-4">
+      <div className="grid gap-2">
+        <Label htmlFor="quantity">New Quantity:</Label>
+        <Input
+          id="quantity"
+          type="number"
+          min="1"
+          value={lowStockUpdate.quantity}
+          onChange={(e) => setLowStockUpdate({
+            ...lowStockUpdate,
+            quantity: parseInt(e.target.value) || 0
+          })}
+        />
+      </div>
+    </div>
+    <DialogFooter>
+      <Button onClick={handleLowStockUpdate} className="bg-blue-600 hover:bg-blue-700">
+        Update Stock
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
     </>
   )
 }

@@ -32,6 +32,13 @@ export const isAuthenticated = async (req, res, next) => {
     }
 
     req.user = user; // Attach user to request
+    if (await Doctor.findById(decoded._id)) {
+      req.role = "doctor";
+    } else if (await Staff.findById(decoded._id)) {
+      req.role = "staff";
+    } else if (await Admin.findById(decoded._id)) {
+      req.role = "admin";
+    }
     next();
   } catch (error) {
     next(error);

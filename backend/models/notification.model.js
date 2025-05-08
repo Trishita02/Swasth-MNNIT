@@ -14,6 +14,13 @@ const notificationSchema = new mongoose.Schema({
     enum: ["all", "admin", "doctor", "staff"],
     required: true,
   },
+  readBy: {
+    type: {
+      doctor: [mongoose.Schema.Types.ObjectId],
+      staff: [mongoose.Schema.Types.ObjectId]
+    },
+    default: () => ({ doctors: [], staff: [] }) // Initialize with empty arrays
+  },
 },{ timestamps: true });
 
 const Notification =  mongoose.model("Notification", notificationSchema);

@@ -1,6 +1,7 @@
 import { Admin } from "../models/admin.model.js";
 import Staff from "../models/staff.model.js";
 import { Doctor } from "../models/doctor.model.js";
+import ActivityLog from "../models/activitylog.model.js"
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import dotenv from "dotenv";
@@ -41,7 +42,15 @@ export const loginUser = async (req, res) => {
       secure: true,
       sameSite: "lax",
     };
-
+    if (role === 'dr' || role === 'st') {
+      const activity = new ActivityLog({
+        user: user._id,
+        role: role === 'dr' ? 'Doctor' : 'Staff',
+        activity: 'Login',
+       details: `${username} logged in`
+      });
+      await activity.save();
+    }    
     res
       .status(200)
       .cookie("accessToken", accessToken, options)
@@ -72,6 +81,22 @@ export const logoutUser = async (req, res) => {
       secure: true,
       sameSite: "lax",
     };
+    if (req.role) {  
+      try {
+        const formattedRole = req.role.charAt(0).toUpperCase() + req.role.slice(1).toLowerCase();
+        if (['Staff', 'Doctor'].includes(formattedRole)) {
+          const activity = new ActivityLog({
+            user: req.user._id,
+            role: formattedRole,  
+            activity: 'Logout',
+            details: `${user.username || user.email || 'Unknown user'} logged out`
+          });
+          await activity.save();
+        }
+      } catch (activityError) {
+        console.error('Activity log save error:', activityError);
+      }
+    }
 
     // Clear cookies securely
     res
@@ -100,6 +125,23 @@ export const changePassword = async (req, res, next) => {
     }
     user.password = newPassword;
     await user.save();
+    let role;
+    if (user instanceof Doctor) {
+      role = 'Doctor';
+    } else if (user instanceof Staff) {
+      role = 'Staff';
+    } else {
+      role = 'Admin';
+    }
+
+    const activity = new ActivityLog({
+      user: req.user._id,
+      role,
+      activity: 'Password Change',
+      details: 'changed their password'
+    });
+
+await activity.save();
     res.status(200).json({
       success: true,
       message: "Password changed successfully",

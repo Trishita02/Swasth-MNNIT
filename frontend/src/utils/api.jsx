@@ -318,3 +318,128 @@ export const getAllStaffAPI = async () => {
     throw error;
   }
 };
+
+export const printPrescriptionAPI = async (id) => {
+  try {
+    const url = `http://localhost:8080/doctor/print-prescription/${id}`;
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.src = url;
+    document.body.appendChild(iframe);
+    
+    iframe.onload = () => {
+      iframe.contentWindow.print();
+      // Remove the iframe after some time
+      setTimeout(() => {
+        document.body.removeChild(iframe);
+      }, 1000);
+    };
+  } catch (error) {
+    console.error("Error printing prescription:", error);
+    throw error;
+  }
+};
+
+export const getDoctorNotificationsAPI = async () => {
+  try {
+    const res = await API.get("/doctor/notifications");
+    return res.data.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const markDoctorNotificationAsReadAPI = async (notificationId) => {
+  try {
+    const res = await API.patch(`/doctor/notifications/${notificationId}/read`);
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const markAllDoctorNotificationsAsReadAPI = async () => {
+  try {
+    const res = await API.patch("/doctor/notifications/mark-all-read");
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Staff Notification APIs
+export const getStaffNotificationsAPI = async () => {
+  try {
+    const res = await API.get("/staff/notifications");
+    return res.data.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const markStaffNotificationAsReadAPI = async (notificationId) => {
+  try {
+    const res = await API.patch(`/staff/notifications/${notificationId}/read`);
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const markAllStaffNotificationsAsReadAPI = async () => {
+  try {
+    const res = await API.patch("/staff/notifications/mark-all-read");
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+
+// home page email varification api
+export const sendCode = async (email) =>{
+  const toastId = toast.loading("Sending code..");
+  try {
+    const res = await API.post("/home/sendCode",{email});
+    
+    if (res.data.success) {
+      toast.success("Verification code sent successfully.");
+    } else {
+      toast.error(res.data.message || "Something went wrong");
+    }
+
+    return res.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || "Failed to send email";
+    toast.error(errorMessage);
+    throw new Error(errorMessage);
+  } finally {
+    toast.dismiss(toastId);
+  }
+}
+
+export const verifyCode = async (email, code) => {
+  const toastId = toast.loading("Verifying code...");
+  try {
+    const res = await API.post("/home/verifyCode", { email, code });
+
+    toast.success(res.data.message || "Email verified successfully");
+    return res.data; // will include `message` and `list` of todayDoctors
+  } catch (error) {
+    const errorMessage =
+      error.response?.data?.error || "Failed to verify code";
+    toast.error(errorMessage);
+    throw new Error(errorMessage);
+  } finally {
+    toast.dismiss(toastId);
+  }
+};
+
+export const getUser=async()=>{
+  try{
+    const res=API.get("/home/user");
+    return res;
+  }catch(error){
+    throw error.response?.data || "error fetching user details";
+  }
+}

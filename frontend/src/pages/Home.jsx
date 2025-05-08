@@ -144,14 +144,14 @@ function Home(){
         <div
           className="bg-cover bg-center h-[400px] md:h-[500px]"
           style={{
-            backgroundImage: "url('/hero-image.jpg')",
+            backgroundImage: "url('../public/background.webp')",
             backgroundPosition: "center",
           }}
         >
           <div className="container mx-auto px-4 h-full flex flex-col justify-center relative z-10">
             <div className="max-w-2xl text-white">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">Swasth MNNIT</h1>
-              <p className="text-xl md:text-2xl mb-8">Providing quality healthcare services to the MNNIT community</p>
+              <p className="text-xl md:text-2xl mb-8">Creating a healthier, stronger MNNIT together</p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link to="/login">
                   <button className="py-2 px-3 rounded-md bg-white text-blue-700 hover:bg-blue-700 hover:text-white transition-all duration-300 border">
@@ -189,7 +189,7 @@ function Home(){
               <CardContent>
                 <p className="text-gray-600">
                   Our health center is equipped with modern facilities and staffed by experienced healthcare
-                  professionals dedicated to providing the highest quality of care.
+                  professionals dedicated to providing the highest quality of care
                 </p>
               </CardContent>
             </Card>
@@ -198,13 +198,12 @@ function Home(){
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Users className="h-5 w-5 text-blue-500 mr-2" />
-                  Expert Staff
+                  Expert Team
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600">
-                  Our team includes qualified doctors, nurses, and support staff who are committed to the health and
-                  well-being of the MNNIT community.
+                Our team of qualified doctors is dedicated to providing exceptional care for the health and well-being of everyone at MNNIT
                 </p>
               </CardContent>
             </Card>
@@ -218,8 +217,7 @@ function Home(){
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600">
-                  We provide round-the-clock emergency services to ensure that medical assistance is available whenever
-                  needed.
+                Emergency services are available 24/7 to provide medical assistance whenever needed
                 </p>
               </CardContent>
             </Card>
@@ -249,7 +247,7 @@ function Home(){
                 </div>
                 <div className="flex items-center">
                   <Phone className="h-5 w-5 text-blue-500 mr-2" />
-                  <span className="text-gray-700">+91-532-2271000</span>
+                  <a href="tel:05322271089" className="text-gray-700 hover:underline">0532 227 1089</a>
                 </div>
               </div>
             </div>
@@ -261,18 +259,18 @@ function Home(){
       </section>
 
       {/* Doctors Schedule Section with Filtering */}
-      <section className="py-16 bg-white" id="doctors">
+      {/* <section className="py-16 bg-white" id="doctors">
         <div className="container mx-auto px-4">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Doctors' Duty Schedule</h2>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Our healthcare professionals are available on the following schedule. Please check the timings before your
+            Doctors are available according to the following schedule. Please check the timings before your
               visit.
             </p>
-          </div>
+          </div> */}
 
           {/* Search and Filter Controls */}
-          <div className="mb-8 p-4 bg-blue-50 rounded-lg shadow-sm">
+          {/* <div className="mb-8 p-4 bg-blue-50 rounded-lg shadow-sm">
             <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
               <div className="relative w-full md:w-64">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -330,10 +328,10 @@ function Home(){
                 </Button>
               )}
             </div>
-          </div>
+          </div> */}
 
           {/* Doctor Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredDoctors.length > 0 ? (
               filteredDoctors.map((doctor) => (
                 <Card key={doctor.id} className="overflow-hidden hover:shadow-lg transition-shadow">
@@ -372,9 +370,6 @@ function Home(){
 
                     <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
                       <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Available</Badge>
-                      {/* <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-800">
-                        View Details
-                      </Button> */}
                     </div>
                   </CardContent>
                 </Card>
@@ -394,17 +389,8 @@ function Home(){
               </div>
             )}
           </div>
-
-          <div className="mt-12 text-center">
-            <p className="text-gray-600 mb-4">
-              For emergencies outside of these hours, please contact our 24/7 emergency service.
-            </p>
-            <Button className="bg-blue-600 hover:bg-blue-700">
-              <Phone className="mr-2 h-4 w-4" /> Emergency Contact
-            </Button>
-          </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Services Section */}
       <section className="py-16 bg-gradient-to-b from-blue-50 to-white">
@@ -467,26 +453,12 @@ function Home(){
           </div>
         </div>
       </section>
-
-      {/* CTA Section */}
-      <section className="py-16 bg-blue-600 text-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-6">Access Your Health Records</h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto">
-            Login to the Swasth MNNIT portal to access your health records, schedule appointments, and more.
-          </p>
-          <Link to="/login">
-                  <button className="py-2 px-3 rounded-md bg-white text-blue-700 hover:bg-blue-700 hover:text-white transition-all duration-300 border">
-                    Login to Portal
-                  </button>
-                </Link>
+      
+          {/* Simple footer with copyright */}
+         <div className="bg-gray-700 text-white py-6 text-center">
+            <p className="text-sm text-gray-100">Copyright © {new Date().getFullYear()} - All Rights Reserved - Swasth MNNIT Hospital Unit</p>
         </div>
-      </section>
 
-      {/* Simple footer with copyright */}
-      <div className="bg-gray-900 text-white py-6 text-center">
-        <p className="text-sm text-gray-400">© {new Date().getFullYear()} Swasth MNNIT. All rights reserved.</p>
-      </div>
     </div>
         </>
     )

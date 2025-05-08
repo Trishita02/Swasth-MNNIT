@@ -10,6 +10,7 @@ import { isAuthenticated } from "./middlewares/auth.middleware.js";
 import adminRouter from "./routes/admin.routes.js"
 import staffRouter from "./routes/staff.routes.js"
 import doctorRoute from "./routes/doctor.route.js"
+import homeRoute from "./routes/home.route.js"
 import errorMiddleware from "./middlewares/error.middleware.js";
 dotenv.config({
     path:'./.env'
@@ -42,6 +43,7 @@ app.post("/logout", isAuthenticated, logoutUser);
 app.use('/admin', adminRouter)
 app.use("/staff", staffRouter)
 app.use("/doctor", doctorRoute)
+app.use("/home",homeRoute);
 // app.use(errorMiddleware);
 
 //Connect database

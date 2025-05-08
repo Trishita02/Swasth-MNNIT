@@ -1,46 +1,41 @@
 import ejs from 'ejs';
-import pdf from 'html-pdf';
+import puppeteer from 'puppeteer';
 import path from 'path';
-import { fileURLToPath } from "url";
-import { dirname } from "path";
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import fs from 'fs';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+
 export const generatePdf = async (data, templateName, outputFileName) => {
   try {
-    const html = await new Promise((resolve, reject) => {
-      ejs.renderFile(
-        path.join(__dirname, `../views/${templateName}.ejs`),
-        data,
-        (err, renderedHtml) => {
-          if (err) reject(err);
-          else resolve(renderedHtml);
-        }
-      );
+    const html = await ejs.renderFile(
+      path.join(__dirname, `../views/${templateName}.ejs`),
+      data
+    );
+
+    const browser = await puppeteer.launch({
+      headless: 'new', // 'new' works better with latest Puppeteer
+    });
+    const page = await browser.newPage();
+
+    // Write HTML to temporary file or use data URL
+    await page.setContent(html, { waitUntil: 'networkidle0' });
+
+    const outputFilePath = path.join(__dirname, '../public', outputFileName);
+    await page.pdf({
+      path: outputFilePath,
+      format: 'A4',
+      printBackground: true,
     });
 
-    const pdfOptions = {
-      height: '11.25in',
-      width: '8.5in',
-      header: { height: '20mm' },
-      footer: { height: '20mm' },
-    };
-
-    const outputFilePath = path.join(__dirname, '../public', outputFileName); 
-    const pdfFilePath = await new Promise((resolve, reject) => {
-      pdf.create(html, pdfOptions).toFile(outputFilePath, (err, result) => {
-        if (err) {
-            console.error("Error creating PDF:", err);
-            reject(err);
-          } else {
-            console.log("PDF created successfully");
-            resolve(result.filename);
-          }
-      });
-    });
-
-    return pdfFilePath;
+    await browser.close();
+    console.log("PDF created successfully")
+    return outputFilePath;
   } catch (error) {
-    console.error("Error generating PDF:", error);
+    console.error('Error generating PDF with Puppeteer:', error);
     throw error;
   }
 };
